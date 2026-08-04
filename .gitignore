@@ -1,0 +1,10 @@
+﻿node_modules/
+.next/
+.env
+.env.local
+*.log
+
+# Separate projects stored alongside the ELPAC site
+paper-assistant/
+real-life-replay/
+real-life-replay-next/
