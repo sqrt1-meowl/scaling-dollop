@@ -3468,12 +3468,164 @@ function SignIn({ onSignedIn }) {
   );
 }
 
+function ReadinessCheck({ domain, onReady, onBack }) {
+  const needsMicrophone = domain === "speaking";
+  const [soundState, setSoundState] = useState("idle");
+  const [heardSound, setHeardSound] = useState(false);
+  const [recordState, setRecordState] = useState("idle");
+  const [recordingURL, setRecordingURL] = useState(null);
+  const [microphoneError, setMicrophoneError] = useState("");
+  const [skipMicrophone, setSkipMicrophone] = useState(false);
+  const recorderRef = useRef(null);
+  const streamRef = useRef(null);
+  const chunksRef = useRef([]);
+
+  useEffect(() => () => {
+    stopSpeaking();
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    if (streamRef.current) streamRef.current.getTracks().forEach((track) => track.stop());
+    if (recordingURL) URL.revokeObjectURL(recordingURL);
+  }, [recordingURL]);
+
+  function playSoundCheck() {
+    setHeardSound(false);
+    setSoundState("playing");
+    speak("This is the sound check. If you can hear this message, your sound is ready.", {
+      onEnd: () => setSoundState("played"),
+    });
+  }
+
+  async function startMicrophoneCheck() {
+    setMicrophoneError("");
+    setSkipMicrophone(false);
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setMicrophoneError("Recording is not supported in this browser. You may continue and practice aloud.");
+      return;
+    }
+    try {
+      if (recordingURL) {
+        URL.revokeObjectURL(recordingURL);
+        setRecordingURL(null);
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        setRecordingURL(URL.createObjectURL(blob));
+        setRecordState("done");
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      };
+      recorder.start();
+      setRecordState("recording");
+    } catch {
+      setRecordState("idle");
+      setMicrophoneError(
+        "Microphone access was blocked. Allow it in the browser address bar, then try again."
+      );
+    }
+  }
+
+  function stopMicrophoneCheck() {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+  }
+
+  const microphoneReady = !needsMicrophone || recordState === "done" || skipMicrophone;
+  const ready = heardSound && microphoneReady;
+
+  return (
+    <div>
+      <Back onClick={onBack} label="practice sets" />
+      <h2 style={{ fontSize: 22, margin: "0 0 6px" }}>
+        {needsMicrophone ? "Check sound and microphone" : "Check your sound"}
+      </h2>
+      <p style={{ fontSize: 14.5, color: C.mute, marginTop: 0, marginBottom: 16,
+        lineHeight: 1.55 }}>
+        Complete this quick check before the section begins. It is not part of your practice history.
+      </p>
+
+      <div style={{ ...examPane, marginBottom: 12 }}>
+        <div style={paneLabel}>1 · Sound</div>
+        <p style={{ fontSize: 14, color: C.ink, margin: "0 0 12px", lineHeight: 1.5 }}>
+          Turn up your volume or put on headphones, then play the test message.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <button type="button" onClick={playSoundCheck} disabled={soundState === "playing"}
+            style={{ ...smallPrimary, opacity: soundState === "playing" ? 0.6 : 1 }}>
+            {soundState === "playing" ? "Playing…" : soundState === "played" ? "Play again" : "Play test sound"}
+          </button>
+          {soundState === "played" && !heardSound && (
+            <button type="button" onClick={() => setHeardSound(true)} style={ghostBtn}>
+              I heard it
+            </button>
+          )}
+          {heardSound && <span style={{ color: C.moss, fontSize: 13.5, fontWeight: 700 }}>Sound ready</span>}
+        </div>
+      </div>
+
+      {needsMicrophone && (
+        <div style={{ ...examPane, marginBottom: 12, opacity: heardSound ? 1 : 0.55 }}>
+          <div style={paneLabel}>2 · Microphone</div>
+          <p style={{ fontSize: 14, color: C.ink, margin: "0 0 12px", lineHeight: 1.5 }}>
+            Record yourself saying, “My microphone is working,” then play it back.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {recordState === "recording" ? (
+              <button type="button" onClick={stopMicrophoneCheck} style={{ ...smallPrimary, background: C.clay }}>
+                Stop recording
+              </button>
+            ) : (
+              <button type="button" onClick={startMicrophoneCheck} disabled={!heardSound}
+                style={{ ...smallPrimary, opacity: heardSound ? 1 : 0.45 }}>
+                {recordState === "done" ? "Re-record" : "Record sample"}
+              </button>
+            )}
+            {recordState === "recording" && (
+              <span style={{ color: C.clay, fontSize: 13.5, fontWeight: 700 }}>Recording…</span>
+            )}
+          </div>
+          {recordingURL && (
+            <audio controls src={recordingURL} style={{ width: "100%", marginTop: 12 }} />
+          )}
+          {microphoneError && (
+            <div style={{ marginTop: 10 }}>
+              <Note text={microphoneError} tone="clay" />
+              <button type="button" onClick={() => setSkipMicrophone(true)}
+                style={{ ...ghostBtn, marginTop: 9 }}>
+                Continue without microphone
+              </button>
+            </div>
+          )}
+          {skipMicrophone && (
+            <div style={{ color: C.mute, fontSize: 12.5, marginTop: 9 }}>
+              You can continue, but speaking responses may not be recorded.
+            </div>
+          )}
+        </div>
+      )}
+
+      <button type="button" onClick={onReady} disabled={!ready}
+        style={{ ...primaryBtn, width: "100%", opacity: ready ? 1 : 0.45,
+          cursor: ready ? "pointer" : "default" }}>
+        Begin {needsMicrophone ? "speaking" : "listening"} section
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [span, setSpan] = useState(null);
   const [setNum, setSetNum] = useState(null);
   const [domain, setDomain] = useState(null);
   const [resume, setResume] = useState(null);
+  const [readinessComplete, setReadinessComplete] = useState(false);
   const [showMe, setShowMe] = useState(false);
   const [storageWarning, setStorageWarning] = useState(false);
 
@@ -3484,7 +3636,8 @@ export default function App() {
   }, []);
 
   const reset = () => {
-    setSpan(null); setSetNum(null); setDomain(null); setResume(null); setShowMe(false);
+    setSpan(null); setSetNum(null); setDomain(null); setResume(null);
+    setReadinessComplete(false); setShowMe(false);
   };
   const spanObj = SPANS.find((s) => s.id === span);
 
@@ -3541,15 +3694,20 @@ export default function App() {
             user={user} span={span}
             onPick={(nextSet, nextResume) => {
               setResume(nextResume || null);
+              setReadinessComplete(!!nextResume);
               setSetNum(nextSet);
             }} />
+        : (domain === "listening" || domain === "speaking") && !resume && !readinessComplete
+          ? <ReadinessCheck domain={domain}
+              onBack={() => { setSetNum(null); setReadinessComplete(false); }}
+              onReady={() => setReadinessComplete(true)} />
         : <DomainRunner key={`${domain}-${setNum}`} blocks={BANKS[setNum][span][domain]} domain={domain}
             user={user} setNum={setNum} span={span} resume={resume}
-            onExit={() => { setSetNum(null); setResume(null); }}
+            onExit={() => { setSetNum(null); setResume(null); setReadinessComplete(false); }}
             onFinish={async (r) => {
               const saved = await saveAttempt(domain, r);
               if (!saved) return false;
-              setSetNum(null); setResume(null);
+              setSetNum(null); setResume(null); setReadinessComplete(false);
               return true;
             }} />}
       </div>
@@ -4184,8 +4342,8 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide 
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap",
       flexDirection: wide ? "row" : "column" }}>
-      {questionPane}
       {sourcePane}
+      {questionPane}
     </div>
   );
 }
@@ -4307,7 +4465,7 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap",
       flexDirection: wide ? "row" : "column" }}>
-      {wide ? <>{answerPane}{visualPane}</> : <>{visualPane}{answerPane}</>}
+      {visualPane}{answerPane}
     </div>
   );
 }
@@ -4506,7 +4664,7 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap",
       flexDirection: wide ? "row" : "column" }}>
-      {wide ? <>{taskPane}{visualPane}</> : <>{visualPane}{taskPane}</>}
+      {visualPane}{taskPane}
     </div>
   );
 }
