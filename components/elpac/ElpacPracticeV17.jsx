@@ -22,6 +22,9 @@ const SCENE_PHOTOS = {
   "s3-35-rc-rainy-window": "/elpac/media/s3-35-rc-rainy-window.jpg",
   "s3-35-sp-market": "/elpac/media/s3-35-sp-market.jpg",
   library: "/elpac/media/library.jpg",
+  mathclass: "/elpac/media/mathclass.webp",
+  map: "/elpac/media/map.webp",
+  sciencefair: "/elpac/media/sciencefair.webp",
   "three-rs-organizer": "/elpac/media/three-rs-organizer.webp",
   "playground-survey-chart": "/elpac/media/playground-survey-chart.webp",
   "weather-chart": "/elpac/media/weather-chart.webp",
@@ -48,6 +51,9 @@ const SCENE_ALTS = {
   "s3-35-rc-art-class": "Students creating artwork in class",
   "s3-35-rc-rainy-window": "A student looking through a rainy window",
   "s3-35-sp-market": "People shopping at an outdoor market",
+  mathclass: "A teacher explaining an algebra problem to students in a math classroom",
+  map: "A student pointing to a world map while classmates and a teacher watch",
+  sciencefair: "Students presenting projects to a judge at a school science fair",
   library: "Students reading and studying in a library",
   "three-rs-organizer": "The Three Rs organizer with examples of reduce, reuse, and recycle",
   "playground-survey-chart": "Bar chart showing student votes for new playground equipment",
@@ -3658,8 +3664,9 @@ export default function App() {
 
   if (!user) {
     return (
-      <div style={{ background:C.paper, minHeight:"100%", color:C.ink, fontFamily:"Georgia, serif" }}>
-        <div style={{ maxWidth:760, margin:"0 auto", padding:"40px 22px 70px" }}>
+      <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
+        <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
+          margin:"0 auto", padding:"40px 22px 70px" }}>
           <SignIn onSignedIn={setUser} />
         </div>
       </div>
@@ -3667,9 +3674,10 @@ export default function App() {
   }
 
   return (
-    <div style={{ background:C.paper, minHeight:"100%", color:C.ink, fontFamily:"Georgia, serif" }}>
+    <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
       <style>{`@keyframes eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }`}</style>
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"24px 22px 70px" }}>
+      <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
+        margin:"0 auto", padding:"24px 22px 70px" }}>
         <TopBar user={user} onHome={reset} onMe={() => setShowMe(true)}
           onSignOut={() => { reset(); setUser(null); }} />
         {storageWarning && (
