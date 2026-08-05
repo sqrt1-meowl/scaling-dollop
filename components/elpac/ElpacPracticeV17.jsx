@@ -3664,7 +3664,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
+      <div style={{ background:C.paper, minHeight:"76dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
         <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
           margin:"0 auto", padding:"40px 22px 70px" }}>
           <SignIn onSignedIn={setUser} />
@@ -3674,7 +3674,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
+    <div style={{ background:C.paper, minHeight:"76dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
       <style>{`@keyframes eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }`}</style>
       <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
         margin:"0 auto", padding:"24px 22px 70px" }}>
