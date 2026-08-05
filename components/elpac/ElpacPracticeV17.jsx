@@ -2820,7 +2820,7 @@ const BANKS = Object.fromEntries(Object.entries(RAW_BANKS).map(([setNum, spans])
 ]));
 
 // ── Built-in scene illustrations (SVG) shown for picture-based tasks ──
-function Scene({ name }) {
+function Scene({ name, displayHeight }) {
   const [expanded, setExpanded] = useState(false);
   const [fullSize, setFullSize] = useState(false);
   const sceneWide = useIsWide(700);
@@ -2851,8 +2851,8 @@ function Scene({ name }) {
           style={{ display: "block", width: "100%", padding: 0, border: 0,
             borderRadius: 10, background: "transparent", cursor: "zoom-in" }}>
           <img src={SCENE_PHOTOS[name]} alt={alt} decoding="async"
-            style={{ width: "100%", borderRadius: 10, border: `1.5px solid ${C.line}`,
-              display: "block" }} />
+            style={{ width: "100%", height: displayHeight || "auto", objectFit: displayHeight ? "cover" : undefined,
+              borderRadius: 10, border: `1.5px solid ${C.line}`, display: "block" }} />
         </button>
         <button type="button" onClick={() => {
           setFullSize(!sceneWide);
@@ -3664,7 +3664,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <div style={{ background:C.paper, minHeight:"76dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
+      <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
         <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
           margin:"0 auto", padding:"40px 22px 70px" }}>
           <SignIn onSignedIn={setUser} />
@@ -3674,7 +3674,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ background:C.paper, minHeight:"76dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
+    <div style={{ background:C.paper, minHeight:"100dvh", color:C.ink, fontFamily:"Georgia, serif" }}>
       <style>{`@keyframes eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }`}</style>
       <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
         margin:"0 auto", padding:"24px 22px 70px" }}>
@@ -4298,7 +4298,8 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide 
   const hasSource = !listening && (block.passage || block.scene);
 
   const questionPane = (
-    <div style={{ ...examPane, flex: "1 1 300px", minWidth: 0 }}>
+    <div style={{ ...examPane, flex: "1 1 300px", minWidth: 0,
+      minHeight: wide && hasSource ? 500 : undefined }}>
       <div style={paneLabel}>Question {qIdx + 1} of {block.qs.length}</div>
       <p style={{ fontSize: 16, lineHeight: 1.5, margin: "0 0 16px", fontWeight: 600 }}>
         {block.qs[qIdx].stem}
@@ -4338,7 +4339,7 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide 
 
   const sourcePane = (
     <div style={{ ...examPane, flex: "1 1 300px", minWidth: 0,
-      maxHeight: wide ? 560 : 340, overflowY: "auto" }}>
+      minHeight: wide ? 500 : undefined, maxHeight: wide ? 600 : 340, overflowY: "auto" }}>
       <div style={paneLabel}>{block.topic}</div>
       {block.scene && <Scene name={block.scene} />}
       {block.passage && (
@@ -4447,7 +4448,8 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
   }, [val, canBack]);
 
   const answerPane = (
-    <div style={{ ...examPane, flex: "1 1 320px", minWidth: 0 }}>
+    <div style={{ ...examPane, flex: "1 1 320px", minWidth: 0,
+      minHeight: wide ? 520 : undefined, display: "flex", flexDirection: "column" }}>
       <div style={paneLabel}>Response</div>
       <p style={{ fontSize: 16, lineHeight: 1.55, margin: "0 0 14px", fontWeight: 600 }}>{block.stem}</p>
       <textarea value={val} onChange={(e) => {
@@ -4456,7 +4458,8 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
         onResponse && onResponse({ type: "writing", text: next });
       }}
         placeholder="Type your response here." rows={block.minWords > 12 ? 8 : 4}
-        style={{ ...textInput, resize: "vertical" }} />
+        style={{ ...textInput, resize: "vertical", flex: wide ? "1 1 auto" : undefined,
+          minHeight: wide ? (block.minWords > 12 ? 260 : 180) : undefined }} />
       <div style={{ fontSize: 12.5, color: C.mute, margin: "8px 0 0", lineHeight: 1.5 }}>{block.hint}</div>
     </div>
   );
@@ -4464,9 +4467,10 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
   if (!block.scene) return answerPane;
 
   const visualPane = (
-    <div style={{ ...examPane, flex: "1 1 350px", minWidth: 0 }}>
+    <div style={{ ...examPane, flex: "1 1 350px", minWidth: 0,
+      minHeight: wide ? 520 : undefined }}>
       <div style={paneLabel}>{block.topic}</div>
-      <Scene name={block.scene} />
+      <Scene name={block.scene} displayHeight={wide ? "clamp(340px, 38dvh, 420px)" : undefined} />
     </div>
   );
 
