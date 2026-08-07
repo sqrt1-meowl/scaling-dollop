@@ -54,6 +54,7 @@ export default function HomePage() {
             <p className="label mb-3 text-[#8a939f]">Demo accounts</p>
             <div className="space-y-2 text-xs text-[#566273]">
               <button className="flex w-full justify-between border border-[#e1e4e7] bg-[#fafaf8] px-3 py-2 text-left hover:border-[#aeb6c0]" onClick={() => { setEmail("student@example.com"); setPassword("demo123"); }}><span><b>Student</b> · student@example.com</span><span>demo123</span></button>
+              <button className="flex w-full justify-between border border-[#cfd9e4] bg-[#f2f5f8] px-3 py-2 text-left hover:border-[#8da2b8]" onClick={() => { setEmail("newstudent@example.com"); setPassword("demo123"); }}><span><b>New student</b> · no progress</span><span>demo123</span></button>
               <button className="flex w-full justify-between border border-[#e1e4e7] bg-[#fafaf8] px-3 py-2 text-left hover:border-[#aeb6c0]" onClick={() => { setEmail("admin@example.com"); setPassword("demo123"); }}><span><b>Admin</b> · admin@example.com</span><span>demo123</span></button>
             </div>
           </div>

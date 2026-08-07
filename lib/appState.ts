@@ -56,3 +56,35 @@ export const makeSeedData = (): AppData => {
     },
   };
 };
+
+export const makeNewStudentData = (): AppData => {
+  const progress: Record<string, TopicProgress> = {};
+  allTopics.forEach((topic, index) => {
+    progress[topic.id] = {
+      topicId: topic.id,
+      easyCompleted: 0,
+      mediumCompleted: 0,
+      gateScore: null,
+      status: index === 0 ? "available" : "locked",
+      challengeCompleted: false,
+      updatedAt: new Date(0).toISOString(),
+    };
+  });
+  return {
+    progress,
+    scores: [],
+    errors: [],
+    warmups: [],
+    questions: seedQuestions,
+    questionAttempts: 0,
+    challenge: {
+      topicId: "area-and-volume",
+      title: "Scale Factors and Area",
+      sourceId: "AV-CH-01",
+      questionText: areaVolumeQuestions.find((q) => q.difficulty === "hard")?.prompt ?? "",
+      videoUrl: "https://www.youtube.com/embed/6v2L2UGZJAM",
+      takeaway: "The formula itself is familiar. The hard part is recognizing that a side-length scale factor must be squared when comparing areas.",
+      notes: "Pause before calculating: identify what scales linearly and what scales by area.",
+    },
+  };
+};

@@ -14,6 +14,7 @@ Open `http://localhost:3000`. The app uses seeded local data when Supabase varia
 Demo accounts:
 
 - Student: `student@example.com` / `demo123`
+- New student with no progress: `newstudent@example.com` / `demo123`
 - Admin: `admin@example.com` / `demo123`
 
 ## Supabase setup

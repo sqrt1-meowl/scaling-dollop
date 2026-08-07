@@ -3,11 +3,16 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AppData, ChallengeLesson, ErrorKind, Role, ScoreRecord, Session, TopicProgress, WarmupAttempt } from "@/lib/appState";
-import { makeSeedData } from "@/lib/appState";
+import { makeNewStudentData, makeSeedData } from "@/lib/appState";
 import type { Question } from "@/lib/curriculum";
 
 const DATA_KEY = "sat-math-drill-data-v1";
+const NEW_STUDENT_DATA_KEY = "sat-math-drill-data-new-student-v1";
 const SESSION_KEY = "sat-math-drill-session-v1";
+const NEW_STUDENT_EMAIL = "newstudent@example.com";
+
+const dataKeyFor = (email?: string) => email === NEW_STUDENT_EMAIL ? NEW_STUDENT_DATA_KEY : DATA_KEY;
+const seedFor = (email?: string) => email === NEW_STUDENT_EMAIL ? makeNewStudentData() : makeSeedData();
 
 interface AppContextValue {
   data: AppData;
@@ -35,15 +40,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const savedData = window.localStorage.getItem(DATA_KEY);
       const savedSession = window.localStorage.getItem(SESSION_KEY);
-      if (savedData) setData(JSON.parse(savedData));
-      if (savedSession) setSession(JSON.parse(savedSession));
+      const parsedSession: Session | null = savedSession ? JSON.parse(savedSession) : null;
+      const savedData = window.localStorage.getItem(dataKeyFor(parsedSession?.email));
+      setData(savedData ? JSON.parse(savedData) : seedFor(parsedSession?.email));
+      if (parsedSession) setSession(parsedSession);
     } catch { /* reset to safe seed state */ }
     setReady(true);
   }, []);
 
-  useEffect(() => { if (ready) window.localStorage.setItem(DATA_KEY, JSON.stringify(data)); }, [data, ready]);
+  useEffect(() => { if (ready) window.localStorage.setItem(dataKeyFor(session?.email), JSON.stringify(data)); }, [data, ready]);
   useEffect(() => {
     if (!ready) return;
     if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -55,8 +61,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     login(email, password) {
       const normalized = email.trim().toLowerCase();
       if (password !== "demo123") return { ok: false, message: "Use the demo password: demo123" };
-      if (normalized === "student@example.com") { setSession({ email: normalized, role: "student", name: "Maya" }); return { ok: true, role: "student" }; }
-      if (normalized === "admin@example.com") { setSession({ email: normalized, role: "admin", name: "Ms. Rivera" }); return { ok: true, role: "admin" }; }
+      if (normalized === "student@example.com" || normalized === NEW_STUDENT_EMAIL) {
+        const nextSession: Session = { email: normalized, role: "student", name: normalized === NEW_STUDENT_EMAIL ? "Alex" : "Maya" };
+        const saved = window.localStorage.getItem(dataKeyFor(normalized));
+        setData(saved ? JSON.parse(saved) : seedFor(normalized));
+        setSession(nextSession);
+        return { ok: true, role: "student" };
+      }
+      if (normalized === "admin@example.com") {
+        const saved = window.localStorage.getItem(DATA_KEY);
+        setData(saved ? JSON.parse(saved) : makeSeedData());
+        setSession({ email: normalized, role: "admin", name: "Ms. Rivera" });
+        return { ok: true, role: "admin" };
+      }
       return { ok: false, message: "Use one of the demo accounts shown below." };
     },
     logout: () => setSession(null),
@@ -68,7 +85,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateQuestion(question) { setData((current) => ({ ...current, questions: current.questions.map((item) => item.id === question.id ? question : item) })); },
     updateChallenge(challenge) { setData((current) => ({ ...current, challenge })); },
     resetTopic(topicId) { setData((current) => ({ ...current, progress: { ...current.progress, [topicId]: { topicId, easyCompleted: 0, mediumCompleted: 0, gateScore: null, status: "available", challengeCompleted: false, updatedAt: new Date().toISOString() } } })); },
-    resetDemo() { const seed = makeSeedData(); setData(seed); setSession(null); window.localStorage.removeItem(DATA_KEY); window.localStorage.removeItem(SESSION_KEY); },
+    resetDemo() { const seed = makeSeedData(); setData(seed); setSession(null); window.localStorage.removeItem(DATA_KEY); window.localStorage.removeItem(NEW_STUDENT_DATA_KEY); window.localStorage.removeItem(SESSION_KEY); },
   }), [data, session, ready]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
