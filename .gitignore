@@ -3,6 +3,9 @@
 .env
 .env.local
 *.log
+dist/
+.wrangler/
+tsconfig.tsbuildinfo
 
 # Separate projects stored alongside the ELPAC site
 paper-assistant/

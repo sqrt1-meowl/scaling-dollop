@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #fafaf8;
+  --ink: #10233f;
+  --muted: #677386;
+  --line: #dfe3e7;
+  --navy: #17365f;
+  --navy-dark: #0d2747;
+  --algebra: #416f9d;
+  --advanced: #755e8f;
+  --data: #4f7a66;
+  --geometry: #a1623c;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #416f9d;
+  outline-offset: 2px;
+}
+.academic-heading { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.025em; }
+.hairline-grid {
+  background-image: linear-gradient(#e9ebed 1px, transparent 1px), linear-gradient(90deg, #e9ebed 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.progress-track { height: 5px; overflow: hidden; background: #e7e9eb; }
+.progress-fill { height: 100%; background: var(--accent, var(--navy)); transition: width .25s ease; }
+.label { letter-spacing: .13em; text-transform: uppercase; font-size: 11px; font-weight: 700; }
+.field {
+  width: 100%; border: 1px solid #cfd4da; background: #fff; border-radius: 4px; padding: 10px 12px;
+  color: var(--ink);
+}
+.field::placeholder { color: #99a1ac; }
+.btn-primary, .btn-secondary, .btn-danger {
+  display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 4px; padding: 9px 16px; font-weight: 700; font-size: 14px; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.btn-primary { border: 1px solid var(--navy); background: var(--navy); color: white; }
+.btn-primary:hover { background: var(--navy-dark); }
+.btn-secondary { border: 1px solid #cfd4da; background: white; color: var(--ink); }
+.btn-secondary:hover { border-color: #98a2af; background: #f7f7f5; }
+.btn-danger { border: 1px solid #d7bdb4; background: white; color: #8b3d2c; }
+.panel { border: 1px solid var(--line); background: #fff; border-radius: 6px; }
+.status-pill { display: inline-flex; align-items: center; border: 1px solid #d6dbe0; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700; }
+@media (max-width: 760px) {
+  .mobile-scroll { overflow-x: auto; }
+}
