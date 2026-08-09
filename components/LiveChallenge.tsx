@@ -13,7 +13,7 @@ export function LiveChallenge() {
   const { data, updateProgress } = useApp();
   const progress = data.progress[params.topic];
   if (!topic || !category || !progress) return <RoleGuard role="student"><div>Topic not found.</div></RoleGuard>;
-  const unlocked = (progress.gateScore ?? 0) >= topic.gateThreshold;
+  const unlocked = true;
   const challenge = data.challenge;
   return <RoleGuard role="student"><main className="min-h-screen bg-[#f8f6f1]"><header className="border-b border-[#d7d2ca] bg-[#10233f] text-white"><div className="mx-auto flex h-[70px] max-w-[1120px] items-center justify-between px-5"><Link href={`/topic/${topic.id}`} className="flex items-center gap-2 text-xs font-bold text-white/70"><ArrowLeft size={14}/>Back to skill</Link><div className="label text-[#e7c4ae]">Live Challenge</div></div></header>
     {!unlocked ? <div className="mx-auto grid min-h-[calc(100vh-70px)] max-w-xl place-items-center px-5 text-center"><div><LockKeyhole className="mx-auto text-[#a1623c]"/><p className="label mt-5 text-[#a1623c]">Challenge locked</p><h1 className="academic-heading mt-3 text-4xl">Clear the skill gate first.</h1><p className="mt-4 text-sm leading-6 text-[#677386]">The Live Challenge opens after a passing gate score. It is the capstone strategy lesson, not another drill.</p><Link className="btn-primary mt-7" href={`/topic/${topic.id}`}>Return to skill</Link></div></div> : <div className="mx-auto max-w-[1000px] px-5 py-12 md:py-16">

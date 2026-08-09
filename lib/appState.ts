@@ -207,7 +207,7 @@ export const migrateAppData = (raw: unknown, fresh = false): AppData => {
   if (saved.curriculumVersion === 2 || saved.curriculumVersion === 3) {
     const savedSkillProgress = saved.skillProgress ?? saved.progress ?? {};
     const mergedProgress = { ...seed.skillProgress };
-    for (const [skillId, record] of Object.entries(savedSkillProgress)) mergedProgress[skillId] = { ...mergedProgress[skillId], ...record, skillId, topicId: skillId };
+    for (const [skillId, record] of Object.entries(savedSkillProgress)) mergedProgress[skillId] = { ...mergedProgress[skillId], ...record, status: record.status === "locked" ? "available" : record.status, skillId, topicId: skillId };
     const normalizedQuestions = saved.questions?.some((item) => "drillUnitId" in item) ? mergeSavedQuestions(saved.questions, seed.questions) : seed.questions;
     return {
       ...seed, ...saved, curriculumVersion: 3,
@@ -242,6 +242,7 @@ export const migrateAppData = (raw: unknown, fresh = false): AppData => {
     }
     seenLegacySkills.add(skillId);
   }
+  for (const record of Object.values(migratedProgress)) if (record.status === "locked") record.status = "available";
   return { ...seed, skillProgress: migratedProgress, progress: migratedProgress, scores: legacy.scores ?? seed.scores, errors: legacy.errors ?? seed.errors, warmups: legacy.warmups ?? seed.warmups, questions: [...seed.questions, ...migratedQuestions], questionAttempts: legacy.questionAttempts ?? seed.questionAttempts, challenge: legacy.challenge ?? seed.challenge };
 };
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { AppShell } from "./AppShell";
 import { useApp } from "./AppProvider";
 import { accentColor, getCategory, type TopicStatus } from "@/lib/curriculum";
@@ -27,16 +27,15 @@ export function CategoryOverview() {
     </div>
     <section className="panel overflow-hidden">{category.skills.map((skill) => {
       const progress = data.progress[skill.id];
-      const status = progress?.status ?? "locked";
-      const blocked = status === "locked";
+      const status = progress?.status === "locked" || !progress ? "available" : progress.status;
       const units = data.drillUnits.filter((item) => item.skillId === skill.id && item.isActive);
       const current = units.find((item) => ["available", "in_progress"].includes(data.unitProgress[item.id]?.status));
       const percent = calculateSkillUnitPercent(skill.id, data);
       const currentLabel = current ? `${current.code} — ${current.name}` : "Complete";
-      return <div key={skill.id} className={`grid gap-4 border-b border-[#e4e7e9] p-5 last:border-0 sm:grid-cols-[56px_1fr_auto] sm:items-center ${blocked ? "bg-[#fbfbfa]" : "bg-white"}`}>
+      return <div key={skill.id} className="grid gap-4 border-b border-[#e4e7e9] bg-white p-5 last:border-0 sm:grid-cols-[56px_1fr_auto] sm:items-center">
         <div className="font-serif text-2xl text-[#a0a7b0]">{skill.code}</div>
-        <div><h3 className={`text-[15px] font-extrabold ${blocked ? "text-[#7d8794]" : "text-[#10233f]"}`}>{skill.title}</h3><div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-bold" style={{ color: status === "complete" ? "#4f7a66" : blocked ? "#8a939f" : color }}>{status === "complete" && <Check size={14}/>} {blocked && <LockKeyhole size={13}/>} {labels[status]}{!blocked && <span className="font-normal text-[#677386]">{percent}% · Current: {currentLabel}</span>}</div></div>
-        {blocked ? <span className="text-xs text-[#9aa2ad]">Complete the prior skill</span> : <Link href={`/topic/${skill.id}`} className="btn-secondary">{status === "complete" ? "Review" : status === "available" ? "Begin" : "Continue"}<ArrowRight size={14}/></Link>}
+        <div><h3 className="text-[15px] font-extrabold text-[#10233f]">{skill.title}</h3><div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-bold" style={{ color: status === "complete" ? "#4f7a66" : color }}>{status === "complete" && <Check size={14}/>} {labels[status]}<span className="font-normal text-[#677386]">{percent}% · Current: {currentLabel}</span></div></div>
+        <Link href={`/topic/${skill.id}`} className="btn-secondary">{status === "complete" ? "Review" : status === "available" ? "Begin" : "Continue"}<ArrowRight size={14}/></Link>
       </div>;
     })}</section>
     <p className="mt-5 text-xs leading-5 text-[#7b8592]">Every skill and drill unit is open for practice.</p>
