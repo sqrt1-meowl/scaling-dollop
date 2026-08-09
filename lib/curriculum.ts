@@ -37,13 +37,13 @@ export interface QuestionModel {
   forbiddenFeatures: string; isActive: boolean;
 }
 
-type UnitSeed = [code: string, name: string, targets: string[]];
+type UnitSeed = [code: string, name: string, targets: string[], description?: string];
 const unit = (skillId: string, seed: UnitSeed, order: number): DrillUnit => {
-  const [code, name, targets] = seed;
+  const [code, name, targets, description] = seed;
   const id = code.toLowerCase();
   const frameworkTargets = targets.map((description, i) => ({ id: `${id}-target-${i + 1}`, skillId, drillUnitId: id, description, order: i + 1 }));
   return {
-    id, skillId, code, name, description: `Build fluency with ${name.toLowerCase()} through one focused concept and a worked SAT-style example.`,
+    id, skillId, code, name, description: description ?? `Build fluency with ${name.toLowerCase()} through one focused concept and a worked SAT-style example.`,
     order, isActive: true, easyQuestionCount: 3, mediumQuestionCount: 2, frameworkTargets,
     concept: [{ label: name, formula: "identify → model → solve → check" }],
     workedExample: { prompt: `Use the structure of ${name.toLowerCase()} to solve a representative SAT problem.`, steps: ["Identify the requested quantity.", "Choose the matching relationship.", "Solve and check the result in context."] },
@@ -58,21 +58,21 @@ const skill = (categoryId: string, code: string, title: string, order: number, s
 
 const A1: UnitSeed[] = [
   ["A1a", "Fluent solving", ["solve one-variable linear equations fluently"]],
-  ["A1b", "Algebraic structure and variables on both sides", ["solve using algebraic structure", "interpret variables, factors, and terms"]],
+  ["A1b", "Strategic algebraic structure", ["solve using algebraic structure", "interpret variables, factors, and terms"]],
   ["A1c", "Number of solutions", ["distinguish no solution, one solution, and infinitely many solutions"]],
-  ["A1d", "Equations from context", ["create and use a one-variable linear equation in context", "identify an equation representing a context"]],
+  ["A1d", "Creating equations from context", ["create and use a one-variable linear equation in context", "identify an equation representing a context"]],
   ["A1e", "Interpreting equations in context", ["interpret constants, variables, factors, terms, and solutions in context"]],
 ];
 const A2: UnitSeed[] = [
-  ["A2a", "Two-variable equations and ordered pairs", ["find one quantity given the other", "interpret solutions as ordered pairs"]],
-  ["A2b", "Graphs, tables, and equations", ["interpret Ax + By = C graphically", "connect equations, tables, and graphs"]],
+  ["A2a", "Ordered pairs and values of two-variable equations", ["find one quantity given the other", "interpret solutions as ordered pairs"]],
+  ["A2b", "Tables, equations, and graphs", ["interpret Ax + By = C graphically", "connect equations, tables, and graphs"]],
   ["A2c", "Slope and equations of lines", ["interpret slope and intercepts", "write a linear equation in two variables"]],
-  ["A2d", "Lines from points and slopes", ["write a line from two points", "write a line from a point and slope"]],
+  ["A2d", "Writing equations of lines", ["write a line from two points", "write a line from a point and slope"]],
   ["A2e", "Parallel and perpendicular lines", ["write a line from a point and a parallel line", "write a line from a point and a perpendicular line"]],
-  ["A2f", "Modeling and interpretation", ["create and use two-variable linear equations in context", "model constraints or conditions", "interpret constants, variables, terms, factors, and solutions"]],
+  ["A2f", "Modeling and interpreting two-variable equations", ["create and use two-variable linear equations in context", "model constraints or conditions", "interpret constants, variables, terms, factors, and solutions"]],
 ];
 const A3: UnitSeed[] = [
-  ["A3a", "Function notation and evaluation", ["evaluate a linear function", "interpret input and output pairs"]],
+  ["A3a", "Function notation: input → output", ["evaluate a linear function", "interpret input and output pairs"]],
   ["A3b", "Rate of change and initial value", ["interpret rate of change or slope in context", "interpret initial value"]],
   ["A3c", "Tables, graphs, and equations", ["connect tables, equations, and graphs", "interpret graphs in context"]],
   ["A3d", "Creating linear functions", ["create and use linear functions in context", "model relationships between quantities"]],
@@ -80,116 +80,115 @@ const A3: UnitSeed[] = [
 ];
 const A4: UnitSeed[] = [
   ["A4a", "Solving by substitution", ["solve systems strategically by substitution"]], ["A4b", "Solving by elimination", ["solve systems fluently by elimination"]],
-  ["A4c", "Graphical solutions", ["connect algebraic and graphical representations", "interpret intersections in context"]],
+  ["A4c", "Algebraic and graphical solutions", ["connect algebraic and graphical representations", "interpret intersections in context"]],
   ["A4d", "Number of solutions", ["identify no solution, a unique solution, or infinitely many solutions"]],
   ["A4e", "Systems from context", ["create and use systems in context", "model constraints with a system"]],
 ];
 const A5: UnitSeed[] = [
   ["A5a", "One-variable inequalities", ["solve and interpret one-variable inequalities"]],
   ["A5b", "Two-variable inequalities", ["create and use two-variable inequalities"]],
-  ["A5c", "Graphing solution regions", ["interpret points relative to a solution set", "connect tabular, algebraic, and graphical representations"]],
-  ["A5d", "Systems of inequalities", ["solve and graph systems of inequalities"]],
-  ["A5e", "Inequalities from context", ["model constraints in context", "interpret constants, variables, factors, terms, and solutions"]],
+  ["A5c", "Tables, equations, and graphs", ["interpret points relative to a solution set", "connect tabular, algebraic, and graphical representations"]],
+  ["A5d", "Systems of linear inequalities", ["solve and graph systems of inequalities"]],
+  ["A5e", "Modeling and interpreting inequalities", ["model constraints in context", "interpret constants, variables, factors, terms, and solutions"]],
 ];
 const AM1: UnitSeed[] = [
-  ["AM1a", "Combining and distributing", ["combine like terms", "use the distributive property"]],
-  ["AM1b", "Polynomial operations", ["add polynomials", "subtract polynomials", "multiply polynomials"]],
-  ["AM1c", "Common-factor factoring", ["factor out common factors"]],
-  ["AM1d", "Trinomials and difference of squares", ["factor trinomials into binomials", "factor a difference of squares", "use other polynomial factoring"]],
-  ["AM1e", "Rational expressions", ["rewrite simple rational expressions"]],
-  ["AM1f", "Rational exponents and radicals", ["convert rational exponents to radical form"]],
-  ["AM1g", "Choosing equivalent forms strategically", ["use algebraic structure strategically rather than only mechanical expansion"]],
+  ["AM1a", "Polynomial operations", ["add polynomials", "subtract polynomials", "multiply polynomials", "combine like terms and distribute"]],
+  ["AM1b", "Common-factor factoring", ["factor out common factors"]],
+  ["AM1c", "Difference of squares and trinomial factoring", ["factor a difference of squares", "factor trinomials into binomials"]],
+  ["AM1d", "Other polynomial factoring", ["factor polynomial expressions using other algebraic structures"]],
+  ["AM1e", "Simple rational-expression rewriting", ["rewrite simple rational expressions"]],
+  ["AM1f", "Rational exponents and radical form", ["convert between rational exponents and radical form"]],
+  ["AM1g", "Strategic equivalent forms", ["use algebraic structure strategically rather than only mechanical expansion"]],
 ];
 const AM2: UnitSeed[] = [
-  ["AM2a", "Quadratics by factoring", ["solve quadratic equations by factoring"]], ["AM2b", "Quadratics by square-root method", ["solve quadratic equations by taking square roots"]],
+  ["AM2a", "Quadratics using factoring and algebraic structure", ["solve quadratic equations by factoring", "use algebraic structure to solve quadratics"]], ["AM2b", "Quadratics using square-root structure", ["solve quadratic equations by taking square roots"]],
   ["AM2c", "Quadratic formula", ["solve quadratic equations with the quadratic formula"]], ["AM2d", "Completing the square", ["solve or rewrite quadratics by completing the square"]],
-  ["AM2e", "Number of real solutions", ["determine the number of real quadratic solutions"]], ["AM2f", "Absolute-value equations", ["solve linear absolute-value equations"]],
-  ["AM2g", "Radical equations", ["solve simple radical equations"]], ["AM2h", "Rational equations", ["solve simple rational equations"]],
-  ["AM2i", "Polynomial equations", ["solve polynomial equations already in factored form"]],
+  ["AM2e", "Number of real quadratic solutions", ["determine the number of real quadratic solutions"]], ["AM2f", "Linear absolute-value equations", ["solve linear absolute-value equations"]],
+  ["AM2g", "Simple radical equations", ["solve simple radical equations"]], ["AM2h", "Simple rational equations", ["solve simple rational equations"]],
+  ["AM2i", "Polynomial equations in factored form", ["solve polynomial equations already in factored form"]],
   ["AM2j", "Linear and nonlinear systems", ["solve linear and nonlinear systems", "connect system solutions to graph intersections"]],
-  ["AM2k", "Rearranging formulas", ["rearrange multivariable formulas for a chosen variable"]],
+  ["AM2k", "Rearranging multivariable equations and formulas", ["rearrange multivariable formulas for a chosen variable"]],
 ];
 const AM3: UnitSeed[] = [
-  ["AM3a", "Function notation", ["use function notation and evaluate nonlinear functions", "interpret input and output pairs"]],
+  ["AM3a", "Nonlinear function notation: input → output", ["use function notation and evaluate nonlinear functions", "interpret input and output pairs"]],
   ["AM3b", "Quadratic functions and key features", ["identify zeros and x-intercepts", "identify f(0) and the y-intercept", "interpret quadratic key features"]],
-  ["AM3c", "Quadratic representations", ["connect quadratic tables, equations, and graphs", "choose a form that exposes important features"]],
+  ["AM3c", "Quadratic representations and transformations", ["connect quadratic tables, equations, and graphs", "interpret transformations", "choose a form that exposes important features"]],
   ["AM3d", "Exponential growth and decay", ["create and use exponential functions in context"]],
-  ["AM3e", "Exponential representations", ["connect exponential tables, equations, and graphs"]],
-  ["AM3f", "Polynomial functions", ["interpret polynomial functions and graphs"]], ["AM3g", "Rational functions", ["interpret simple rational functions"]],
-  ["AM3h", "Radical functions", ["interpret radical functions"]], ["AM3i", "Transformations", ["interpret transformations of nonlinear functions"]],
-  ["AM3j", "Modeling and selecting function types", ["select an appropriate nonlinear model", "create and use quadratic functions in context"]],
-  ["AM3k", "Interpreting parameters and graph features", ["interpret initial values and intercepts", "interpret constants, factors, variables, and terms", "interpret points and portions of graphs"]],
+  ["AM3e", "Exponential representations and transformations", ["connect exponential tables, equations, and graphs", "interpret transformations"]],
+  ["AM3f", "Polynomial functions", ["interpret polynomial functions and graphs"]], ["AM3g", "Simple rational functions", ["interpret simple rational functions"]],
+  ["AM3h", "Radical and other nonlinear functions", ["interpret radical and other nonlinear functions"]], ["AM3i", "Connecting nonlinear representations", ["connect nonlinear tables, equations, and graphs"]],
+  ["AM3j", "Creating and selecting quadratic/exponential models", ["select an appropriate quadratic or exponential model", "create and use nonlinear functions in context"]],
+  ["AM3k", "Key features, parameters, and useful forms", ["interpret initial values and intercepts", "interpret constants, factors, variables, and terms", "choose useful forms", "interpret points and portions of graphs"]],
 ];
 const P1: UnitSeed[] = [
-  ["P1a", "Ratios", ["interpret and use ratios"]], ["P1b", "Rates and unit rates", ["interpret rates and unit rates"]],
-  ["P1c", "Proportions", ["solve proportional relationships", "reason about scale-factor behavior"]],
-  ["P1d", "Unit conversions", ["perform one-step conversions", "perform multistep and multidimensional conversions"]],
-  ["P1e", "Derived units", ["interpret derived units from products", "interpret derived units from quotients"]],
-  ["P1f", "Scale drawings", ["use scale drawings"]], ["P1g", "Multistep proportional contexts", ["solve science and social-science proportional contexts"]],
+  ["P1a", "Ratios and proportional relationships", ["interpret and use ratios", "solve proportional relationships"]], ["P1b", "Rates and unit rates", ["interpret rates and unit rates"]],
+  ["P1c", "Proportional contexts and scale drawings", ["solve proportional contexts", "use scale drawings"]],
+  ["P1d", "One-step unit conversions", ["perform one-step unit conversions"]],
+  ["P1e", "Multistep and multidimensional unit conversions", ["perform multistep conversions", "perform multidimensional conversions"]],
+  ["P1f", "Derived units", ["interpret derived units from products", "interpret derived units from quotients"]], ["P1g", "Scale factors in proportional relationships", ["reason about scale factors in proportional relationships"]],
 ];
 const P2: UnitSeed[] = [
-  ["P2a", "Basic percentages", ["calculate percentages in context", "work with percentages of 100 percent or greater"]],
-  ["P2b", "Finding original amounts", ["find an original amount from a percentage"]],
+  ["P2a", "Percent fundamentals", ["calculate percentages in context", "work with percentages of 100 percent or greater"]],
+  ["P2b", "Finding unknown original amounts", ["find an original amount from a percentage"]],
   ["P2c", "Percent increase and decrease", ["calculate percent increases", "calculate percent decreases"]],
-  ["P2d", "Growth factors", ["connect percent change to a growth factor"]],
-  ["P2e", "Tax, tip, discount, and interest", ["solve tax, tip, discount, and interest contexts"]],
-  ["P2f", "Repeated percentage changes", ["model repeated percentage changes"]],
+  ["P2d", "Percent change and growth factor", ["connect percent change to a growth factor"]],
+  ["P2e", "Percent applications", ["solve tax, tip, discount, and interest contexts", "model repeated percentage changes"]],
 ];
 const P3: UnitSeed[] = [
   ["P3a", "Frequency tables", ["interpret frequency tables"]], ["P3b", "Histograms and dot plots", ["interpret histograms", "interpret dot plots"]],
   ["P3c", "Box plots", ["interpret box plots"]], ["P3d", "Mean, median, and range", ["calculate mean", "calculate median", "calculate range"]],
-  ["P3e", "Effects of data changes and outliers", ["explain effects of outliers on mean and median"]],
-  ["P3f", "Standard deviation", ["compare standard deviations", "recognize distributions with the same standard deviation and different means"]],
-  ["P3g", "Comparing distributions", ["compare distributions by center and spread"]],
+  ["P3e", "Effects of outliers", ["explain effects of outliers on mean, median, and spread"]],
+  ["P3f", "Comparing distributions using center and spread", ["interpret and compare standard deviation", "compare distributions by center and spread"], "Interpret and compare measures of center and spread, especially standard deviation. Do not require hand calculation of standard deviation."],
 ];
 const P4: UnitSeed[] = [
-  ["P4a", "Scatterplots and association", ["interpret scatterplots without prediction"]], ["P4b", "Linear models", ["interpret linear models"]],
-  ["P4c", "Predictions", ["make predictions from scatterplots"]], ["P4d", "Quadratic models", ["interpret quadratic models"]],
-  ["P4e", "Exponential models", ["interpret exponential models"]], ["P4f", "Comparing models and growth", ["interpret graphs relating two quantities", "compare linear and exponential growth"]],
+  ["P4a", "Interpreting scatterplots", ["interpret scatterplots without prediction"]], ["P4b", "Predictions from scatterplots", ["make predictions from scatterplots"]],
+  ["P4c", "Fitting linear models", ["fit and interpret linear models"]], ["P4d", "Fitting quadratic and exponential models", ["fit and interpret quadratic models", "fit and interpret exponential models"]],
+  ["P4e", "Interpreting graphs modeling two quantities", ["interpret graphs relating two quantities"]], ["P4f", "Comparing linear and exponential growth", ["compare linear and exponential growth"]],
 ];
 const P5: UnitSeed[] = [
-  ["P5a", "Basic probability", ["calculate and interpret probability"]], ["P5b", "Relative frequency", ["calculate relative frequency"]],
-  ["P5c", "One-way and two-way tables", ["interpret one-way tables", "interpret two-way tables", "use area models"]],
-  ["P5d", "Conditional probability", ["calculate and interpret conditional probability"]],
-  ["P5e", "Missing frequencies and probability contexts", ["infer a missing frequency from a probability", "interpret probability in context"]],
+  ["P5a", "Relative frequency and data representations", ["calculate relative frequency", "interpret one-way and two-way tables", "use area models"]], ["P5b", "Probability", ["calculate and interpret probability"]],
+  ["P5c", "Conditional probability", ["calculate and interpret conditional probability"]],
+  ["P5d", "Probability in context", ["interpret probability in context"]],
+  ["P5e", "Missing frequencies from probability", ["infer a missing frequency from a probability"]],
 ];
 const P6: UnitSeed[] = [
-  ["P6a", "Samples and populations", ["distinguish samples and populations"]], ["P6b", "Estimating means", ["use a sample mean to estimate a population mean"]],
-  ["P6c", "Estimating proportions", ["use a sample proportion to estimate a population proportion"]],
-  ["P6d", "Margin of error", ["interpret margin of error"]], ["P6e", "Sample size and margin of error", ["explain the effect of larger sample size on margin of error"]],
+  ["P6a", "Sample mean → population mean", ["use a sample mean to estimate a population mean"]],
+  ["P6b", "Sample proportion → population proportion", ["use a sample proportion to estimate a population proportion"]],
+  ["P6c", "Margin of error", ["interpret margin of error"]], ["P6d", "Sample size and margin of error", ["explain the effect of larger sample size on margin of error"]],
 ];
 const P7: UnitSeed[] = [
-  ["P7a", "Random sampling and generalization", ["identify the population to which a random sample can generalize", "understand random sampling"]],
-  ["P7b", "Sampling limitations", ["identify sampling limitations"]], ["P7c", "Observational studies vs experiments", ["distinguish observational studies and experiments"]],
-  ["P7d", "Random assignment", ["understand random assignment", "explain why random assignment supports causal inference"]],
-  ["P7e", "Association vs causation", ["determine whether causal evidence is justified"]],
+  ["P7a", "Random samples and generalization", ["identify the population to which a random sample can generalize", "understand random sampling"]],
+  ["P7b", "Sampling methods and limitations", ["identify sampling methods and limitations"]], ["P7c", "Observational studies and experiments", ["distinguish observational studies and experiments"]],
+  ["P7d", "Random assignment and causal conclusions", ["understand random assignment", "explain why random assignment supports causal inference", "determine whether causal evidence is justified"]],
 ];
 const G1: UnitSeed[] = [
   ["G1a", "Area and perimeter", ["area of geometric figures", "perimeter", "selecting the appropriate area formula", "objects modeled by geometric figures"]],
   ["G1b", "Surface area", ["surface area", "selecting the appropriate surface-area formula"]],
   ["G1c", "Volume", ["volume", "selecting the appropriate volume formula"]],
-  ["G1d", "Missing dimensions", ["solving from a given length", "solving from a given area", "solving from a given surface area", "solving from a given volume"]],
-  ["G1e", "Scale factors", ["scale factor k for lengths", "scale factor k² for areas", "scale factor k³ for volumes", "real-world and purely mathematical contexts"]],
+  ["G1d", "Missing geometric measures", ["solving from a given length", "solving from a given area", "solving from a given surface area", "solving from a given volume"]],
+  ["G1e", "Scale factors", ["length scale factor = k", "area scale factor = k²", "volume scale factor = k³", "real-world and purely mathematical contexts"], "Distinguish scale effects explicitly: lengths scale by k, areas by k², and volumes by k³."],
+  ["G1f", "Formula selection and mixed measurement", ["select an appropriate geometry formula", "combine length, area, surface area, and volume reasoning"]],
 ];
 const G2: UnitSeed[] = [
-  ["G2a", "Basic angle relationships", ["vertical angles"]], ["G2b", "Triangle angle relationships", ["triangle angle sum"]],
+  ["G2a", "Vertical and related angle relationships", ["vertical angles", "supplementary and complementary angle relationships"]], ["G2b", "Triangle angle relationships", ["triangle angle sum"]],
   ["G2c", "Parallel lines and transversals", ["parallel lines cut by a transversal"]], ["G2d", "Similar triangles", ["triangle similarity"]],
-  ["G2e", "Congruent triangles", ["triangle congruence"]], ["G2f", "Scale factors and proportions", ["length scale factors in similar figures", "angle measures unchanged under scaling"]],
-  ["G2g", "Sufficiency and theorem questions", ["determine which statements are sufficient to establish a relationship or theorem"]],
+  ["G2e", "Congruent triangles", ["triangle congruence"]], ["G2f", "Scale factors in similar figures", ["length scale factors in similar figures", "angle measures unchanged under scaling"]],
+  ["G2g", "Geometric sufficiency and theorem reasoning", ["determine which statements are sufficient to establish a relationship or theorem"]],
 ];
 const G3: UnitSeed[] = [
   ["G3a", "Pythagorean theorem", ["apply the Pythagorean theorem"]], ["G3b", "45-45-90 triangles", ["solve 45-45-90 triangles"]],
-  ["G3c", "30-60-90 triangles", ["solve 30-60-90 triangles"]], ["G3d", "Sine, cosine, and tangent", ["use right-triangle trigonometry"]],
-  ["G3e", "Similarity and trig ratios", ["use similarity to determine sine, cosine, and tangent"]],
-  ["G3f", "Complementary trig relationships", ["use sine and cosine relationships for complementary angles"]],
+  ["G3c", "30-60-90 triangles", ["solve 30-60-90 triangles"]], ["G3d", "Right-triangle sine, cosine, and tangent", ["use right-triangle trigonometry"]],
+  ["G3e", "Similarity and trigonometric ratios", ["use similarity to determine sine, cosine, and tangent"]],
+  ["G3f", "Complementary sine/cosine relationships", ["use sine and cosine relationships for complementary angles"]],
   ["G3g", "Applied right-triangle problems", ["solve contextual right-triangle applications"]],
 ];
 const G4: UnitSeed[] = [
   ["G4a", "Radius, diameter, and basic circle relationships", ["radius", "diameter"]], ["G4b", "Arc length and sector area", ["arc length", "sector area"]],
-  ["G4c", "Circle angles and tangents", ["circle angles", "tangents"]], ["G4d", "Circle equations: center and radius", ["standard circle form", "create circle equations in the xy-plane"]],
-  ["G4e", "Graphs and equation changes", ["understand how equation changes affect the graph", "understand how graph changes affect the equation"]],
-  ["G4f", "Completing the square", ["complete the square in circle equations"]], ["G4g", "Distance formula and coordinate-circle problems", ["use the distance formula in circle problems"]],
-  ["G4h", "Degrees and radians", ["radian measure", "degree and radian conversion"]], ["G4i", "Unit-circle relationships", ["unit-circle trigonometric ratios"]],
+  ["G4c", "Circle angles and tangents", ["circle angles", "tangents"]], ["G4d", "Radian measure", ["radian measure", "degree and radian conversion"]],
+  ["G4e", "Unit-circle trigonometric ratios", ["unit-circle trigonometric ratios"]],
+  ["G4f", "Circle equations: creating equations, center, and radius", ["standard circle form", "create circle equations in the xy-plane", "identify center and radius"]],
+  ["G4g", "Circle graphs and equation changes", ["understand how equation changes affect the graph", "understand how graph changes affect the equation"]],
+  ["G4h", "Completing the square for circles", ["complete the square in circle equations"]], ["G4i", "Distance formula in circle problems", ["use the distance formula in circle problems"]],
 ];
 
 const category = (id: string, name: string, shortName: string, weight: number, accent: CategoryAccent, skills: Skill[]): Category => ({ id, name, shortName, weight, accent, skills, topics: skills });
@@ -257,7 +256,7 @@ const gatePrompts: Array<[string, string[], string, string]> = [
 gatePrompts.forEach((item, i) => g1Questions.push(q(`g1${String.fromCharCode(97 + i)}`, "medium", i + 1, item[0], item[1], item[2], item[3], { id: `g1-gate-${i + 1}`, isGate: true })));
 g1Questions.push(q("g1e", "hard", 1, "Two similar square patios have side lengths in a 3:5 ratio. The smaller costs $1,800 to tile at the same rate per square foot. What will the larger patio cost?", ["$3,000", "$4,200", "$5,000", "$7,500"], "$5,000", "Area scales by (5/3)² = 25/9. Then $1,800 × 25/9 = $5,000.", { id: "g1-live-challenge" }));
 
-const placeholderQuestions = allDrillUnits.filter((item) => !item.id.startsWith("g1")).flatMap((drillUnit) => (["easy", "medium"] as const).flatMap((difficulty) => Array.from({ length: difficulty === "easy" ? 3 : 2 }, (_, i) => q(drillUnit.id, difficulty, i + 1, `${drillUnit.code} — ${drillUnit.name}: Which first step best matches this focused framework target?`, ["Identify the governing relationship", "Ignore the given units", "Change the requested quantity", "Estimate before reading"], "Identify the governing relationship", `This demo item is mapped to “${drillUnit.frameworkTargets[0].description}.” Production content requires review before release.`, { sourceType: "placeholder", sourceLabel: "Framework-mapped demo placeholder", status: "review", requiresReview: true }))));
+const placeholderQuestions = allDrillUnits.filter((item) => !item.id.startsWith("g1") || item.id === "g1f").flatMap((drillUnit) => (["easy", "medium"] as const).flatMap((difficulty) => Array.from({ length: difficulty === "easy" ? 3 : 2 }, (_, i) => q(drillUnit.id, difficulty, i + 1, `${drillUnit.code} — ${drillUnit.name}: Which first step best matches this focused framework target?`, ["Identify the governing relationship", "Ignore the given units", "Change the requested quantity", "Estimate before reading"], "Identify the governing relationship", `This demo item is mapped to “${drillUnit.frameworkTargets[0].description}.” Production content requires review before release.`, { sourceType: "placeholder", sourceLabel: "Framework-mapped demo placeholder", status: "review", requiresReview: true }))));
 export const areaVolumeQuestions = g1Questions;
 export const seedQuestions = [...g1Questions, ...placeholderQuestions];
 export const questionModels: QuestionModel[] = allDrillUnits.flatMap((drillUnit) => (["easy", "medium"] as const).map((difficulty) => ({

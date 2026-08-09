@@ -13,7 +13,7 @@ export interface WarmupAttempt { id: string; questionId: string; topicId: string
 export interface ChallengeLesson { topicId: string; title: string; questionText: string; sourceId: string; imageUrl?: string; videoUrl: string; takeaway: string; notes: string; }
 
 export interface AppData {
-  curriculumVersion: 2;
+  curriculumVersion: 3;
   skillProgress: Record<string, SkillProgress>;
   /** v1 compatibility alias; kept in sync with skillProgress during migration. */
   progress: Record<string, TopicProgress>;
@@ -68,7 +68,7 @@ const makeBase = (fresh: boolean): AppData => {
     });
   });
   return {
-    curriculumVersion: 2, skillProgress: progress, progress, unitProgress, drillUnits: structuredClone(allDrillUnits),
+    curriculumVersion: 3, skillProgress: progress, progress, unitProgress, drillUnits: structuredClone(allDrillUnits),
     frameworkTargets: structuredClone(allDrillUnits.flatMap((item) => item.frameworkTargets)), questionModels: structuredClone(questionModels),
     scores: fresh ? [] : [{ id: "score-1", date: "2026-05-20", score: 490 }, { id: "score-2", date: "2026-06-28", score: 570 }, { id: "score-3", date: "2026-08-02", score: 620 }],
     errors: fresh ? [] : [{ id: "err-1", questionId: "g1a-medium-1", topicId: "area-and-volume", kind: "Procedure", date: "2026-08-04" }],
@@ -100,6 +100,71 @@ const g1LegacyMappings: Record<string, [string, number]> = {
   g1: ["g1a", 2], g2: ["g1a", 1], g3: ["g1d", 4], g4: ["g1a", 2], challenge: ["g1e", 2],
 };
 
+const retiredUnitMappings: Record<string, string> = {
+  p2f: "p2e",
+  p3g: "p3f",
+  p6e: "p6d",
+  p7e: "p7d",
+};
+
+const mergeProgressStatus = (left: ProgressStatus, right: ProgressStatus): ProgressStatus => {
+  const rank: Record<ProgressStatus, number> = { locked: 0, available: 1, in_progress: 2, review: 3, complete: 4 };
+  return rank[left] >= rank[right] ? left : right;
+};
+
+const normalizeUnitProgress = (saved: Record<string, DrillUnitProgress> | undefined, seed: AppData["unitProgress"]) => {
+  const merged = structuredClone(seed);
+  for (const [savedId, record] of Object.entries(saved ?? {})) {
+    const unitId = retiredUnitMappings[savedId] ?? savedId;
+    const canonical = merged[unitId];
+    if (!canonical) continue;
+    merged[unitId] = {
+      ...canonical,
+      easyCompleted: Math.min(canonical.easyTotal, Math.max(canonical.easyCompleted, record.easyCompleted)),
+      mediumCompleted: Math.min(canonical.mediumTotal, Math.max(canonical.mediumCompleted, record.mediumCompleted)),
+      status: mergeProgressStatus(canonical.status, record.status),
+      updatedAt: canonical.updatedAt > record.updatedAt ? canonical.updatedAt : record.updatedAt,
+    };
+  }
+  return merged;
+};
+
+const normalizeQuestion = (question: Question): Question => {
+  const mappedUnitId = retiredUnitMappings[question.drillUnitId] ?? question.drillUnitId;
+  const drillUnit = getDrillUnit(mappedUnitId);
+  if (!drillUnit) return { ...question, status: "review", requiresReview: true, questionModelId: undefined };
+  const skill = getSkill(drillUnit.skillId)!;
+  const mappedFromRetiredUnit = mappedUnitId !== question.drillUnitId;
+  const target = mappedFromRetiredUnit
+    ? drillUnit.frameworkTargets[0]
+    : drillUnit.frameworkTargets.find((item) => item.id === question.frameworkTargetId);
+  return {
+    ...question,
+    domainId: skill.domainId,
+    domain: skill.domainId,
+    skillId: skill.id,
+    skillName: skill.title,
+    drillUnitId: drillUnit.id,
+    drillUnitName: drillUnit.name,
+    frameworkTargetId: target?.id ?? "",
+    frameworkTarget: target?.description ?? "Requires curriculum review",
+    questionModelId: target && question.difficulty !== "hard" ? `${drillUnit.id}-${question.difficulty}-model` : undefined,
+    categoryId: skill.domainId,
+    topicId: skill.id,
+    status: mappedFromRetiredUnit || !target ? "review" : question.status ?? (question.requiresReview ? "review" : "active"),
+    requiresReview: mappedFromRetiredUnit || !target || Boolean(question.requiresReview),
+  };
+};
+
+const mergeSavedQuestions = (saved: Question[] | undefined, seed: Question[]) => {
+  const merged = new Map(seed.map((question) => [question.id, question]));
+  for (const question of saved ?? []) {
+    if (merged.has(question.id) && question.sourceType === "placeholder") continue;
+    merged.set(question.id, normalizeQuestion({ ...question, domainId: question.domainId ?? question.categoryId }));
+  }
+  return [...merged.values()];
+};
+
 type LegacyQuestion = { id: string; categoryId: string; topicId: string; difficulty: string; type: string; prompt: string; math?: string; imageUrl?: string; choices?: string[]; correctAnswer: string; explanation: string; sourceLabel?: string; sourceQuestionId?: string; order: number };
 const migrateLegacyQuestion = (legacy: LegacyQuestion): Question | null => {
   const skillId = legacySkillIds[legacy.topicId]; const skill = skillId ? getSkill(skillId) : undefined; if (!skill) return null;
@@ -123,20 +188,18 @@ const migrateLegacyQuestion = (legacy: LegacyQuestion): Question | null => {
 export const migrateAppData = (raw: unknown, fresh = false): AppData => {
   const seed = fresh ? makeNewStudentData() : makeSeedData();
   if (!raw || typeof raw !== "object") return seed;
-  const saved = raw as Partial<AppData> & { curriculumVersion?: number };
-  if (saved.curriculumVersion === 2) {
+  const saved = raw as Omit<Partial<AppData>, "curriculumVersion"> & { curriculumVersion?: number };
+  if (saved.curriculumVersion === 2 || saved.curriculumVersion === 3) {
     const savedSkillProgress = saved.skillProgress ?? saved.progress ?? {};
     const mergedProgress = { ...seed.skillProgress };
     for (const [skillId, record] of Object.entries(savedSkillProgress)) mergedProgress[skillId] = { ...mergedProgress[skillId], ...record, skillId, topicId: skillId };
-    const normalizedQuestions = saved.questions?.some((item) => "drillUnitId" in item)
-      ? saved.questions.map((question) => ({ ...question, domainId: question.domainId ?? question.categoryId, status: question.status ?? (question.requiresReview ? "review" : "active") }))
-      : seed.questions;
+    const normalizedQuestions = saved.questions?.some((item) => "drillUnitId" in item) ? mergeSavedQuestions(saved.questions, seed.questions) : seed.questions;
     return {
-      ...seed, ...saved, curriculumVersion: 2,
-      skillProgress: mergedProgress, progress: mergedProgress, unitProgress: { ...seed.unitProgress, ...(saved.unitProgress ?? {}) },
-      drillUnits: saved.drillUnits?.length ? saved.drillUnits : seed.drillUnits,
-      frameworkTargets: saved.frameworkTargets?.length ? saved.frameworkTargets : seed.frameworkTargets,
-      questionModels: saved.questionModels?.length ? saved.questionModels : seed.questionModels,
+      ...seed, ...saved, curriculumVersion: 3,
+      skillProgress: mergedProgress, progress: mergedProgress, unitProgress: normalizeUnitProgress(saved.unitProgress, seed.unitProgress),
+      drillUnits: seed.drillUnits,
+      frameworkTargets: seed.frameworkTargets,
+      questionModels: seed.questionModels,
       questions: normalizedQuestions,
     };
   }
