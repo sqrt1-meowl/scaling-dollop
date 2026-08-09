@@ -3848,21 +3848,16 @@ function VocabularyPanel({ user, onBack }) {
     <div>
       <Back onClick={onBack} label="practice" />
       <div style={{ display:"flex", justifyContent:"space-between", gap:16,
-        alignItems:"flex-end", flexWrap:"wrap", marginBottom:14 }}>
-        <div>
-          <h2 style={{ fontSize:24, margin:"0 0 5px" }}>Academic Vocabulary</h2>
-          <p style={{ fontSize:14.5, color:C.mute, margin:0, lineHeight:1.5 }}>
-            Study high-utility words used in reading, writing, listening, and speaking prompts.
-          </p>
-        </div>
-        <div style={{ minWidth:210 }}>
+        alignItems:"center", flexWrap:"wrap", marginBottom:12 }}>
+        <h2 style={{ fontSize:24, margin:0 }}>Vocabulary</h2>
+        <div style={{ minWidth:180 }}>
           <div style={{ display:"flex", justifyContent:"space-between", fontFamily:"ui-monospace, monospace",
-            fontSize:11.5, color:C.mute, marginBottom:6 }}>
-            <span>overall progress</span><span>{overallCount}/{allCount}</span>
+            fontSize:11, color:C.mute, marginBottom:5 }}>
+            <span>mastered</span><span>{overallCount}/{allCount}</span>
           </div>
           <div role="progressbar" aria-label="Overall vocabulary progress" aria-valuemin="0"
             aria-valuemax={allCount} aria-valuenow={overallCount}
-            style={{ height:8, borderRadius:99, background:C.line, overflow:"hidden" }}>
+            style={{ height:6, borderRadius:99, background:C.line, overflow:"hidden" }}>
             <div style={{ width:`${(overallCount / allCount) * 100}%`, height:"100%",
               background:C.moss, transition:"width .2s ease" }} />
           </div>
@@ -3870,7 +3865,7 @@ function VocabularyPanel({ user, onBack }) {
       </div>
 
       <div role="tablist" aria-label="Vocabulary grade bands" style={{ display:"flex", gap:7,
-        flexWrap:"wrap", marginBottom:14 }}>
+        flexWrap:"wrap", marginBottom:10 }}>
         {VOCAB_GROUPS.map((item) => (
           <button key={item.id} role="tab" aria-selected={band === item.id}
             onClick={() => setBand(item.id)} style={{ ...ghostBtn, fontSize:12,
@@ -3882,55 +3877,39 @@ function VocabularyPanel({ user, onBack }) {
         ))}
       </div>
 
-      <div style={{ ...examPane, marginBottom:12, display:"flex", justifyContent:"space-between",
-        gap:12, alignItems:"center" }}>
-        <div>
-          <div style={{ fontSize:16, fontWeight:700 }}>{group.label}</div>
-          <div style={{ fontSize:12.5, color:C.mute, marginTop:2 }}>
-            {bandCount} of {group.words.length} words mastered
-          </div>
-        </div>
-        <div style={{ width:"min(240px, 42%)", height:7, background:C.line,
-          borderRadius:99, overflow:"hidden" }}>
-          <div style={{ width:`${(bandCount / group.words.length) * 100}%`, height:"100%",
-            background:C.gold, transition:"width .2s ease" }} />
-        </div>
+      <div style={{ fontFamily:"ui-monospace, monospace", fontSize:11.5,
+        color:C.mute, marginBottom:8 }}>
+        {group.label} · {bandCount}/{group.words.length} mastered
       </div>
 
       {mastered == null ? (
         <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
       ) : (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:10 }}>
-          {group.words.map(([word, part, definition, example]) => {
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(400px, 1fr))", gap:7 }}>
+          {group.words.map(([word, , definition]) => {
             const complete = masteredSet.has(`${group.id}:${word}`);
             return (
-              <article key={word} style={{ ...examPane, borderColor:complete ? C.moss : C.line,
-                background:complete ? C.mossSoft : C.card }}>
-                <div style={{ display:"flex", justifyContent:"space-between", gap:10,
-                  alignItems:"flex-start", marginBottom:8 }}>
-                  <div>
-                    <div style={{ fontSize:20, fontWeight:700 }}>{word}</div>
-                    <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-                      color:C.moss, textTransform:"uppercase", letterSpacing:1 }}>{part}</div>
-                  </div>
-                  <button type="button" onClick={() => toggleWord(word)}
-                    aria-pressed={complete} style={{ ...ghostBtn, padding:"5px 9px", fontSize:10.5,
-                      color:complete ? "#fff" : C.moss, background:complete ? C.moss : "transparent",
-                      borderColor:C.moss, flexShrink:0 }}>
-                    {complete ? "mastered ✓" : "mark mastered"}
-                  </button>
+              <article key={word} style={{ ...examPane, padding:"11px 13px",
+                display:"flex", alignItems:"center", justifyContent:"space-between", gap:14,
+                borderColor:complete ? C.moss : C.line, background:complete ? C.mossSoft : C.card }}>
+                <div style={{ minWidth:0 }}>
+                  <div style={{ fontSize:17, fontWeight:700, marginBottom:2 }}>{word}</div>
+                  <div style={{ fontSize:13.5, lineHeight:1.4, color:C.mute }}>{definition}</div>
                 </div>
-                <p style={{ margin:"0 0 8px", fontSize:14.5, lineHeight:1.5 }}>{definition}</p>
-                <p style={{ margin:0, fontSize:13, lineHeight:1.5, color:C.mute, fontStyle:"italic" }}>
-                  “{example}”
-                </p>
+                <button type="button" onClick={() => toggleWord(word)} aria-pressed={complete}
+                  aria-label={`${complete ? "Unmark" : "Mark"} ${word} as mastered`}
+                  style={{ ...ghostBtn, minWidth:78, padding:"6px 8px", fontSize:10.5,
+                    color:complete ? "#fff" : C.moss, background:complete ? C.moss : "transparent",
+                    borderColor:C.moss, flexShrink:0 }}>
+                  {complete ? "✓ mastered" : "master"}
+                </button>
               </article>
             );
           })}
         </div>
       )}
       <p style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute,
-        margin:"14px 0 0" }}>Progress is saved in this browser for {user.name}.</p>
+        margin:"10px 0 0" }}>Saved for {user.name} on this device.</p>
     </div>
   );
 }
