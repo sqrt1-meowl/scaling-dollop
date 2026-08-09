@@ -28,7 +28,7 @@ export default function HomePage() {
       <header className="border-b border-[#dfe3e7] bg-white">
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3"><div className="grid size-9 place-items-center bg-[#17365f] text-white"><BookOpen size={18}/></div><div><div className="text-[15px] font-extrabold tracking-tight">SAT Math Drill</div><div className="text-[10px] font-bold uppercase tracking-[.16em] text-[#677386]">Self-paced mastery</div></div></div>
-          <div className="text-xs font-medium text-[#677386]">20 topics · 4 SAT domains</div>
+          <div className="text-xs font-medium text-[#677386]">19 skills · 4 SAT domains</div>
         </div>
       </header>
       <div className="mx-auto grid min-h-[calc(100vh-70px)] max-w-[1120px] items-center gap-16 px-6 py-14 md:grid-cols-[1.1fr_.9fr]">
@@ -37,7 +37,7 @@ export default function HomePage() {
           <h1 className="academic-heading max-w-[580px] text-[clamp(42px,6vw,68px)] leading-[1.02] text-[#10233f]">Build fluency. Then learn to think through the hard ones.</h1>
           <p className="mt-7 max-w-[560px] text-[17px] leading-7 text-[#566273]">A focused program that separates independent Easy and Medium practice from teacher-led Hard question strategy.</p>
           <div className="mt-10 grid max-w-[570px] gap-px border border-[#dfe3e7] bg-[#dfe3e7] sm:grid-cols-2">
-            <div className="bg-white p-5"><div className="mb-3 flex items-center gap-2 text-sm font-extrabold"><Check size={16} className="text-[#416f9d]"/> Drill</div><p className="text-sm leading-6 text-[#677386]">Concept reference, worked example, 12 sequenced questions, then a mastery gate.</p></div>
+            <div className="bg-white p-5"><div className="mb-3 flex items-center gap-2 text-sm font-extrabold"><Check size={16} className="text-[#416f9d]"/> Drill</div><p className="text-sm leading-6 text-[#677386]">Focused drill units with a concept, worked example, configurable Easy and Medium practice, then one skill gate.</p></div>
             <div className="bg-white p-5"><div className="mb-3 flex items-center gap-2 text-sm font-extrabold"><GraduationCap size={17} className="text-[#a1623c]"/> Live Challenge</div><p className="text-sm leading-6 text-[#677386]">A separate hard-question lesson for recognition, strategy, traps, and reasoning.</p></div>
           </div>
         </section>

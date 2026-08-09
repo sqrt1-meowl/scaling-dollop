@@ -1,0 +1,18 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { curriculumSchema } from "../db/schema.ts";
+import { allDrillUnits, allFrameworkTargets, allSkills, domains, questionModels, seedQuestions } from "../lib/curriculum.ts";
+
+const sql = (value) => value == null ? "NULL" : `'${String(value).replaceAll("'", "''")}'`;
+const bool = (value) => value ? 1 : 0;
+const statements = ["PRAGMA foreign_keys = ON", ...curriculumSchema];
+
+domains.forEach((domain, index) => statements.push(`INSERT OR IGNORE INTO domains (id,name,short_name,sat_weight,accent,sort_order,status) VALUES (${sql(domain.id)},${sql(domain.name)},${sql(domain.shortName)},${domain.weight},${sql(domain.accent)},${index + 1},'active')`));
+allSkills.forEach((skill) => statements.push(`INSERT OR IGNORE INTO skills (id,domain_id,code,name,description,sort_order,gate_question_count,gate_threshold,status) VALUES (${sql(skill.id)},${sql(skill.domainId)},${sql(skill.code)},${sql(skill.title)},${sql(skill.subtitle ?? "")},${skill.order},${skill.gateQuestionCount},${skill.gateThreshold},'active')`));
+allDrillUnits.forEach((unit) => statements.push(`INSERT OR IGNORE INTO drill_units (id,skill_id,code,name,description,sort_order,easy_question_count,medium_question_count,concept_notes,worked_example,is_active) VALUES (${sql(unit.id)},${sql(unit.skillId)},${sql(unit.code)},${sql(unit.name)},${sql(unit.description)},${unit.order},${unit.easyQuestionCount},${unit.mediumQuestionCount},${sql(JSON.stringify(unit.concept))},${sql(JSON.stringify(unit.workedExample))},${bool(unit.isActive)})`));
+allFrameworkTargets.forEach((target) => statements.push(`INSERT OR IGNORE INTO framework_targets (id,skill_id,drill_unit_id,description,sort_order) VALUES (${sql(target.id)},${sql(target.skillId)},${sql(target.drillUnitId)},${sql(target.description)},${target.order})`));
+questionModels.forEach((model) => statements.push(`INSERT OR IGNORE INTO question_models (id,drill_unit_id,framework_target_id,name,difficulty,description,template,parameter_rules,answer_rules,solution_method,forbidden_features,is_active) VALUES (${sql(model.id)},${sql(model.drillUnitId)},${sql(model.frameworkTargetId)},${sql(model.name)},${sql(model.difficulty)},${sql(model.description)},${sql(model.template)},${sql(model.parameterRules)},${sql(model.answerRules)},${sql(model.solutionMethod)},${sql(model.forbiddenFeatures)},${bool(model.isActive)})`));
+seedQuestions.forEach((question) => statements.push(`INSERT OR IGNORE INTO questions (id,domain_id,skill_id,drill_unit_id,framework_target_id,difficulty,question_type,prompt,choices,correct_answer,explanation,question_model_id,source_type,source_question_id,sort_order,status,requires_review,is_gate) VALUES (${sql(question.id)},${sql(question.domainId)},${sql(question.skillId)},${sql(question.drillUnitId)},${sql(question.frameworkTargetId)},${sql(question.difficulty)},${sql(question.questionType)},${sql(question.prompt)},${sql(question.choices ? JSON.stringify(question.choices) : null)},${sql(question.correctAnswer)},${sql(question.explanation)},${sql(question.questionModelId ?? null)},${sql(question.sourceType)},${sql(question.sourceQuestionId ?? null)},${question.order},${sql(question.status)},${bool(question.requiresReview)},${bool(question.isGate)})`));
+
+await mkdir(new URL("../drizzle/", import.meta.url), { recursive: true });
+await writeFile(new URL("../drizzle/0001_curriculum_architecture.sql", import.meta.url), `${statements.join(";\n")};\n`, "utf8");
+console.log(`Generated D1 migration with ${domains.length} domains, ${allSkills.length} skills, ${allDrillUnits.length} units, ${allFrameworkTargets.length} targets, ${questionModels.length} models, and ${seedQuestions.length} questions.`);

@@ -1,158 +1,272 @@
 export type CategoryAccent = "algebra" | "advanced" | "data" | "geometry";
-export type TopicStatus = "locked" | "available" | "in_progress" | "review" | "complete";
-export type QuestionDifficulty = "easy" | "medium" | "hard" | "gate";
+export type ProgressStatus = "locked" | "available" | "in_progress" | "complete" | "review";
+export type TopicStatus = ProgressStatus;
+export type QuestionDifficulty = "easy" | "medium" | "hard";
 export type QuestionType = "multiple_choice" | "student_response";
+export type QuestionStatus = "draft" | "active" | "review" | "archived";
+
+export interface FrameworkTarget { id: string; skillId: string; drillUnitId: string; description: string; order: number; }
+export interface DrillUnit {
+  id: string; skillId: string; code: string; name: string; description: string; order: number; isActive: boolean;
+  easyQuestionCount: number; mediumQuestionCount: number; concept: { label: string; formula: string }[];
+  workedExample: { prompt: string; steps: string[] }; frameworkTargets: FrameworkTarget[];
+}
+export interface Skill {
+  id: string; domainId: string; categoryId: string; code: string; title: string; subtitle?: string; order: number; gateQuestionCount: number;
+  gateThreshold: number; drillUnits: DrillUnit[];
+  /** Compatibility fields for the existing lesson components. */
+  concept: { label: string; formula: string }[]; workedExample: { prompt: string; steps: string[] };
+}
+export type Topic = Skill;
+export interface Domain { id: string; name: string; shortName: string; weight: number; accent: CategoryAccent; skills: Skill[]; topics: Skill[]; }
+export type Category = Domain;
 
 export interface Question {
-  id: string;
-  categoryId: string;
-  topicId: string;
-  difficulty: QuestionDifficulty;
-  type: QuestionType;
-  prompt: string;
-  math?: string;
-  imageUrl?: string;
-  choices?: string[];
-  correctAnswer: string;
-  explanation: string;
-  sourceLabel: string;
-  sourceQuestionId: string;
-  order: number;
+  id: string; domainId: string; domain: string; skillId: string; skillName: string; drillUnitId: string; drillUnitName: string;
+  frameworkTarget: string; frameworkTargetId: string; difficulty: QuestionDifficulty; questionType: QuestionType;
+  prompt: string; math?: string; imageUrl?: string; choices?: string[]; correctAnswer: string; explanation: string;
+  questionModelId?: string; sourceType: "original" | "legacy" | "placeholder"; sourceQuestionId?: string; order: number;
+  status: QuestionStatus; isGate?: boolean; requiresReview?: boolean;
+  /** Compatibility aliases retained while old records migrate. */
+  categoryId: string; topicId: string; type: QuestionType; sourceLabel: string;
 }
 
-export interface Topic {
-  id: string;
-  categoryId: string;
-  code: string;
-  title: string;
-  subtitle?: string;
-  order: number;
-  concept: { label: string; formula: string }[];
-  workedExample: { prompt: string; steps: string[] };
+export interface QuestionModel {
+  id: string; drillUnitId: string; frameworkTargetId: string; name: string; difficulty: QuestionDifficulty;
+  description: string; template: string; parameterRules: string; answerRules: string; solutionMethod: string;
+  forbiddenFeatures: string; isActive: boolean;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  shortName: string;
-  weight: number;
-  accent: CategoryAccent;
-  topics: Topic[];
-}
+type UnitSeed = [code: string, name: string, targets: string[]];
+const unit = (skillId: string, seed: UnitSeed, order: number): DrillUnit => {
+  const [code, name, targets] = seed;
+  const id = code.toLowerCase();
+  const frameworkTargets = targets.map((description, i) => ({ id: `${id}-target-${i + 1}`, skillId, drillUnitId: id, description, order: i + 1 }));
+  return {
+    id, skillId, code, name, description: `Build fluency with ${name.toLowerCase()} through one focused concept and a worked SAT-style example.`,
+    order, isActive: true, easyQuestionCount: 3, mediumQuestionCount: 2, frameworkTargets,
+    concept: [{ label: name, formula: "identify → model → solve → check" }],
+    workedExample: { prompt: `Use the structure of ${name.toLowerCase()} to solve a representative SAT problem.`, steps: ["Identify the requested quantity.", "Choose the matching relationship.", "Solve and check the result in context."] },
+  };
+};
 
-const makeTopic = (categoryId: string, code: string, title: string, order: number, subtitle?: string): Topic => ({
-  id: title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-  categoryId,
-  code,
-  title,
-  subtitle,
-  order,
-  concept: [
-    { label: "Core relationship", formula: "y = f(x)" },
-    { label: "SAT focus", formula: "\text{identify} \\rightarrow \\text{model} \\rightarrow \\text{solve}" },
-  ],
-  workedExample: {
-    prompt: `A representative SAT problem tests ${title.toLowerCase()}. Identify the relationship, substitute the given values, and solve.`,
-    steps: ["Identify the quantities and the requested value.", "Write the governing relationship.", "Substitute carefully and verify the result."],
-  },
-});
+const skill = (categoryId: string, code: string, title: string, order: number, seeds: UnitSeed[], subtitle?: string): Skill => {
+  const id = title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const drillUnits = seeds.map((seed, i) => unit(id, seed, i + 1));
+  return { id, domainId: categoryId, categoryId, code, title, subtitle, order, gateQuestionCount: 4, gateThreshold: 4, drillUnits, concept: drillUnits[0].concept, workedExample: drillUnits[0].workedExample };
+};
 
+const A1: UnitSeed[] = [
+  ["A1a", "Fluent solving", ["solve one-variable linear equations fluently"]],
+  ["A1b", "Algebraic structure and variables on both sides", ["solve using algebraic structure", "interpret variables, factors, and terms"]],
+  ["A1c", "Number of solutions", ["distinguish no solution, one solution, and infinitely many solutions"]],
+  ["A1d", "Equations from context", ["create and use a one-variable linear equation in context", "identify an equation representing a context"]],
+  ["A1e", "Interpreting equations in context", ["interpret constants, variables, factors, terms, and solutions in context"]],
+];
+const A2: UnitSeed[] = [
+  ["A2a", "Two-variable equations and ordered pairs", ["find one quantity given the other", "interpret solutions as ordered pairs"]],
+  ["A2b", "Graphs, tables, and equations", ["interpret Ax + By = C graphically", "connect equations, tables, and graphs"]],
+  ["A2c", "Slope and equations of lines", ["interpret slope and intercepts", "write a linear equation in two variables"]],
+  ["A2d", "Lines from points and slopes", ["write a line from two points", "write a line from a point and slope"]],
+  ["A2e", "Parallel and perpendicular lines", ["write a line from a point and a parallel line", "write a line from a point and a perpendicular line"]],
+  ["A2f", "Modeling and interpretation", ["create and use two-variable linear equations in context", "model constraints or conditions", "interpret constants, variables, terms, factors, and solutions"]],
+];
+const A3: UnitSeed[] = [
+  ["A3a", "Function notation and evaluation", ["evaluate a linear function", "interpret input and output pairs"]],
+  ["A3b", "Rate of change and initial value", ["interpret rate of change or slope in context", "interpret initial value"]],
+  ["A3c", "Tables, graphs, and equations", ["connect tables, equations, and graphs", "interpret graphs in context"]],
+  ["A3d", "Creating linear functions", ["create and use linear functions in context", "model relationships between quantities"]],
+  ["A3e", "Interpreting linear functions in context", ["interpret constants, variables, factors, and terms in context"]],
+];
+const A4: UnitSeed[] = [
+  ["A4a", "Solving by substitution", ["solve systems strategically by substitution"]], ["A4b", "Solving by elimination", ["solve systems fluently by elimination"]],
+  ["A4c", "Graphical solutions", ["connect algebraic and graphical representations", "interpret intersections in context"]],
+  ["A4d", "Number of solutions", ["identify no solution, a unique solution, or infinitely many solutions"]],
+  ["A4e", "Systems from context", ["create and use systems in context", "model constraints with a system"]],
+];
+const A5: UnitSeed[] = [
+  ["A5a", "One-variable inequalities", ["solve and interpret one-variable inequalities"]],
+  ["A5b", "Two-variable inequalities", ["create and use two-variable inequalities"]],
+  ["A5c", "Graphing solution regions", ["interpret points relative to a solution set", "connect tabular, algebraic, and graphical representations"]],
+  ["A5d", "Systems of inequalities", ["solve and graph systems of inequalities"]],
+  ["A5e", "Inequalities from context", ["model constraints in context", "interpret constants, variables, factors, terms, and solutions"]],
+];
+const AM1: UnitSeed[] = [
+  ["AM1a", "Combining and distributing", ["combine like terms", "use the distributive property"]],
+  ["AM1b", "Polynomial operations", ["add polynomials", "subtract polynomials", "multiply polynomials"]],
+  ["AM1c", "Common-factor factoring", ["factor out common factors"]],
+  ["AM1d", "Trinomials and difference of squares", ["factor trinomials into binomials", "factor a difference of squares", "use other polynomial factoring"]],
+  ["AM1e", "Rational expressions", ["rewrite simple rational expressions"]],
+  ["AM1f", "Rational exponents and radicals", ["convert rational exponents to radical form"]],
+  ["AM1g", "Choosing equivalent forms strategically", ["use algebraic structure strategically rather than only mechanical expansion"]],
+];
+const AM2: UnitSeed[] = [
+  ["AM2a", "Quadratics by factoring", ["solve quadratic equations by factoring"]], ["AM2b", "Quadratics by square-root method", ["solve quadratic equations by taking square roots"]],
+  ["AM2c", "Quadratic formula", ["solve quadratic equations with the quadratic formula"]], ["AM2d", "Completing the square", ["solve or rewrite quadratics by completing the square"]],
+  ["AM2e", "Number of real solutions", ["determine the number of real quadratic solutions"]], ["AM2f", "Absolute-value equations", ["solve linear absolute-value equations"]],
+  ["AM2g", "Radical equations", ["solve simple radical equations"]], ["AM2h", "Rational equations", ["solve simple rational equations"]],
+  ["AM2i", "Polynomial equations", ["solve polynomial equations already in factored form"]],
+  ["AM2j", "Linear and nonlinear systems", ["solve linear and nonlinear systems", "connect system solutions to graph intersections"]],
+  ["AM2k", "Rearranging formulas", ["rearrange multivariable formulas for a chosen variable"]],
+];
+const AM3: UnitSeed[] = [
+  ["AM3a", "Function notation", ["use function notation and evaluate nonlinear functions", "interpret input and output pairs"]],
+  ["AM3b", "Quadratic functions and key features", ["identify zeros and x-intercepts", "identify f(0) and the y-intercept", "interpret quadratic key features"]],
+  ["AM3c", "Quadratic representations", ["connect quadratic tables, equations, and graphs", "choose a form that exposes important features"]],
+  ["AM3d", "Exponential growth and decay", ["create and use exponential functions in context"]],
+  ["AM3e", "Exponential representations", ["connect exponential tables, equations, and graphs"]],
+  ["AM3f", "Polynomial functions", ["interpret polynomial functions and graphs"]], ["AM3g", "Rational functions", ["interpret simple rational functions"]],
+  ["AM3h", "Radical functions", ["interpret radical functions"]], ["AM3i", "Transformations", ["interpret transformations of nonlinear functions"]],
+  ["AM3j", "Modeling and selecting function types", ["select an appropriate nonlinear model", "create and use quadratic functions in context"]],
+  ["AM3k", "Interpreting parameters and graph features", ["interpret initial values and intercepts", "interpret constants, factors, variables, and terms", "interpret points and portions of graphs"]],
+];
+const P1: UnitSeed[] = [
+  ["P1a", "Ratios", ["interpret and use ratios"]], ["P1b", "Rates and unit rates", ["interpret rates and unit rates"]],
+  ["P1c", "Proportions", ["solve proportional relationships", "reason about scale-factor behavior"]],
+  ["P1d", "Unit conversions", ["perform one-step conversions", "perform multistep and multidimensional conversions"]],
+  ["P1e", "Derived units", ["interpret derived units from products", "interpret derived units from quotients"]],
+  ["P1f", "Scale drawings", ["use scale drawings"]], ["P1g", "Multistep proportional contexts", ["solve science and social-science proportional contexts"]],
+];
+const P2: UnitSeed[] = [
+  ["P2a", "Basic percentages", ["calculate percentages in context", "work with percentages of 100 percent or greater"]],
+  ["P2b", "Finding original amounts", ["find an original amount from a percentage"]],
+  ["P2c", "Percent increase and decrease", ["calculate percent increases", "calculate percent decreases"]],
+  ["P2d", "Growth factors", ["connect percent change to a growth factor"]],
+  ["P2e", "Tax, tip, discount, and interest", ["solve tax, tip, discount, and interest contexts"]],
+  ["P2f", "Repeated percentage changes", ["model repeated percentage changes"]],
+];
+const P3: UnitSeed[] = [
+  ["P3a", "Frequency tables", ["interpret frequency tables"]], ["P3b", "Histograms and dot plots", ["interpret histograms", "interpret dot plots"]],
+  ["P3c", "Box plots", ["interpret box plots"]], ["P3d", "Mean, median, and range", ["calculate mean", "calculate median", "calculate range"]],
+  ["P3e", "Effects of data changes and outliers", ["explain effects of outliers on mean and median"]],
+  ["P3f", "Standard deviation", ["compare standard deviations", "recognize distributions with the same standard deviation and different means"]],
+  ["P3g", "Comparing distributions", ["compare distributions by center and spread"]],
+];
+const P4: UnitSeed[] = [
+  ["P4a", "Scatterplots and association", ["interpret scatterplots without prediction"]], ["P4b", "Linear models", ["interpret linear models"]],
+  ["P4c", "Predictions", ["make predictions from scatterplots"]], ["P4d", "Quadratic models", ["interpret quadratic models"]],
+  ["P4e", "Exponential models", ["interpret exponential models"]], ["P4f", "Comparing models and growth", ["interpret graphs relating two quantities", "compare linear and exponential growth"]],
+];
+const P5: UnitSeed[] = [
+  ["P5a", "Basic probability", ["calculate and interpret probability"]], ["P5b", "Relative frequency", ["calculate relative frequency"]],
+  ["P5c", "One-way and two-way tables", ["interpret one-way tables", "interpret two-way tables", "use area models"]],
+  ["P5d", "Conditional probability", ["calculate and interpret conditional probability"]],
+  ["P5e", "Missing frequencies and probability contexts", ["infer a missing frequency from a probability", "interpret probability in context"]],
+];
+const P6: UnitSeed[] = [
+  ["P6a", "Samples and populations", ["distinguish samples and populations"]], ["P6b", "Estimating means", ["use a sample mean to estimate a population mean"]],
+  ["P6c", "Estimating proportions", ["use a sample proportion to estimate a population proportion"]],
+  ["P6d", "Margin of error", ["interpret margin of error"]], ["P6e", "Sample size and margin of error", ["explain the effect of larger sample size on margin of error"]],
+];
+const P7: UnitSeed[] = [
+  ["P7a", "Random sampling and generalization", ["identify the population to which a random sample can generalize", "understand random sampling"]],
+  ["P7b", "Sampling limitations", ["identify sampling limitations"]], ["P7c", "Observational studies vs experiments", ["distinguish observational studies and experiments"]],
+  ["P7d", "Random assignment", ["understand random assignment", "explain why random assignment supports causal inference"]],
+  ["P7e", "Association vs causation", ["determine whether causal evidence is justified"]],
+];
+const G1: UnitSeed[] = [
+  ["G1a", "Area and perimeter", ["area of geometric figures", "perimeter", "selecting the appropriate area formula", "objects modeled by geometric figures"]],
+  ["G1b", "Surface area", ["surface area", "selecting the appropriate surface-area formula"]],
+  ["G1c", "Volume", ["volume", "selecting the appropriate volume formula"]],
+  ["G1d", "Missing dimensions", ["solving from a given length", "solving from a given area", "solving from a given surface area", "solving from a given volume"]],
+  ["G1e", "Scale factors", ["scale factor k for lengths", "scale factor k² for areas", "scale factor k³ for volumes", "real-world and purely mathematical contexts"]],
+];
+const G2: UnitSeed[] = [
+  ["G2a", "Basic angle relationships", ["vertical angles"]], ["G2b", "Triangle angle relationships", ["triangle angle sum"]],
+  ["G2c", "Parallel lines and transversals", ["parallel lines cut by a transversal"]], ["G2d", "Similar triangles", ["triangle similarity"]],
+  ["G2e", "Congruent triangles", ["triangle congruence"]], ["G2f", "Scale factors and proportions", ["length scale factors in similar figures", "angle measures unchanged under scaling"]],
+  ["G2g", "Sufficiency and theorem questions", ["determine which statements are sufficient to establish a relationship or theorem"]],
+];
+const G3: UnitSeed[] = [
+  ["G3a", "Pythagorean theorem", ["apply the Pythagorean theorem"]], ["G3b", "45-45-90 triangles", ["solve 45-45-90 triangles"]],
+  ["G3c", "30-60-90 triangles", ["solve 30-60-90 triangles"]], ["G3d", "Sine, cosine, and tangent", ["use right-triangle trigonometry"]],
+  ["G3e", "Similarity and trig ratios", ["use similarity to determine sine, cosine, and tangent"]],
+  ["G3f", "Complementary trig relationships", ["use sine and cosine relationships for complementary angles"]],
+  ["G3g", "Applied right-triangle problems", ["solve contextual right-triangle applications"]],
+];
+const G4: UnitSeed[] = [
+  ["G4a", "Radius, diameter, and basic circle relationships", ["radius", "diameter"]], ["G4b", "Arc length and sector area", ["arc length", "sector area"]],
+  ["G4c", "Circle angles and tangents", ["circle angles", "tangents"]], ["G4d", "Circle equations: center and radius", ["standard circle form", "create circle equations in the xy-plane"]],
+  ["G4e", "Graphs and equation changes", ["understand how equation changes affect the graph", "understand how graph changes affect the equation"]],
+  ["G4f", "Completing the square", ["complete the square in circle equations"]], ["G4g", "Distance formula and coordinate-circle problems", ["use the distance formula in circle problems"]],
+  ["G4h", "Degrees and radians", ["radian measure", "degree and radian conversion"]], ["G4i", "Unit-circle relationships", ["unit-circle trigonometric ratios"]],
+];
+
+const category = (id: string, name: string, shortName: string, weight: number, accent: CategoryAccent, skills: Skill[]): Category => ({ id, name, shortName, weight, accent, skills, topics: skills });
 export const categories: Category[] = [
-  {
-    id: "algebra", name: "Algebra", shortName: "Algebra", weight: 35, accent: "algebra",
-    topics: [
-      makeTopic("algebra", "A1", "Linear equations in one variable", 1),
-      makeTopic("algebra", "A2", "Linear functions", 2),
-      makeTopic("algebra", "A3", "Linear equations in two variables", 3),
-      makeTopic("algebra", "A4", "Systems of two linear equations", 4),
-      makeTopic("algebra", "A5", "Linear inequalities", 5),
-    ],
-  },
-  {
-    id: "advanced-math", name: "Advanced Math", shortName: "Advanced Math", weight: 35, accent: "advanced",
-    topics: [
-      makeTopic("advanced-math", "M1", "Equivalent expressions", 1, "Combining, factoring, and distributing"),
-      makeTopic("advanced-math", "M2", "Nonlinear equations in one variable", 2, "Quadratic, radical, rational, and absolute value"),
-      makeTopic("advanced-math", "M3", "Systems of one linear equation and one nonlinear equation", 3),
-      makeTopic("advanced-math", "M4", "Nonlinear functions", 4, "Graphs, key features, transformations, and context"),
-    ],
-  },
-  {
-    id: "problem-solving-data-analysis", name: "Problem-Solving & Data Analysis", shortName: "Problem Solving", weight: 15, accent: "data",
-    topics: [
-      makeTopic("problem-solving-data-analysis", "P1", "Ratios, rates, proportions, and units", 1),
-      makeTopic("problem-solving-data-analysis", "P2", "Percentages and growth factor", 2),
-      makeTopic("problem-solving-data-analysis", "P3", "One-variable data", 3, "Center, spread, and effects of changes"),
-      makeTopic("problem-solving-data-analysis", "P4", "Two-variable data", 4, "Scatterplots and linear fit"),
-      makeTopic("problem-solving-data-analysis", "P5", "Probability and conditional probability", 5),
-      makeTopic("problem-solving-data-analysis", "P6", "Sample statistics and margin of error", 6),
-      makeTopic("problem-solving-data-analysis", "P7", "Evaluating statistical claims", 7),
-    ],
-  },
-  {
-    id: "geometry-trigonometry", name: "Geometry & Trigonometry", shortName: "Geometry", weight: 15, accent: "geometry",
-    topics: [
-      {
-        ...makeTopic("geometry-trigonometry", "G1", "Area and Volume", 1), id: "area-and-volume",
-        concept: [
-          { label: "Rectangle", formula: "A = lw" }, { label: "Triangle", formula: "A = \\frac{1}{2}bh" },
-          { label: "Circle", formula: "A = \\pi r^2" }, { label: "Rectangular prism", formula: "V = lwh" },
-        ],
-        workedExample: { prompt: "A rectangle has length 8 cm and width 5 cm. Find its area.", steps: ["A = lw", "A = 8(5)", "A = 40\\text{ cm}^2"] },
-      },
-      makeTopic("geometry-trigonometry", "G2", "Lines, angles, and triangles", 2),
-      makeTopic("geometry-trigonometry", "G3", "Right triangles and trigonometry", 3),
-      makeTopic("geometry-trigonometry", "G4", "Circles", 4, "Equations, arcs, and sectors"),
-    ],
-  },
+  category("algebra", "Algebra", "Algebra", 35, "algebra", [skill("algebra", "A1", "Linear equations in one variable", 1, A1), skill("algebra", "A2", "Linear equations in two variables", 2, A2), skill("algebra", "A3", "Linear functions", 3, A3), skill("algebra", "A4", "Systems of two linear equations in two variables", 4, A4), skill("algebra", "A5", "Linear inequalities in one or two variables", 5, A5)]),
+  category("advanced-math", "Advanced Math", "Advanced Math", 35, "advanced", [skill("advanced-math", "AM1", "Equivalent expressions", 1, AM1), skill("advanced-math", "AM2", "Nonlinear equations in one variable and systems of equations in two variables", 2, AM2), skill("advanced-math", "AM3", "Nonlinear functions", 3, AM3)]),
+  category("problem-solving-data-analysis", "Problem-Solving & Data Analysis", "Problem Solving", 15, "data", [skill("problem-solving-data-analysis", "P1", "Ratios, rates, proportional relationships, and units", 1, P1), skill("problem-solving-data-analysis", "P2", "Percentages", 2, P2), skill("problem-solving-data-analysis", "P3", "One-variable data: distributions and measures of center and spread", 3, P3), skill("problem-solving-data-analysis", "P4", "Two-variable data: models and scatterplots", 4, P4), skill("problem-solving-data-analysis", "P5", "Probability and conditional probability", 5, P5), skill("problem-solving-data-analysis", "P6", "Inference from sample statistics and margin of error", 6, P6), skill("problem-solving-data-analysis", "P7", "Evaluating statistical claims: observational studies and experiments", 7, P7)]),
+  category("geometry-trigonometry", "Geometry & Trigonometry", "Geometry", 15, "geometry", [skill("geometry-trigonometry", "G1", "Area and volume", 1, G1), skill("geometry-trigonometry", "G2", "Lines, angles, and triangles", 2, G2), skill("geometry-trigonometry", "G3", "Right triangles and trigonometry", 3, G3), skill("geometry-trigonometry", "G4", "Circles", 4, G4)]),
 ];
+export const domains: Domain[] = categories;
 
-export const allTopics = categories.flatMap((category) => category.topics);
-export const getCategory = (id: string) => categories.find((category) => category.id === id);
-export const getTopic = (id: string) => allTopics.find((topic) => topic.id === id);
-export const getCategoryForTopic = (topicId: string) => {
-  const topic = getTopic(topicId);
-  return topic ? getCategory(topic.categoryId) : undefined;
+export const allSkills = categories.flatMap((item) => item.skills);
+export const allTopics = allSkills;
+export const allDrillUnits = allSkills.flatMap((item) => item.drillUnits);
+export const allFrameworkTargets = allDrillUnits.flatMap((item) => item.frameworkTargets);
+export const getCategory = (id: string) => categories.find((item) => item.id === id);
+export const getSkill = (id: string) => allSkills.find((item) => item.id === id);
+export const getTopic = getSkill;
+export const getDrillUnit = (id: string) => allDrillUnits.find((item) => item.id === id);
+export const getCategoryForTopic = (id: string) => { const item = getSkill(id); return item ? getCategory(item.categoryId) : undefined; };
+
+const q = (unitId: string, difficulty: QuestionDifficulty, order: number, prompt: string, choices: string[] | undefined, answer: string, explanation: string, options: Partial<Question> = {}): Question => {
+  const drillUnit = getDrillUnit(unitId)!; const owningSkill = getSkill(drillUnit.skillId)!; const categoryItem = getCategory(owningSkill.categoryId)!;
+  const target = drillUnit.frameworkTargets[Math.min(order - 1, drillUnit.frameworkTargets.length - 1)] ?? drillUnit.frameworkTargets[0];
+  return { id: `${unitId}-${options.isGate ? "gate" : difficulty}-${order}`, domainId: categoryItem.id, domain: categoryItem.name, skillId: owningSkill.id, skillName: owningSkill.title,
+    drillUnitId: drillUnit.id, drillUnitName: drillUnit.name, frameworkTarget: target.description, frameworkTargetId: target.id, difficulty,
+    questionType: choices ? "multiple_choice" : "student_response", prompt, choices, correctAnswer: answer, explanation,
+    questionModelId: difficulty === "hard" ? undefined : `${unitId}-${difficulty}-model`, sourceType: "original", sourceQuestionId: `${owningSkill.code}-${unitId.toUpperCase()}-${order}`, status: "active",
+    order, categoryId: owningSkill.categoryId, topicId: owningSkill.id, type: choices ? "multiple_choice" : "student_response", sourceLabel: "SAT Math Drill original", ...options };
 };
 
-const av = (id: string, difficulty: QuestionDifficulty, order: number, prompt: string, choices: string[] | undefined, answer: string, explanation: string, type: QuestionType = "multiple_choice", math?: string): Question => ({
-  id, categoryId: "geometry-trigonometry", topicId: "area-and-volume", difficulty, type, prompt, choices, correctAnswer: answer,
-  explanation, sourceLabel: "SAT Math Drill original", sourceQuestionId: `AV-${id.toUpperCase()}`, order, math,
-});
-
-export const areaVolumeQuestions: Question[] = [
-  av("e1", "easy", 1, "A square has side length 12 cm. What is its area?", ["24", "48", "144", "288"], "144", "A square's area is s². So 12² = 144."),
-  av("e2", "easy", 2, "A rectangle is 9 meters long and 4 meters wide. What is its area?", ["13", "26", "36", "72"], "36", "Use A = lw: 9 × 4 = 36 square meters."),
-  av("e3", "easy", 3, "A triangle has base 10 and height 7. What is its area?", ["17", "35", "70", "140"], "35", "Use A = ½bh: ½(10)(7) = 35."),
-  av("e4", "easy", 4, "A circle has radius 5. What is its area in terms of π?", ["5π", "10π", "25π", "50π"], "25π", "Use A = πr²: π(5²) = 25π."),
-  av("e5", "easy", 5, "A rectangular prism measures 3 by 4 by 8. What is its volume?", ["15", "32", "48", "96"], "96", "Use V = lwh: 3 × 4 × 8 = 96."),
-  av("e6", "easy", 6, "The area of a rectangle is 54 square units and its length is 9. What is its width?", undefined, "6", "Since A = lw, w = 54 ÷ 9 = 6.", "student_response"),
-  av("m1", "medium", 1, "A rectangle's length is 3 more than its width. If the width is 7, what is the rectangle's area?", ["49", "70", "77", "100"], "70", "The length is 10, so the area is 10 × 7 = 70."),
-  av("m2", "medium", 2, "A square's side length is increased by a factor of 3. By what factor does its area increase?", ["3", "6", "9", "12"], "9", "Area scales with the square of length: 3² = 9."),
-  av("m3", "medium", 3, "A cylindrical can has radius 2 and height 9. What is its volume?", ["18π", "36π", "54π", "81π"], "36π", "Use V = πr²h: π(2²)(9) = 36π."),
-  av("m4", "medium", 4, "A triangle and a rectangle share a base of 12. The triangle's height is 8 and the rectangle's height is 5. How much greater is the triangle's area?", ["8", "12", "18", "36"], "12", "Triangle area is 48; rectangle area is 60. The difference is 12."),
-  av("m5", "medium", 5, "A cube has volume 125 cubic units. What is the area of one face?", ["5", "20", "25", "75"], "25", "The side length is ∛125 = 5. One face has area 5² = 25."),
-  av("m6", "medium", 6, "A circular garden has area 64π square feet. What is its diameter?", undefined, "16", "From πr² = 64π, r = 8. The diameter is 16.", "student_response"),
-  av("g1", "gate", 1, "A rectangle has perimeter 34 and length 11. What is its area?", ["33", "66", "121", "187"], "66", "2(11 + w) = 34, so w = 6 and A = 66."),
-  av("g2", "gate", 2, "A circle's diameter is 14. What is its area in terms of π?", ["14π", "28π", "49π", "196π"], "49π", "The radius is 7, so A = π(7²) = 49π."),
-  av("g3", "gate", 3, "A rectangular prism has volume 240, length 10, and width 6. What is its height?", undefined, "4", "240 = 10 × 6 × h, so h = 4.", "student_response"),
-  av("g4", "gate", 4, "A square and an equilateral triangle have the same perimeter, 24. What is the area of the square?", ["24", "32", "36", "64"], "36", "Each side of the square is 24 ÷ 4 = 6, so its area is 36."),
-  av("challenge", "hard", 1, "Two similar square patios have side lengths in a 3:5 ratio. The smaller patio costs $1,800 to tile at the same rate per square foot. What will the larger patio cost?", ["$3,000", "$4,200", "$5,000", "$7,500"], "$5,000", "Area scales by (5/3)² = 25/9. Then $1,800 × 25/9 = $5,000."),
+const g1Questions: Question[] = [
+  q("g1a", "easy", 1, "A rectangle is 9 meters long and 4 meters wide. What is its area?", ["13", "26", "36", "72"], "36", "Use A = lw: 9 × 4 = 36 square meters."),
+  q("g1a", "easy", 2, "A square has side length 12 cm. What is its perimeter?", ["24", "36", "48", "144"], "48", "A square has four equal sides, so P = 4(12) = 48."),
+  q("g1a", "easy", 3, "A triangle has base 10 and height 7. What is its area?", ["17", "35", "70", "140"], "35", "Use A = 1/2 bh: 1/2(10)(7) = 35."),
+  q("g1a", "medium", 1, "A rectangle has perimeter 34 and length 11. What is its area?", ["33", "66", "121", "187"], "66", "2(11 + w) = 34, so w = 6 and A = 66."),
+  q("g1a", "medium", 2, "A composite floor is formed by a 10-by-8 rectangle with a 2-by-3 corner removed. What is its area?", ["68", "74", "80", "86"], "74", "Subtract the removed area: 80 − 6 = 74."),
+  q("g1b", "easy", 1, "A cube has side length 4. What is its surface area?", ["16", "24", "64", "96"], "96", "A cube has six square faces, so SA = 6(4²) = 96."),
+  q("g1b", "easy", 2, "A rectangular prism measures 2 by 3 by 5. What is its surface area?", ["30", "42", "62", "90"], "62", "SA = 2(lw + lh + wh) = 2(6 + 10 + 15) = 62."),
+  q("g1b", "easy", 3, "A cylinder has radius 3 and height 5. Which expression gives its total surface area?", ["15π", "30π", "48π", "90π"], "48π", "Use 2πr² + 2πrh = 18π + 30π = 48π."),
+  q("g1b", "medium", 1, "An open-top box is 6 by 4 by 3. What is its surface area?", ["72", "84", "96", "108"], "84", "Include the base and four sides: 24 + 36 + 24 = 84."),
+  q("g1b", "medium", 2, "A cube has surface area 150. What is its side length?", undefined, "5", "6s² = 150, so s² = 25 and s = 5."),
+  q("g1c", "easy", 1, "A rectangular prism measures 3 by 4 by 8. What is its volume?", ["15", "32", "48", "96"], "96", "Use V = lwh: 3 × 4 × 8 = 96."),
+  q("g1c", "easy", 2, "A cylinder has radius 2 and height 9. What is its volume?", ["18π", "36π", "54π", "81π"], "36π", "Use V = πr²h = π(2²)(9) = 36π."),
+  q("g1c", "easy", 3, "A cube has edge length 5. What is its volume?", ["25", "75", "125", "625"], "125", "Use V = s³ = 5³ = 125."),
+  q("g1c", "medium", 1, "A prism has base area 18 and height 7. What is its volume?", ["25", "63", "126", "252"], "126", "A prism's volume is base area times height: 18(7) = 126."),
+  q("g1c", "medium", 2, "A cylinder has diameter 10 and height 4. What is its volume?", ["40π", "80π", "100π", "400π"], "100π", "The radius is 5, so V = π(5²)(4) = 100π."),
+  q("g1d", "easy", 1, "A rectangle has area 54 and length 9. What is its width?", undefined, "6", "Since A = lw, w = 54 ÷ 9 = 6."),
+  q("g1d", "easy", 2, "A rectangular prism has volume 240, length 10, and width 6. What is its height?", undefined, "4", "240 = 10 × 6 × h, so h = 4."),
+  q("g1d", "easy", 3, "A square has area 81. What is its side length?", ["9", "18", "27", "40.5"], "9", "s² = 81, so the positive side length is 9."),
+  q("g1d", "medium", 1, "A cylinder has volume 144π and height 9. What is its radius?", ["4", "8", "12", "16"], "4", "144π = πr²(9), so r² = 16 and r = 4."),
+  q("g1d", "medium", 2, "A cube has surface area 294. What is its volume?", ["49", "147", "294", "343"], "343", "6s² = 294 gives s² = 49 and s = 7, so V = 7³ = 343."),
+  q("g1e", "easy", 1, "Two similar figures have length scale factor 3. What is their area scale factor?", ["3", "6", "9", "27"], "9", "Area scales by the square of the length factor: 3² = 9."),
+  q("g1e", "easy", 2, "A model is made at one-half the original length. What fraction of the original volume is the model?", ["1/2", "1/4", "1/6", "1/8"], "1/8", "Volume scales by the cube of the length factor: (1/2)³ = 1/8."),
+  q("g1e", "easy", 3, "A square's side length is doubled. By what factor does its perimeter change?", ["2", "4", "6", "8"], "2", "Perimeter is a length, so it scales directly by 2."),
+  q("g1e", "medium", 1, "Two similar solids have surface areas in a 16:25 ratio. What is the ratio of corresponding lengths?", ["2:5", "4:5", "8:5", "16:25"], "4:5", "Take the positive square root of the area ratio: √16:√25 = 4:5."),
+  q("g1e", "medium", 2, "A cube's volume increases by a factor of 64. By what factor did its edge length increase?", ["4", "8", "16", "32"], "4", "Length uses the cube root of the volume factor: ∛64 = 4."),
 ];
+const gatePrompts: Array<[string, string[], string, string]> = [
+  ["A circle has diameter 14. What is its area?", ["14π", "28π", "49π", "196π"], "49π", "The radius is 7, so A = π(7²) = 49π."],
+  ["A cube has surface area 216. What is its volume?", ["36", "108", "180", "216"], "216", "6s² = 216 gives s = 6, and 6³ = 216."],
+  ["A rectangular tank with base 8 by 5 contains 240 cubic units. What is the water height?", ["4", "6", "8", "10"], "6", "240 = 8(5)h, so h = 6."],
+  ["Similar solids have a length ratio of 2:3. What is their volume ratio?", ["2:3", "4:9", "6:9", "8:27"], "8:27", "Cube the length ratio: 2³:3³ = 8:27."],
+];
+gatePrompts.forEach((item, i) => g1Questions.push(q(`g1${String.fromCharCode(97 + i)}`, "medium", i + 1, item[0], item[1], item[2], item[3], { id: `g1-gate-${i + 1}`, isGate: true })));
+g1Questions.push(q("g1e", "hard", 1, "Two similar square patios have side lengths in a 3:5 ratio. The smaller costs $1,800 to tile at the same rate per square foot. What will the larger patio cost?", ["$3,000", "$4,200", "$5,000", "$7,500"], "$5,000", "Area scales by (5/3)² = 25/9. Then $1,800 × 25/9 = $5,000.", { id: "g1-live-challenge" }));
 
-const placeholderQuestions = allTopics.filter((topic) => topic.id !== "area-and-volume").flatMap((topic) => {
-  const make = (difficulty: "easy" | "medium", order: number): Question => ({
-    id: `${topic.id}-${difficulty}-${order}`, categoryId: topic.categoryId, topicId: topic.id, difficulty, type: "multiple_choice",
-    prompt: `${topic.title}: choose the expression that represents a correct first step for this practice item.`,
-    choices: ["Identify the given relationship", "Ignore the units", "Estimate without reading", "Change the question"],
-    correctAnswer: "Identify the given relationship", explanation: "Start by identifying the governing relationship and the requested quantity.",
-    sourceLabel: "SAT Math Drill placeholder", sourceQuestionId: `${topic.code}-${difficulty[0].toUpperCase()}${order}`, order,
-  });
-  return [...Array.from({ length: 6 }, (_, i) => make("easy", i + 1)), ...Array.from({ length: 6 }, (_, i) => make("medium", i + 1))];
-});
+const placeholderQuestions = allDrillUnits.filter((item) => !item.id.startsWith("g1")).flatMap((drillUnit) => (["easy", "medium"] as const).flatMap((difficulty) => Array.from({ length: difficulty === "easy" ? 3 : 2 }, (_, i) => q(drillUnit.id, difficulty, i + 1, `${drillUnit.code} — ${drillUnit.name}: Which first step best matches this focused framework target?`, ["Identify the governing relationship", "Ignore the given units", "Change the requested quantity", "Estimate before reading"], "Identify the governing relationship", `This demo item is mapped to “${drillUnit.frameworkTargets[0].description}.” Production content requires review before release.`, { sourceType: "placeholder", sourceLabel: "Framework-mapped demo placeholder", status: "review", requiresReview: true }))));
+export const areaVolumeQuestions = g1Questions;
+export const seedQuestions = [...g1Questions, ...placeholderQuestions];
+export const questionModels: QuestionModel[] = allDrillUnits.flatMap((drillUnit) => (["easy", "medium"] as const).map((difficulty) => ({
+  id: `${drillUnit.id}-${difficulty}-model`, drillUnitId: drillUnit.id, frameworkTargetId: drillUnit.frameworkTargets[0].id,
+  name: `${drillUnit.code}_${difficulty.toUpperCase()}_MODEL`, difficulty, description: `Controlled ${difficulty} model for ${drillUnit.name}.`,
+  template: "Create one SAT-style item for the specified target and return one unambiguous answer.",
+  parameterRules: difficulty === "easy" ? "Use direct relationships and reasonable integer values." : "Require two connected reasoning steps with SAT-style values.",
+  answerRules: "The answer must be unique and verifiable by the stated solution method.", solutionMethod: "Identify the target relationship, solve, and verify.",
+  forbiddenFeatures: "No unrelated targets, hidden assumptions, trick wording, or unsupported diagrams.", isActive: true,
+})));
 
-export const seedQuestions = [...areaVolumeQuestions, ...placeholderQuestions];
-
-export const accentColor: Record<CategoryAccent, string> = {
-  algebra: "#416f9d", advanced: "#755e8f", data: "#4f7a66", geometry: "#a1623c",
-};
+export const accentColor: Record<CategoryAccent, string> = { algebra: "#416f9d", advanced: "#755e8f", data: "#4f7a66", geometry: "#a1623c" };

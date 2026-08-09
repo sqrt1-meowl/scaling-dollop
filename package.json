@@ -9,7 +9,11 @@
     "start": "next start",
     "lint": "next typegen && tsc --noEmit",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "npm run typecheck",
+    "test": "npm run typecheck && npm run validate:curriculum",
+    "validate:curriculum": "node --experimental-strip-types scripts/validate-curriculum.mjs",
+    "db:generate": "node --experimental-strip-types scripts/generate-d1-migration.mjs",
+    "db:migrate:local": "node scripts/migrate-local-d1.mjs",
+    "db:verify:local": "node scripts/verify-local-d1.mjs",
     "paper-assistant:server": "node paper-assistant/server/server.js",
     "paper-assistant:check": "node --check paper-assistant/server/server.js && node --check paper-assistant/extension/background/background.js && node --check paper-assistant/extension/content/content.js && node --check paper-assistant/extension/sidepanel/sidepanel.js"
   },

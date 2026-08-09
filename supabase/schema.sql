@@ -31,6 +31,16 @@ create table public.categories (
   sort_order integer not null
 );
 
+create table public.domains (
+  id text primary key,
+  name text not null,
+  short_name text not null,
+  sat_weight integer not null check (sat_weight between 0 and 100),
+  accent text not null,
+  sort_order integer not null,
+  status text not null default 'active' check (status in ('draft', 'active', 'archived'))
+);
+
 create table public.topics (
   id text primary key,
   category_id text not null references public.categories(id) on delete cascade,
@@ -43,10 +53,52 @@ create table public.topics (
   created_at timestamptz not null default now()
 );
 
+create table public.skills (
+  id text primary key,
+  domain_id text not null references public.domains(id) on delete restrict,
+  code text not null unique,
+  name text not null,
+  description text not null default '',
+  sort_order integer not null,
+  gate_question_count integer not null default 4,
+  gate_threshold integer not null default 4,
+  status text not null default 'active' check (status in ('draft', 'active', 'archived')),
+  created_at timestamptz not null default now()
+);
+
+-- `topics` remains the compatibility table name; each row is now one official SAT skill.
+create table public.drill_units (
+  id text primary key,
+  skill_id text not null references public.skills(id) on delete cascade,
+  code text not null unique,
+  name text not null,
+  description text not null default '',
+  sort_order integer not null,
+  easy_question_count integer not null default 3 check (easy_question_count > 0),
+  medium_question_count integer not null default 2 check (medium_question_count > 0),
+  concept_notes jsonb not null default '[]'::jsonb,
+  worked_example jsonb not null default '{}'::jsonb,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table public.framework_targets (
+  id text primary key,
+  skill_id text not null references public.skills(id) on delete cascade,
+  drill_unit_id text not null references public.drill_units(id) on delete cascade,
+  description text not null,
+  sort_order integer not null,
+  unique (drill_unit_id, sort_order)
+);
+
 create table public.questions (
   id uuid primary key default gen_random_uuid(),
+  domain_id text not null references public.domains(id) on delete restrict,
+  skill_id text not null references public.skills(id) on delete restrict,
   category_id text not null references public.categories(id) on delete cascade,
   topic_id text not null references public.topics(id) on delete cascade,
+  drill_unit_id text references public.drill_units(id) on delete restrict,
+  framework_target_id text references public.framework_targets(id) on delete restrict,
   difficulty public.question_difficulty not null,
   type public.question_type not null,
   prompt text not null,
@@ -56,7 +108,28 @@ create table public.questions (
   explanation text not null,
   source_label text,
   source_question_id text,
+  question_model_id text,
+  source_type text not null default 'legacy' check (source_type in ('original', 'legacy', 'placeholder')),
+  is_gate boolean not null default false,
+  requires_review boolean not null default false,
+  status text not null default 'draft' check (status in ('draft', 'active', 'review', 'archived')),
   sort_order integer not null,
+  created_at timestamptz not null default now()
+);
+
+create table public.question_models (
+  id text primary key,
+  drill_unit_id text not null references public.drill_units(id) on delete cascade,
+  framework_target_id text not null references public.framework_targets(id) on delete restrict,
+  name text not null,
+  difficulty public.question_difficulty not null check (difficulty in ('easy', 'medium')),
+  description text not null,
+  template text not null,
+  parameter_rules text not null,
+  answer_rules text not null,
+  solution_method text not null,
+  forbidden_features text not null default '',
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
@@ -82,6 +155,32 @@ create table public.topic_progress (
   challenge_completed boolean not null default false,
   updated_at timestamptz not null default now(),
   unique (student_id, topic_id)
+);
+
+create table public.skill_progress (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.student_profiles(id) on delete cascade,
+  skill_id text not null references public.skills(id) on delete cascade,
+  easy_completed integer not null default 0,
+  medium_completed integer not null default 0,
+  gate_score integer check (gate_score between 0 and 4),
+  status public.topic_status not null default 'locked',
+  challenge_completed boolean not null default false,
+  updated_at timestamptz not null default now(),
+  unique (student_id, skill_id)
+);
+
+create table public.drill_unit_progress (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.student_profiles(id) on delete cascade,
+  drill_unit_id text not null references public.drill_units(id) on delete cascade,
+  easy_completed integer not null default 0,
+  easy_total integer not null default 3,
+  medium_completed integer not null default 0,
+  medium_total integer not null default 2,
+  status public.topic_status not null default 'locked' check (status <> 'review'),
+  updated_at timestamptz not null default now(),
+  unique (student_id, drill_unit_id)
 );
 
 create table public.challenge_lessons (
@@ -127,6 +226,9 @@ create table public.error_tags (
 );
 
 create index questions_topic_difficulty_idx on public.questions(topic_id, difficulty, sort_order);
+create index questions_unit_target_idx on public.questions(drill_unit_id, framework_target_id, difficulty, sort_order);
+create index drill_units_skill_order_idx on public.drill_units(skill_id, sort_order);
+create index drill_unit_progress_student_idx on public.drill_unit_progress(student_id, status);
 create index attempts_student_created_idx on public.student_question_attempts(student_id, created_at desc);
 create index progress_student_status_idx on public.topic_progress(student_id, status);
 create index scores_student_date_idx on public.score_records(student_id, test_date);
@@ -135,6 +237,8 @@ alter table public.users enable row level security;
 alter table public.student_profiles enable row level security;
 alter table public.student_question_attempts enable row level security;
 alter table public.topic_progress enable row level security;
+alter table public.skill_progress enable row level security;
+alter table public.drill_unit_progress enable row level security;
 alter table public.warmup_attempts enable row level security;
 alter table public.score_records enable row level security;
 alter table public.error_tags enable row level security;
@@ -143,6 +247,10 @@ create policy "Users read their own account" on public.users for select using (a
 create policy "Students read their profile" on public.student_profiles for select using (user_id = auth.uid());
 create policy "Students read their progress" on public.topic_progress for select using (student_id in (select id from public.student_profiles where user_id = auth.uid()));
 create policy "Students write their progress" on public.topic_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students read their skill progress" on public.skill_progress for select using (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students write their skill progress" on public.skill_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students read their drill unit progress" on public.drill_unit_progress for select using (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students write their drill unit progress" on public.drill_unit_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
 
 -- Add teacher/admin policies through a security-definer role helper before production.
 -- Store question images and MP4 files in private Supabase Storage buckets and persist paths above.
