@@ -41,7 +41,7 @@ The additive migration is stored in `drizzle/` and is included in Sites deployme
 
 - `app/` — Next.js routes for login, student, drill, progress, and teacher areas
 - `components/` — reusable shells and complete product experiences
-- `lib/curriculum.ts` — 4 domains, 19 student-facing skills, 121 ordered drill units, framework targets, questions, and question models
+- `lib/curriculum.ts` and `lib/frameworkTargets.ts` — 4 domains, 19 student-facing skills, 121 ordered drill units, 507 precise framework targets, questions, and question models
 - `lib/appState.ts` — versioned progress and safe legacy-data migration
 - `db/schema.ts` — canonical D1 schema
 - `drizzle/` — generated and applied D1 migration

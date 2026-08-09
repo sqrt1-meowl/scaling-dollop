@@ -1,3 +1,5 @@
+import { frameworkTargetsByUnit } from "./frameworkTargets.ts";
+
 export type CategoryAccent = "algebra" | "advanced" | "data" | "geometry";
 export type ProgressStatus = "locked" | "available" | "in_progress" | "complete" | "review";
 export type TopicStatus = ProgressStatus;
@@ -39,7 +41,8 @@ export interface QuestionModel {
 
 type UnitSeed = [code: string, name: string, targets: string[], description?: string];
 const unit = (skillId: string, seed: UnitSeed, order: number): DrillUnit => {
-  const [code, name, targets, description] = seed;
+  const [code, name, seedTargets, description] = seed;
+  const targets = frameworkTargetsByUnit[code] ?? seedTargets;
   const id = code.toLowerCase();
   const frameworkTargets = targets.map((description, i) => ({ id: `${id}-target-${i + 1}`, skillId, drillUnitId: id, description, order: i + 1 }));
   return {

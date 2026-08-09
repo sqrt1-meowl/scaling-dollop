@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { allDrillUnits, allFrameworkTargets, allSkills, categories, questionModels, seedQuestions } from "../lib/curriculum.ts";
+import { frameworkTargetCodes, frameworkTargetsByUnit } from "../lib/frameworkTargets.ts";
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const expected = {
@@ -28,6 +29,9 @@ assert(categories.length === 4, `Expected 4 domains, found ${categories.length}`
 assert(allSkills.length === 19, `Expected 19 skills, found ${allSkills.length}`);
 assert(allDrillUnits.length === 121, `Expected 121 drill units, found ${allDrillUnits.length}`);
 assert(new Set(allDrillUnits.map((item) => item.code)).size === 121, "Drill unit codes must be unique");
+assert(frameworkTargetCodes.length === 121, `Expected target metadata for 121 drill units, found ${frameworkTargetCodes.length}`);
+assert(new Set(frameworkTargetCodes).size === 121, "Framework target unit codes must be unique");
+assert(allFrameworkTargets.length === 507, `Expected 507 precise framework targets, found ${allFrameworkTargets.length}`);
 for (const skill of allSkills) {
   const actual = skill.drillUnits.map((unit) => `${unit.code}|${unit.name}`);
   assert(JSON.stringify(actual) === JSON.stringify(expected[skill.code]), `${skill.code} drill units or ordering do not match the curriculum specification`);
@@ -36,8 +40,14 @@ for (const skill of allSkills) {
     assert(unit.order === index + 1, `${unit.code} has the wrong order`);
     assert(Boolean(unit.description), `${unit.code} is missing a description`);
     assert(unit.isActive, `${unit.code} must be active`);
+    const targets = frameworkTargetsByUnit[unit.code];
+    assert(Boolean(targets?.length), `${unit.code} must have at least one framework target`);
+    assert(targets.length >= 4 && targets.length <= 7, `${unit.code} targets must stay narrow and complete`);
+    assert(new Set(targets).size === targets.length, `${unit.code} has duplicate framework targets`);
+    assert(targets.every((target) => target === target.trim() && target.length >= 24), `${unit.code} has an imprecise or malformed framework target`);
   });
 }
+assert(frameworkTargetCodes.every((code) => allDrillUnits.some((unit) => unit.code === code)), "Framework target metadata includes an unknown drill unit");
 const p3f = allDrillUnits.find((unit) => unit.code === "P3f");
 assert(p3f?.description.toLowerCase().includes("do not require hand calculation"), "P3f must prohibit hand calculation of standard deviation");
 const g1e = allDrillUnits.find((unit) => unit.code === "G1e");
@@ -55,4 +65,7 @@ const reconciliation = await readFile(new URL("../drizzle/0002_complete_sat_curr
 assert(!reconciliation.includes("DELETE FROM questions"), "Curriculum reconciliation must not delete questions");
 const g1fSeed = await readFile(new URL("../drizzle/0003_seed_g1f_questions.sql", import.meta.url), "utf8");
 assert((g1fSeed.match(/INSERT INTO questions/g) ?? []).length === 5, "G1f follow-up migration must preserve a complete five-question drill set");
+const targetMigration = await readFile(new URL("../drizzle/0004_precise_framework_targets.sql", import.meta.url), "utf8");
+assert((targetMigration.match(/INSERT INTO framework_targets/g) ?? []).length === 507, "Precise-target migration must seed every framework target");
+assert(!targetMigration.includes("DELETE FROM questions") && !targetMigration.includes("DELETE FROM framework_targets"), "Precise-target migration must be non-destructive");
 console.log(`Validated ${categories.length} domains, ${allSkills.length} student-facing skills, ${allDrillUnits.length} ordered drill units, ${allFrameworkTargets.length} framework targets, ${seedQuestions.length} canonical questions, and ${questionModels.length} question models.`);
