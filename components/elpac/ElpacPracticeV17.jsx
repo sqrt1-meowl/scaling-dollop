@@ -3766,61 +3766,177 @@ function TopBar({ user, onHome, activePanel, onVocabulary, onProgress, onSignOut
   );
 }
 
-const VOCAB_GROUPS = [
-  {
-    id: "g35", label: "Grades 3–5", words: [
-      ["analyze", "verb", "Examine something carefully to understand it.", "Analyze the diagram before answering."],
-      ["compare", "verb", "Explain how two things are alike.", "Compare the two characters' choices."],
-      ["context", "noun", "Words or details surrounding an unfamiliar word or idea.", "Use context to determine the word's meaning."],
-      ["describe", "verb", "Tell what something is like using clear details.", "Describe what is happening in the picture."],
-      ["evidence", "noun", "Facts or details that support an answer.", "Use evidence from the passage."],
-      ["infer", "verb", "Reach a conclusion using clues and what you know.", "Infer how the speaker feels."],
-      ["sequence", "noun", "The order in which events or steps happen.", "Put the events in sequence."],
-      ["summarize", "verb", "State the most important ideas briefly.", "Summarize the article in two sentences."],
+const READING_SET_2_ADVANCED_VOCAB = [
+  ["photosynthesis", "The process plants use to make food from light, water, and carbon dioxide."],
+  ["chlorophyll", "The green pigment in plants that absorbs light."],
+  ["glucose", "A simple sugar that plants make and use for energy."],
+  ["carbon dioxide", "A gas used by plants during photosynthesis."],
+  ["literacy", "The ability to read and write."],
+  ["permit", "An official document that gives permission."],
+  ["application", "A formal request for something, often made in writing."],
+  ["tutoring", "Extra instruction given to help someone learn."],
+  ["margin", "The blank space around the edge of a page."],
+  ["intensely", "With great focus, strength, or effort."],
+  ["argument", "A claim supported by reasons and evidence."],
+  ["benefit", "A helpful result or advantage."],
+];
+
+const READING_SET_3_ADVANCED_VOCAB = [
+  ["globalization", "The growing connection of people, trade, and ideas around the world."],
+  ["merchant", "A person who buys and sells goods."],
+  ["gunpowder", "An explosive powder historically used in weapons and fireworks."],
+  ["pigment", "A substance that gives color to something."],
+  ["recycling", "Processing used materials so they can be used again."],
+  ["fountain", "A device or structure that supplies or sprays water."],
+  ["physics", "The study of matter, energy, motion, and forces."],
+  ["disease", "An illness that affects a person, animal, or plant."],
+  ["route", "A path used to travel from one place to another."],
+  ["assigned", "Given as a task or responsibility."],
+  ["overflow", "To spill over the edge because something is too full."],
+  ["visible", "Able to be seen."],
+];
+
+const READING_VOCAB = {
+  g35: {
+    1: [
+      ["astronaut", "A person trained to travel and work in space."],
+      ["engineering", "Using science and math to design or build things."],
+      ["bacteria", "Very small living organisms; some can cause illness."],
+      ["shelter", "A place that protects people or animals."],
+      ["adopted", "Took an animal or child into a new home or family."],
+      ["optional", "Available by choice; not required."],
+      ["overlap", "To partly cover or happen at the same time as something else."],
+      ["country", "A nation with its own land and government."],
+      ["medicine", "A substance or treatment used to prevent or treat illness."],
+      ["floating", "Staying on or near the surface without sinking."],
+      ["chapter", "One main section of a book."],
+      ["pinecone", "The seed-bearing cone of a pine tree."],
+    ],
+    2: [
+      ["recycling", "Processing used materials so they can be used again."],
+      ["satellite", "An object that moves around a planet or other body in space."],
+      ["coastline", "The land along the edge of an ocean or sea."],
+      ["mapmaker", "A person who creates maps."],
+      ["traveler", "A person who goes from one place to another."],
+      ["impossible", "Not able to happen or be done."],
+      ["photograph", "A picture made with a camera."],
+      ["bridge", "A structure built over a road, river, or other obstacle."],
+      ["cafeteria", "A place where people choose and eat prepared food."],
+      ["offer", "To say that you are willing to give or do something."],
+      ["seaweed", "A plant-like organism that grows in the sea."],
+      ["favorite", "Liked more than the others."],
+    ],
+    3: [
+      ["graphite", "A soft, dark form of carbon used in pencils."],
+      ["chocolate", "A food made from cacao beans."],
+      ["freezing", "At or below the temperature where water becomes ice."],
+      ["stained", "Marked or colored by something difficult to remove."],
+      ["announce", "To make information publicly known."],
+      ["balance", "To keep steady without falling."],
+      ["ancient", "Belonging to a time long ago."],
+      ["accident", "An unexpected event that causes damage or injury."],
+      ["return", "To go or come back."],
+      ["practice", "Repeated work done to improve a skill."],
+      ["period", "A length or section of time."],
+      ["fastest", "Moving or happening more quickly than all others."],
     ],
   },
-  {
-    id: "g68", label: "Grades 6–8", words: [
-      ["argument", "noun", "A claim supported by reasons and evidence.", "Identify the author's main argument."],
-      ["central idea", "noun", "The most important point developed in a text.", "State the central idea of the presentation."],
-      ["cite", "verb", "Refer to a specific source or piece of evidence.", "Cite one detail from the passage."],
-      ["contrast", "verb", "Explain how two things are different.", "Contrast the two proposed solutions."],
-      ["determine", "verb", "Find or decide after considering information.", "Determine why the experiment failed."],
-      ["evaluate", "verb", "Judge quality or value using evidence.", "Evaluate whether the source is reliable."],
-      ["relevant", "adjective", "Directly connected to the topic or question.", "Choose the most relevant detail."],
-      ["transition", "noun", "A word or phrase connecting ideas.", "Use a transition to introduce the example."],
+  g68: {
+    1: [
+      ["cochlea", "The spiral-shaped part of the inner ear that helps people hear."],
+      ["orbital", "Related to the curved path of an object around another object."],
+      ["astronomer", "A scientist who studies space, stars, and planets."],
+      ["applied", "Put into use for a practical purpose."],
+      ["elective", "A class that a student chooses rather than being required to take."],
+      ["definition", "A statement explaining the meaning of a word or idea."],
+      ["discovery", "Something learned or found for the first time."],
+      ["expensive", "Costing a lot of money."],
+      ["signal", "A sound, action, or sign that communicates information."],
+      ["object", "A thing that can be seen or touched."],
+      ["consider", "To think carefully about something."],
+      ["relationship", "The way two or more people or things are connected."],
+    ],
+    2: [
+      ["Gutenberg", "Johannes Gutenberg, who developed a movable-type printing system in Europe."],
+      ["literacy", "The ability to read and write."],
+      ["interpretation", "An explanation of the meaning of something."],
+      ["authority", "The power or right to control, decide, or command."],
+      ["sequoia", "A type of extremely large and long-lived tree."],
+      ["engineer", "A person who designs or builds machines and structures."],
+      ["damper", "A device that reduces movement or vibration."],
+      ["frequency", "The number of times something happens in a certain period."],
+      ["flammable", "Able to catch fire easily."],
+      ["emergency", "A dangerous situation requiring immediate action."],
+      ["modify", "To change something, usually to improve it."],
+      ["evidence", "Facts or details that support an idea or conclusion."],
+    ],
+    3: [
+      ["aqueduct", "A structure or channel built to carry water."],
+      ["chlorophyll", "The green pigment in plants that absorbs light."],
+      ["pigment", "A substance that gives color to something."],
+      ["exhausted", "Extremely tired."],
+      ["researcher", "A person who studies a subject to discover information."],
+      ["schedule", "A plan showing when activities will happen."],
+      ["gravity", "The force that pulls objects toward Earth or another body."],
+      ["navigation", "The process of finding and following a route."],
+      ["lighthouse", "A tower with a bright light that guides ships."],
+      ["keeper", "A person responsible for caring for or protecting something."],
+      ["biology", "The study of living things."],
+      ["channel", "A passage through which water or information can move."],
     ],
   },
-  {
-    id: "g910", label: "Grades 9–10", words: [
-      ["articulate", "verb", "Express an idea clearly and effectively.", "Articulate your position in the opening paragraph."],
-      ["corroborate", "verb", "Confirm a statement with additional evidence.", "The second source corroborates the witness's account."],
-      ["derive", "verb", "Obtain or develop something from a source.", "Derive a conclusion from the data."],
-      ["distinguish", "verb", "Recognize or explain an important difference.", "Distinguish fact from opinion."],
-      ["formulate", "verb", "Develop an idea or plan carefully.", "Formulate a claim that answers the prompt."],
-      ["implication", "noun", "A possible result or meaning that is suggested.", "Explain one implication of the new policy."],
-      ["synthesize", "verb", "Combine information from multiple sources.", "Synthesize the article and the chart."],
-      ["valid", "adjective", "Logically or factually well supported.", "Decide whether the conclusion is valid."],
+  g910: {
+    1: [
+      ["glacier", "A large, slow-moving mass of ice."],
+      ["gravity", "The force that pulls objects toward Earth or another body."],
+      ["velocity", "Speed in a particular direction."],
+      ["mandatory", "Required by a rule or law."],
+      ["charity", "Help or resources given to people in need."],
+      ["dependence", "The state of needing someone or something for support."],
+      ["fortune", "A very large amount of wealth."],
+      ["abandoned", "Left behind or given up."],
+      ["terminal", "A station where a journey begins or ends."],
+      ["creative", "Able to produce original ideas or work."],
+      ["balance", "A state in which different forces or needs are equal."],
+      ["downhill", "Toward the bottom of a slope."],
     ],
+    2: READING_SET_2_ADVANCED_VOCAB,
+    3: READING_SET_3_ADVANCED_VOCAB,
   },
-  {
-    id: "g1112", label: "Grades 11–12", words: [
-      ["ambiguous", "adjective", "Open to more than one interpretation.", "The speaker's final statement is ambiguous."],
-      ["coherent", "adjective", "Logical, consistent, and easy to follow.", "Organize the evidence into a coherent response."],
-      ["comprehensive", "adjective", "Complete and covering all important parts.", "Give a comprehensive explanation of the process."],
-      ["concession", "noun", "Acknowledgment that part of an opposing view is reasonable.", "The writer makes a concession before responding."],
-      ["empirical", "adjective", "Based on observation, experience, or experiment.", "The claim is supported by empirical evidence."],
-      ["nuance", "noun", "A subtle difference in meaning or expression.", "The summary preserves the nuance of the argument."],
-      ["substantiate", "verb", "Support a claim with proof or evidence.", "Substantiate your position with two sources."],
-      ["thesis", "noun", "The main claim an essay develops and supports.", "Revise the thesis to make the position precise."],
+  g1112: {
+    1: [
+      ["zero-trust", "A security approach that verifies every user and device before allowing access."],
+      ["security", "Protection against danger, damage, or unauthorized access."],
+      ["restoration", "The process of returning something damaged to a better condition."],
+      ["current", "A continuous movement of water or air in one direction."],
+      ["nursery", "A protected place where young plants or animals grow."],
+      ["barrier", "Something that blocks movement, access, or progress."],
+      ["adapt", "To change in order to fit new conditions."],
+      ["eliminate", "To remove or get rid of something."],
+      ["telescope", "An instrument used to view distant objects."],
+      ["fragment", "A small broken or separated piece."],
+      ["password", "A secret set of characters used to enter an account."],
+      ["account", "A record or identity that allows someone to use a service."],
     ],
+    2: READING_SET_2_ADVANCED_VOCAB,
+    3: READING_SET_3_ADVANCED_VOCAB,
   },
+};
+
+const VOCAB_BANDS = [
+  ["g35", "Grades 3–5"],
+  ["g68", "Grades 6–8"],
+  ["g910", "Grades 9–10"],
+  ["g1112", "Grades 11–12"],
 ];
 
 function VocabularyPanel({ user, onBack }) {
   const [band, setBand] = useState("g35");
+  const [studySet, setStudySet] = useState(1);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
   const [mastered, setMastered] = useState(null);
-  const storageKey = `vocabulary:${user.id}`;
+  const storageKey = "reading-vocabulary:" + user.id;
 
   useEffect(() => {
     (async () => {
@@ -3830,86 +3946,128 @@ function VocabularyPanel({ user, onBack }) {
     })();
   }, [storageKey]);
 
-  const group = VOCAB_GROUPS.find((item) => item.id === band) || VOCAB_GROUPS[0];
-  const allCount = VOCAB_GROUPS.reduce((sum, item) => sum + item.words.length, 0);
-  const masteredSet = new Set(mastered || []);
-  const overallCount = masteredSet.size;
-  const bandCount = group.words.filter(([word]) => masteredSet.has(`${group.id}:${word}`)).length;
+  useEffect(() => {
+    setCardIndex(0);
+    setRevealed(false);
+  }, [band, studySet]);
 
-  async function toggleWord(word) {
-    if (!mastered) return;
-    const id = `${group.id}:${word}`;
-    const next = masteredSet.has(id) ? mastered.filter((item) => item !== id) : [...mastered, id];
+  const words = READING_VOCAB[band]?.[studySet] || [];
+  const current = words[cardIndex] || ["", ""];
+  const masteredSet = new Set(mastered || []);
+  const currentId = band + ":" + studySet + ":" + current[0];
+  const learnedCount = words.filter(([word]) => masteredSet.has(band + ":" + studySet + ":" + word)).length;
+
+  async function toggleCurrent() {
+    if (!mastered || !current[0]) return;
+    const next = masteredSet.has(currentId)
+      ? mastered.filter((item) => item !== currentId)
+      : [...mastered, currentId];
     setMastered(next);
     await storeSet(storageKey, JSON.stringify(next));
+  }
+
+  function moveCard(amount) {
+    setCardIndex((index) => (index + amount + words.length) % words.length);
+    setRevealed(false);
   }
 
   return (
     <div>
       <Back onClick={onBack} label="practice" />
-      <div style={{ display:"flex", justifyContent:"space-between", gap:16,
+      <div style={{ display:"flex", justifyContent:"space-between", gap:14,
         alignItems:"center", flexWrap:"wrap", marginBottom:12 }}>
-        <h2 style={{ fontSize:24, margin:0 }}>Vocabulary</h2>
-        <div style={{ minWidth:180 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", fontFamily:"ui-monospace, monospace",
-            fontSize:11, color:C.mute, marginBottom:5 }}>
-            <span>mastered</span><span>{overallCount}/{allCount}</span>
+        <div>
+          <h2 style={{ fontSize:24, margin:"0 0 2px" }}>Vocabulary</h2>
+          <div style={{ fontSize:13, color:C.mute }}>Words from the reading practice sets</div>
+        </div>
+        <div style={{ width:180 }}>
+          <div style={{ display:"flex", justifyContent:"space-between",
+            fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute, marginBottom:5 }}>
+            <span>set progress</span><span>{learnedCount}/{words.length}</span>
           </div>
-          <div role="progressbar" aria-label="Overall vocabulary progress" aria-valuemin="0"
-            aria-valuemax={allCount} aria-valuenow={overallCount}
+          <div role="progressbar" aria-label="Vocabulary set progress" aria-valuemin="0"
+            aria-valuemax={words.length} aria-valuenow={learnedCount}
             style={{ height:6, borderRadius:99, background:C.line, overflow:"hidden" }}>
-            <div style={{ width:`${(overallCount / allCount) * 100}%`, height:"100%",
-              background:C.moss, transition:"width .2s ease" }} />
+            <div style={{ width:(words.length ? learnedCount / words.length * 100 : 0) + "%",
+              height:"100%", background:C.moss, transition:"width .2s ease" }} />
           </div>
         </div>
       </div>
 
-      <div role="tablist" aria-label="Vocabulary grade bands" style={{ display:"flex", gap:7,
-        flexWrap:"wrap", marginBottom:10 }}>
-        {VOCAB_GROUPS.map((item) => (
-          <button key={item.id} role="tab" aria-selected={band === item.id}
-            onClick={() => setBand(item.id)} style={{ ...ghostBtn, fontSize:12,
-              color:band === item.id ? "#fff" : C.mute,
-              background:band === item.id ? C.moss : "transparent",
-              borderColor:band === item.id ? C.moss : C.line }}>
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ fontFamily:"ui-monospace, monospace", fontSize:11.5,
-        color:C.mute, marginBottom:8 }}>
-        {group.label} · {bandCount}/{group.words.length} mastered
+      <div style={{ display:"flex", justifyContent:"space-between", gap:10,
+        flexWrap:"wrap", marginBottom:12 }}>
+        <div role="tablist" aria-label="Vocabulary grade bands" style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+          {VOCAB_BANDS.map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={band === id} onClick={() => setBand(id)}
+              style={{ ...ghostBtn, fontSize:11.5, color:band === id ? "#fff" : C.mute,
+                background:band === id ? C.moss : "transparent",
+                borderColor:band === id ? C.moss : C.line }}>{label}</button>
+          ))}
+        </div>
+        <div role="tablist" aria-label="Reading practice sets" style={{ display:"flex", gap:6 }}>
+          {[1, 2, 3].map((number) => (
+            <button key={number} role="tab" aria-selected={studySet === number}
+              onClick={() => setStudySet(number)}
+              style={{ ...ghostBtn, fontSize:11.5, color:studySet === number ? "#fff" : C.mute,
+                background:studySet === number ? C.ink : "transparent",
+                borderColor:studySet === number ? C.ink : C.line }}>Set {number}</button>
+          ))}
+        </div>
       </div>
 
       {mastered == null ? (
         <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
       ) : (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(400px, 1fr))", gap:7 }}>
-          {group.words.map(([word, , definition]) => {
-            const complete = masteredSet.has(`${group.id}:${word}`);
-            return (
-              <article key={word} style={{ ...examPane, padding:"11px 13px",
-                display:"flex", alignItems:"center", justifyContent:"space-between", gap:14,
-                borderColor:complete ? C.moss : C.line, background:complete ? C.mossSoft : C.card }}>
-                <div style={{ minWidth:0 }}>
-                  <div style={{ fontSize:17, fontWeight:700, marginBottom:2 }}>{word}</div>
-                  <div style={{ fontSize:13.5, lineHeight:1.4, color:C.mute }}>{definition}</div>
-                </div>
-                <button type="button" onClick={() => toggleWord(word)} aria-pressed={complete}
-                  aria-label={`${complete ? "Unmark" : "Mark"} ${word} as mastered`}
-                  style={{ ...ghostBtn, minWidth:78, padding:"6px 8px", fontSize:10.5,
-                    color:complete ? "#fff" : C.moss, background:complete ? C.moss : "transparent",
-                    borderColor:C.moss, flexShrink:0 }}>
-                  {complete ? "✓ mastered" : "master"}
-                </button>
-              </article>
-            );
-          })}
+        <div style={{ maxWidth:680, margin:"0 auto" }}>
+          <button type="button" onClick={() => setRevealed((value) => !value)}
+            aria-label={revealed ? "Hide definition" : "Reveal definition"}
+            style={{ ...examPane, width:"100%", minHeight:260, cursor:"pointer", fontFamily:"inherit",
+              display:"grid", placeItems:"center", textAlign:"center", padding:"32px 24px",
+              borderColor:masteredSet.has(currentId) ? C.moss : C.line,
+              background:masteredSet.has(currentId) ? C.mossSoft : C.card }}>
+            <div>
+              <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+                letterSpacing:1.4, textTransform:"uppercase", color:C.mute, marginBottom:18 }}>
+                Reading Set {studySet} · {cardIndex + 1} of {words.length}
+              </div>
+              <div style={{ fontSize:34, fontWeight:700, lineHeight:1.15 }}>{current[0]}</div>
+              <div style={{ marginTop:20, fontSize:revealed ? 17 : 12.5,
+                lineHeight:1.55, color:revealed ? C.ink : C.mute,
+                fontStyle:revealed ? "normal" : "italic" }}>
+                {revealed ? current[1] : "Click to reveal the definition"}
+              </div>
+            </div>
+          </button>
+
+          <div style={{ display:"flex", gap:8, marginTop:10, alignItems:"center" }}>
+            <button type="button" onClick={() => moveCard(-1)} style={{ ...ghostBtn, flex:1 }}>← Previous</button>
+            <button type="button" onClick={toggleCurrent} aria-pressed={masteredSet.has(currentId)}
+              style={{ ...ghostBtn, flex:1.15, color:masteredSet.has(currentId) ? "#fff" : C.moss,
+                background:masteredSet.has(currentId) ? C.moss : "transparent", borderColor:C.moss }}>
+              {masteredSet.has(currentId) ? "✓ Learned" : "Mark learned"}
+            </button>
+            <button type="button" onClick={() => moveCard(1)} style={{ ...smallPrimary, flex:1 }}>Next →</button>
+          </div>
+
+          <div aria-label="Vocabulary cards" style={{ display:"flex", justifyContent:"center",
+            gap:6, flexWrap:"wrap", marginTop:14 }}>
+            {words.map(([word], index) => {
+              const learned = masteredSet.has(band + ":" + studySet + ":" + word);
+              return (
+                <button key={word} type="button" onClick={() => { setCardIndex(index); setRevealed(false); }}
+                  aria-label={"Open " + word} title={word}
+                  style={{ width:10, height:10, padding:0, borderRadius:99, cursor:"pointer",
+                    border:"1px solid " + (index === cardIndex ? C.ink : learned ? C.moss : C.line),
+                    background:index === cardIndex ? C.ink : learned ? C.moss : "transparent" }} />
+              );
+            })}
+          </div>
         </div>
       )}
-      <p style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute,
-        margin:"10px 0 0" }}>Saved for {user.name} on this device.</p>
+      <p style={{ textAlign:"center", fontFamily:"ui-monospace, monospace",
+        fontSize:10.5, color:C.mute, margin:"12px 0 0" }}>
+        Learned words are saved for {user.name} on this device.
+      </p>
     </div>
   );
 }
