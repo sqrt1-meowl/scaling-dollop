@@ -16,8 +16,9 @@ export const curriculumSchema = [
   `CREATE TABLE IF NOT EXISTS drill_units (
     id TEXT PRIMARY KEY, skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
     code TEXT NOT NULL UNIQUE, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
-    sort_order INTEGER NOT NULL, easy_question_count INTEGER NOT NULL DEFAULT 3,
-    medium_question_count INTEGER NOT NULL DEFAULT 2, concept_notes TEXT NOT NULL DEFAULT '[]',
+    sort_order INTEGER NOT NULL, worked_example_count INTEGER NOT NULL DEFAULT 3,
+    easy_question_count INTEGER NOT NULL DEFAULT 5, medium_question_count INTEGER NOT NULL DEFAULT 5,
+    hard_question_count INTEGER NOT NULL DEFAULT 3, video_url TEXT NOT NULL DEFAULT '', concept_notes TEXT NOT NULL DEFAULT '[]',
     worked_example TEXT NOT NULL DEFAULT '{}', is_active INTEGER NOT NULL DEFAULT 1
   )`,
   `CREATE TABLE IF NOT EXISTS framework_targets (
@@ -57,9 +58,11 @@ export const curriculumSchema = [
   )`,
   `CREATE TABLE IF NOT EXISTS drill_unit_progress (
     user_id TEXT NOT NULL, drill_unit_id TEXT NOT NULL REFERENCES drill_units(id) ON DELETE CASCADE,
-    easy_completed INTEGER NOT NULL DEFAULT 0, easy_total INTEGER NOT NULL DEFAULT 3,
-    medium_completed INTEGER NOT NULL DEFAULT 0, medium_total INTEGER NOT NULL DEFAULT 2,
-    status TEXT NOT NULL DEFAULT 'locked' CHECK (status IN ('locked','available','in_progress','complete','review')),
+    easy_completed INTEGER NOT NULL DEFAULT 0, easy_total INTEGER NOT NULL DEFAULT 5,
+    medium_completed INTEGER NOT NULL DEFAULT 0, medium_total INTEGER NOT NULL DEFAULT 5,
+    hard_completed INTEGER NOT NULL DEFAULT 0, hard_total INTEGER NOT NULL DEFAULT 3,
+    stage TEXT NOT NULL DEFAULT 'examples' CHECK (stage IN ('examples','easy','medium','hard','video','complete')),
+    status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('locked','available','in_progress','complete','review')),
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (user_id, drill_unit_id)
   )`,
   `CREATE INDEX IF NOT EXISTS skills_domain_order_idx ON skills(domain_id, sort_order)`,

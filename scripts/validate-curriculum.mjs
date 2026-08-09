@@ -40,6 +40,7 @@ for (const skill of allSkills) {
     assert(unit.order === index + 1, `${unit.code} has the wrong order`);
     assert(Boolean(unit.description), `${unit.code} is missing a description`);
     assert(unit.isActive, `${unit.code} must be active`);
+    assert(unit.workedExampleCount === 3 && unit.easyQuestionCount === 5 && unit.mediumQuestionCount === 5 && unit.hardQuestionCount === 3, `${unit.code} must use the simplified 3 example, 5 Easy, 5 Medium, and 3 Hard defaults`);
     const targets = frameworkTargetsByUnit[unit.code];
     assert(Boolean(targets?.length), `${unit.code} must have at least one framework target`);
     assert(targets.length >= 4 && targets.length <= 7, `${unit.code} targets must stay narrow and complete`);
@@ -53,8 +54,18 @@ assert(p3f?.description.toLowerCase().includes("do not require hand calculation"
 const g1e = allDrillUnits.find((unit) => unit.code === "G1e");
 assert(g1e?.description.includes("k²") && g1e.description.includes("k³"), "G1e must distinguish length, area, and volume scale factors");
 assert(allFrameworkTargets.every((target) => target.skillId && target.drillUnitId && target.description), "Every framework target must be fully mapped");
-assert(questionModels.length === allDrillUnits.length * 2, "Every drill unit must have Easy and Medium question models");
-assert(seedQuestions.filter((question) => question.drillUnitId === "g1f").length === 5, "G1f must have a complete Easy and Medium placeholder set");
+assert(questionModels.length === allDrillUnits.length * 3, "Every drill unit must have Easy, Medium, and Hard question models");
+for (const unit of allDrillUnits) {
+  for (const [difficulty, count] of [["easy", unit.easyQuestionCount], ["medium", unit.mediumQuestionCount], ["hard", unit.hardQuestionCount]]) {
+    const questions = seedQuestions.filter((question) => question.drillUnitId === unit.id && question.difficulty === difficulty && !question.isGate && question.id !== "g1-live-challenge");
+    assert(questions.length >= count, `${unit.code} needs at least ${count} ${difficulty} practice questions`);
+  }
+}
+for (const skill of allSkills) {
+  const gates = seedQuestions.filter((question) => question.skillId === skill.id && question.isGate);
+  assert(gates.length === skill.gateQuestionCount, `${skill.code} must have exactly ${skill.gateQuestionCount} skill-gate questions`);
+  assert(new Set(gates.map((question) => question.drillUnitId)).size >= Math.min(skill.gateQuestionCount, skill.drillUnits.length), `${skill.code} gate questions must cover multiple drill units`);
+}
 for (const question of seedQuestions) {
   for (const field of ["domainId", "skillId", "skillName", "drillUnitId", "drillUnitName", "frameworkTargetId", "frameworkTarget", "difficulty", "questionType", "prompt", "correctAnswer", "explanation", "sourceType", "order", "status"]) assert(question[field] !== undefined && question[field] !== "", `${question.id} is missing ${field}`);
   assert(["easy", "medium", "hard"].includes(question.difficulty), `${question.id} has an invalid difficulty`);
@@ -68,4 +79,11 @@ assert((g1fSeed.match(/INSERT INTO questions/g) ?? []).length === 5, "G1f follow
 const targetMigration = await readFile(new URL("../drizzle/0004_precise_framework_targets.sql", import.meta.url), "utf8");
 assert((targetMigration.match(/INSERT INTO framework_targets/g) ?? []).length === 507, "Precise-target migration must seed every framework target");
 assert(!targetMigration.includes("DELETE FROM questions") && !targetMigration.includes("DELETE FROM framework_targets"), "Precise-target migration must be non-destructive");
+const progressionMigration = await readFile(new URL("../drizzle/0005_drill_unit_progression.sql", import.meta.url), "utf8");
+assert(progressionMigration.includes("ADD COLUMN stage"), "Drill-unit progression migration must persist the current stage");
+assert((progressionMigration.match(/INSERT INTO questions/g) ?? []).length === 72, "Drill-unit progression migration must add four gate questions for each remaining skill");
+assert(!progressionMigration.includes("DELETE FROM"), "Drill-unit progression migration must be non-destructive");
+const simplifiedMigration = await readFile(new URL("../drizzle/0006_simplified_unlocked_practice.sql", import.meta.url), "utf8");
+assert(simplifiedMigration.includes("hard_completed") && simplifiedMigration.includes("worked_example_count"), "Simplified-practice migration must add Hard progress and worked-example configuration");
+assert(simplifiedMigration.includes("CASE WHEN status='locked' THEN 'available'"), "Simplified-practice migration must unlock existing unit progress");
 console.log(`Validated ${categories.length} domains, ${allSkills.length} student-facing skills, ${allDrillUnits.length} ordered drill units, ${allFrameworkTargets.length} framework targets, ${seedQuestions.length} canonical questions, and ${questionModels.length} question models.`);

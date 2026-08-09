@@ -3,10 +3,11 @@ import { allDrillUnits, allSkills, areaVolumeQuestions, getDrillUnit, getSkill, 
 
 export type Role = "student" | "admin";
 export type ErrorKind = "Concept" | "Procedure" | "Careless" | "Time";
+export type DrillStage = "examples" | "easy" | "medium" | "hard" | "video" | "complete";
 export interface Session { email: string; role: Role; name: string; }
 export interface SkillProgress { skillId: string; topicId: string; easyCompleted: number; mediumCompleted: number; gateScore: number | null; status: ProgressStatus; challengeCompleted: boolean; updatedAt: string; }
 export type TopicProgress = SkillProgress;
-export interface DrillUnitProgress { drillUnitId: string; easyCompleted: number; easyTotal: number; mediumCompleted: number; mediumTotal: number; status: ProgressStatus; updatedAt: string; }
+export interface DrillUnitProgress { drillUnitId: string; easyCompleted: number; easyTotal: number; mediumCompleted: number; mediumTotal: number; hardCompleted: number; hardTotal: number; stage: DrillStage; status: ProgressStatus; updatedAt: string; }
 export interface ScoreRecord { id: string; date: string; score: number; }
 export interface ErrorRecord { id: string; questionId: string; topicId: string; kind: ErrorKind | null; date: string; }
 export interface WarmupAttempt { id: string; questionId: string; topicId: string; correct: boolean; seconds: number; date: string; }
@@ -49,7 +50,7 @@ const makeBase = (fresh: boolean): AppData => {
     progress[item.id] = {
       skillId: item.id, topicId: item.id, easyCompleted: isComplete ? item.drillUnits.reduce((sum, u) => sum + u.easyQuestionCount, 0) : isG1 ? 10 : 0,
       mediumCompleted: isComplete ? item.drillUnits.reduce((sum, u) => sum + u.mediumQuestionCount, 0) : isG1 ? 6 : 0,
-      gateScore: isComplete ? item.gateThreshold : null, status: isComplete ? "complete" : isG1 ? "in_progress" : fresh && skillIndex === 0 ? "available" : "locked",
+      gateScore: isComplete ? item.gateThreshold : null, status: isComplete ? "complete" : isG1 ? "in_progress" : "available",
       challengeCompleted: isComplete, updatedAt: nowFor(skillIndex),
     };
     item.drillUnits.forEach((drillUnit, unitIndex) => {
@@ -62,7 +63,10 @@ const makeBase = (fresh: boolean): AppData => {
         easyTotal: drillUnit.easyQuestionCount,
         mediumCompleted: isComplete || g1Completed ? drillUnit.mediumQuestionCount : 0,
         mediumTotal: drillUnit.mediumQuestionCount,
-        status: isComplete || g1Completed ? "complete" : g1Current ? "in_progress" : freshFirst ? "available" : "locked",
+        hardCompleted: isComplete || g1Completed ? drillUnit.hardQuestionCount : 0,
+        hardTotal: drillUnit.hardQuestionCount,
+        stage: isComplete || g1Completed ? "complete" : g1Current ? "easy" : "examples",
+        status: isComplete || g1Completed ? "complete" : g1Current ? "in_progress" : "available",
         updatedAt: nowFor(skillIndex + unitIndex),
       };
     });
@@ -112,6 +116,15 @@ const mergeProgressStatus = (left: ProgressStatus, right: ProgressStatus): Progr
   return rank[left] >= rank[right] ? left : right;
 };
 
+const inferDrillStage = (record: Omit<DrillUnitProgress, "stage"> & { stage?: DrillStage | "concept" | "example" }): DrillStage => {
+  if (record.status === "complete") return "complete";
+  if ((record.hardCompleted ?? 0) >= (record.hardTotal ?? 3)) return "video";
+  if ((record.hardCompleted ?? 0) > 0 || record.mediumCompleted >= record.mediumTotal) return "hard";
+  if (record.mediumCompleted > 0 || record.easyCompleted >= record.easyTotal) return "medium";
+  if (record.easyCompleted > 0) return "easy";
+  return record.stage === "concept" || record.stage === "example" || !record.stage ? "examples" : record.stage;
+};
+
 const normalizeUnitProgress = (saved: Record<string, DrillUnitProgress> | undefined, seed: AppData["unitProgress"]) => {
   const merged = structuredClone(seed);
   for (const [savedId, record] of Object.entries(saved ?? {})) {
@@ -122,6 +135,8 @@ const normalizeUnitProgress = (saved: Record<string, DrillUnitProgress> | undefi
       ...canonical,
       easyCompleted: Math.min(canonical.easyTotal, Math.max(canonical.easyCompleted, record.easyCompleted)),
       mediumCompleted: Math.min(canonical.mediumTotal, Math.max(canonical.mediumCompleted, record.mediumCompleted)),
+      hardCompleted: Math.min(canonical.hardTotal, Math.max(canonical.hardCompleted, record.hardCompleted ?? 0)),
+      stage: inferDrillStage(record),
       status: mergeProgressStatus(canonical.status, record.status),
       updatedAt: canonical.updatedAt > record.updatedAt ? canonical.updatedAt : record.updatedAt,
     };
@@ -148,7 +163,7 @@ const normalizeQuestion = (question: Question): Question => {
     drillUnitName: drillUnit.name,
     frameworkTargetId: target?.id ?? "",
     frameworkTarget: target?.description ?? "Requires curriculum review",
-    questionModelId: target && question.difficulty !== "hard" ? `${drillUnit.id}-${question.difficulty}-model` : undefined,
+    questionModelId: target ? `${drillUnit.id}-${question.difficulty}-model` : undefined,
     categoryId: skill.domainId,
     topicId: skill.id,
     status: mappedFromRetiredUnit || !target ? "review" : question.status ?? (question.requiresReview ? "review" : "active"),
@@ -197,8 +212,11 @@ export const migrateAppData = (raw: unknown, fresh = false): AppData => {
     return {
       ...seed, ...saved, curriculumVersion: 3,
       skillProgress: mergedProgress, progress: mergedProgress, unitProgress: normalizeUnitProgress(saved.unitProgress, seed.unitProgress),
-      drillUnits: seed.drillUnits,
-      frameworkTargets: seed.frameworkTargets,
+      drillUnits: seed.drillUnits.map((unit) => {
+        const savedUnit = saved.drillUnits?.find((candidate) => candidate.id === unit.id);
+        return { ...unit, ...savedUnit, workedExampleCount: Math.max(2, Math.min(3, savedUnit?.workedExampleCount ?? unit.workedExampleCount)), easyQuestionCount: Math.max(5, savedUnit?.easyQuestionCount ?? unit.easyQuestionCount), mediumQuestionCount: Math.max(5, savedUnit?.mediumQuestionCount ?? unit.mediumQuestionCount), hardQuestionCount: 3, videoUrl: savedUnit?.videoUrl ?? unit.videoUrl };
+      }),
+      frameworkTargets: seed.frameworkTargets.map((target) => ({ ...target, ...saved.frameworkTargets?.find((savedTarget) => savedTarget.id === target.id) })),
       questionModels: seed.questionModels,
       questions: normalizedQuestions,
     };
@@ -231,13 +249,26 @@ export const calculateSkillProgress = (skillId: string, data: AppData): TopicPro
   const item = allSkills.find((candidate) => candidate.id === skillId);
   const fallback = data.skillProgress[skillId];
   if (!item) return fallback;
-  const units = item.drillUnits.map((drillUnit) => data.unitProgress[drillUnit.id]).filter(Boolean);
+  const units = data.drillUnits.filter((drillUnit) => drillUnit.skillId === skillId && drillUnit.isActive).map((drillUnit) => data.unitProgress[drillUnit.id]).filter(Boolean);
   const allComplete = units.length > 0 && units.every((entry) => entry.status === "complete");
-  const started = units.some((entry) => entry.easyCompleted + entry.mediumCompleted > 0);
+  const started = units.some((entry) => entry.status === "in_progress" || entry.stage !== "examples" || entry.easyCompleted + entry.mediumCompleted + entry.hardCompleted > 0);
+  const gatePassed = (fallback?.gateScore ?? 0) >= item.gateThreshold;
   return {
     ...(fallback ?? { skillId, topicId: skillId, gateScore: null, challengeCompleted: false }), skillId, topicId: skillId,
-    easyCompleted: units.reduce((sum, entry) => sum + entry.easyCompleted, 0), mediumCompleted: units.reduce((sum, entry) => sum + entry.mediumCompleted, 0),
-    status: fallback?.gateScore === item.gateThreshold ? "complete" : allComplete || started ? "in_progress" : fallback?.status ?? "locked",
+    easyCompleted: units.reduce((sum, entry) => sum + entry.easyCompleted, 0), mediumCompleted: units.reduce((sum, entry) => sum + entry.mediumCompleted + entry.hardCompleted, 0),
+    status: allComplete ? "complete" : gatePassed || started ? "in_progress" : fallback?.status === "locked" ? "available" : fallback?.status ?? "available",
     updatedAt: new Date().toISOString(),
   };
+};
+
+export const calculateSkillUnitPercent = (skillId: string, data: AppData) => {
+  const units = data.drillUnits.filter((unit) => unit.skillId === skillId && unit.isActive);
+  const totals = units.reduce((summary, unit) => {
+    const progress = data.unitProgress[unit.id];
+    if (!progress) return summary;
+    summary.completed += Math.min(progress.easyCompleted, progress.easyTotal) + Math.min(progress.mediumCompleted, progress.mediumTotal) + Math.min(progress.hardCompleted, progress.hardTotal);
+    summary.available += progress.easyTotal + progress.mediumTotal + progress.hardTotal;
+    return summary;
+  }, { completed: 0, available: 0 });
+  return totals.available ? Math.round(totals.completed / totals.available * 100) : 0;
 };

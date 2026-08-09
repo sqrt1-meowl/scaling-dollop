@@ -10,7 +10,7 @@ export type QuestionStatus = "draft" | "active" | "review" | "archived";
 export interface FrameworkTarget { id: string; skillId: string; drillUnitId: string; description: string; order: number; }
 export interface DrillUnit {
   id: string; skillId: string; code: string; name: string; description: string; order: number; isActive: boolean;
-  easyQuestionCount: number; mediumQuestionCount: number; concept: { label: string; formula: string }[];
+  workedExampleCount: number; easyQuestionCount: number; mediumQuestionCount: number; hardQuestionCount: number; videoUrl?: string; concept: { label: string; formula: string }[];
   workedExample: { prompt: string; steps: string[] }; frameworkTargets: FrameworkTarget[];
 }
 export interface Skill {
@@ -47,7 +47,7 @@ const unit = (skillId: string, seed: UnitSeed, order: number): DrillUnit => {
   const frameworkTargets = targets.map((description, i) => ({ id: `${id}-target-${i + 1}`, skillId, drillUnitId: id, description, order: i + 1 }));
   return {
     id, skillId, code, name, description: description ?? `Build fluency with ${name.toLowerCase()} through one focused concept and a worked SAT-style example.`,
-    order, isActive: true, easyQuestionCount: 3, mediumQuestionCount: 2, frameworkTargets,
+    order, isActive: true, workedExampleCount: 3, easyQuestionCount: 5, mediumQuestionCount: 5, hardQuestionCount: 3, videoUrl: "", frameworkTargets,
     concept: [{ label: name, formula: "identify → model → solve → check" }],
     workedExample: { prompt: `Use the structure of ${name.toLowerCase()} to solve a representative SAT problem.`, steps: ["Identify the requested quantity.", "Choose the matching relationship.", "Solve and check the result in context."] },
   };
@@ -219,7 +219,7 @@ const q = (unitId: string, difficulty: QuestionDifficulty, order: number, prompt
   return { id: `${unitId}-${options.isGate ? "gate" : difficulty}-${order}`, domainId: categoryItem.id, domain: categoryItem.name, skillId: owningSkill.id, skillName: owningSkill.title,
     drillUnitId: drillUnit.id, drillUnitName: drillUnit.name, frameworkTarget: target.description, frameworkTargetId: target.id, difficulty,
     questionType: choices ? "multiple_choice" : "student_response", prompt, choices, correctAnswer: answer, explanation,
-    questionModelId: difficulty === "hard" ? undefined : `${unitId}-${difficulty}-model`, sourceType: "original", sourceQuestionId: `${owningSkill.code}-${unitId.toUpperCase()}-${order}`, status: "active",
+    questionModelId: `${unitId}-${difficulty}-model`, sourceType: "original", sourceQuestionId: `${owningSkill.code}-${unitId.toUpperCase()}-${order}`, status: "active",
     order, categoryId: owningSkill.categoryId, topicId: owningSkill.id, type: choices ? "multiple_choice" : "student_response", sourceLabel: "SAT Math Drill original", ...options };
 };
 
@@ -260,13 +260,31 @@ gatePrompts.forEach((item, i) => g1Questions.push(q(`g1${String.fromCharCode(97 
 g1Questions.push(q("g1e", "hard", 1, "Two similar square patios have side lengths in a 3:5 ratio. The smaller costs $1,800 to tile at the same rate per square foot. What will the larger patio cost?", ["$3,000", "$4,200", "$5,000", "$7,500"], "$5,000", "Area scales by (5/3)² = 25/9. Then $1,800 × 25/9 = $5,000.", { id: "g1-live-challenge" }));
 
 const placeholderQuestions = allDrillUnits.filter((item) => !item.id.startsWith("g1") || item.id === "g1f").flatMap((drillUnit) => (["easy", "medium"] as const).flatMap((difficulty) => Array.from({ length: difficulty === "easy" ? 3 : 2 }, (_, i) => q(drillUnit.id, difficulty, i + 1, `${drillUnit.code} — ${drillUnit.name}: Which first step best matches this focused framework target?`, ["Identify the governing relationship", "Ignore the given units", "Change the requested quantity", "Estimate before reading"], "Identify the governing relationship", `This demo item is mapped to “${drillUnit.frameworkTargets[0].description}.” Production content requires review before release.`, { sourceType: "placeholder", sourceLabel: "Framework-mapped demo placeholder", status: "review", requiresReview: true }))));
+const skillGateQuestions = allSkills.filter((item) => item.id !== "area-and-volume").flatMap((owningSkill) => {
+  const units = owningSkill.drillUnits.filter((item) => item.isActive);
+  return Array.from({ length: owningSkill.gateQuestionCount }, (_, gateIndex) => {
+    const unitIndex = Math.round(gateIndex * (units.length - 1) / Math.max(1, owningSkill.gateQuestionCount - 1));
+    const unit = units[unitIndex];
+    const target = unit.frameworkTargets[Math.min(gateIndex, unit.frameworkTargets.length - 1)];
+    return q(unit.id, "medium", gateIndex + 1, `${owningSkill.code} Skill Gate: Which approach directly addresses this target: ${target.description}?`, ["Use the stated relationship and preserve the requested quantity", "Discard the given constraints", "Switch to an unrelated representation", "Assume a value that was not provided"], "Use the stated relationship and preserve the requested quantity", `The correct approach follows the mapped framework target for ${unit.code}. This demo gate item requires editorial review before production release.`, { id: `${owningSkill.id}-gate-${gateIndex + 1}`, isGate: true, sourceType: "placeholder", sourceLabel: "Skill Gate demo placeholder", status: "review", requiresReview: true });
+  });
+});
 export const areaVolumeQuestions = g1Questions;
-export const seedQuestions = [...g1Questions, ...placeholderQuestions];
-export const questionModels: QuestionModel[] = allDrillUnits.flatMap((drillUnit) => (["easy", "medium"] as const).map((difficulty) => ({
+const baseQuestions = [...g1Questions, ...placeholderQuestions, ...skillGateQuestions];
+const supplementalQuestions = allDrillUnits.flatMap((drillUnit) => (["easy", "medium", "hard"] as const).flatMap((difficulty) => {
+  const required = difficulty === "easy" ? drillUnit.easyQuestionCount : difficulty === "medium" ? drillUnit.mediumQuestionCount : drillUnit.hardQuestionCount;
+  const existing = baseQuestions.filter((question) => question.drillUnitId === drillUnit.id && question.difficulty === difficulty && !question.isGate && question.id !== "g1-live-challenge").length;
+  return Array.from({ length: Math.max(0, required - existing) }, (_, index) => {
+    const order = existing + index + 1;
+    return q(drillUnit.id, difficulty, order, `${drillUnit.code} — ${drillUnit.name}: ${difficulty === "hard" ? "Which strategy best solves this multi-step SAT application?" : "Which first step best matches this focused framework target?"}`, ["Use the mapped relationship and track the requested quantity", "Ignore the constraints", "Substitute an unrelated formula", "Assume a missing value"], "Use the mapped relationship and track the requested quantity", `Follow the mapped target for ${drillUnit.code}, carry out the required steps, and check the result. This placeholder requires editorial review.`, { id: `${drillUnit.id}-supplemental-${difficulty}-${order}`, sourceType: "placeholder", sourceLabel: "Expanded practice placeholder", status: "review", requiresReview: true });
+  });
+}));
+export const seedQuestions = [...baseQuestions, ...supplementalQuestions];
+export const questionModels: QuestionModel[] = allDrillUnits.flatMap((drillUnit) => (["easy", "medium", "hard"] as const).map((difficulty) => ({
   id: `${drillUnit.id}-${difficulty}-model`, drillUnitId: drillUnit.id, frameworkTargetId: drillUnit.frameworkTargets[0].id,
   name: `${drillUnit.code}_${difficulty.toUpperCase()}_MODEL`, difficulty, description: `Controlled ${difficulty} model for ${drillUnit.name}.`,
   template: "Create one SAT-style item for the specified target and return one unambiguous answer.",
-  parameterRules: difficulty === "easy" ? "Use direct relationships and reasonable integer values." : "Require two connected reasoning steps with SAT-style values.",
+  parameterRules: difficulty === "easy" ? "Use direct relationships and reasonable integer values." : difficulty === "medium" ? "Require two connected reasoning steps with SAT-style values." : "Require a demanding multi-step SAT application without leaving the mapped target.",
   answerRules: "The answer must be unique and verifiable by the stated solution method.", solutionMethod: "Identify the target relationship, solve, and verify.",
   forbiddenFeatures: "No unrelated targets, hidden assumptions, trick wording, or unsupported diagrams.", isActive: true,
 })));

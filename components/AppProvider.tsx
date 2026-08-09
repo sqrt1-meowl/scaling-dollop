@@ -57,7 +57,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, []);
 
-  useEffect(() => { if (ready) window.localStorage.setItem(dataKeyFor(session?.email), JSON.stringify(data)); }, [data, ready]);
+  useEffect(() => { if (ready) window.localStorage.setItem(dataKeyFor(session?.email), JSON.stringify(data)); }, [data, ready, session?.email]);
   useEffect(() => {
     if (!ready) return;
     if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -89,20 +89,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setData((current) => {
         const nextRecord = { ...current.skillProgress[topicId], ...patch, skillId: topicId, topicId, updatedAt: new Date().toISOString() };
         const skillProgress = { ...current.skillProgress, [topicId]: nextRecord };
-        return { ...current, skillProgress, progress: skillProgress };
+        const unitProgress = { ...current.unitProgress };
+        if (nextRecord.status === "complete") {
+          const nextSkill = allSkills[allSkills.findIndex((skill) => skill.id === topicId) + 1];
+          if (nextSkill && skillProgress[nextSkill.id]?.status === "locked") {
+            skillProgress[nextSkill.id] = { ...skillProgress[nextSkill.id], status: "available", updatedAt: new Date().toISOString() };
+            const firstUnit = current.drillUnits.filter((unit) => unit.skillId === nextSkill.id && unit.isActive).sort((a, b) => a.order - b.order)[0];
+            if (firstUnit && unitProgress[firstUnit.id]?.status === "locked") unitProgress[firstUnit.id] = { ...unitProgress[firstUnit.id], status: "available", stage: "examples", updatedAt: new Date().toISOString() };
+          }
+        }
+        return { ...current, unitProgress, skillProgress, progress: skillProgress };
       });
     },
     updateUnitProgress(unitId, patch) {
       setData((current) => {
         const unit = current.drillUnits.find((item) => item.id === unitId);
         if (!unit) return current;
-        const nextUnitProgress = { ...current.unitProgress, [unitId]: { ...current.unitProgress[unitId], ...patch, updatedAt: new Date().toISOString() } };
+        const previous = current.unitProgress[unitId];
+        const nextRecord = { ...previous, ...patch, updatedAt: new Date().toISOString() };
+        const completedQuestion = nextRecord.easyCompleted > previous.easyCompleted || nextRecord.mediumCompleted > previous.mediumCompleted || nextRecord.hardCompleted > previous.hardCompleted;
+        const nextUnitProgress = { ...current.unitProgress, [unitId]: nextRecord };
         if (nextUnitProgress[unitId].status === "complete") {
-          const siblings = current.drillUnits.filter((item) => item.skillId === unit.skillId).sort((a, b) => a.order - b.order);
+          const siblings = current.drillUnits.filter((item) => item.skillId === unit.skillId && item.isActive).sort((a, b) => a.order - b.order);
           const next = siblings[siblings.findIndex((item) => item.id === unitId) + 1];
           if (next && nextUnitProgress[next.id]?.status === "locked") nextUnitProgress[next.id] = { ...nextUnitProgress[next.id], status: "available", updatedAt: new Date().toISOString() };
         }
-        const interim = { ...current, unitProgress: nextUnitProgress, questionAttempts: current.questionAttempts + 1 };
+        const interim = { ...current, unitProgress: nextUnitProgress, questionAttempts: current.questionAttempts + (completedQuestion ? 1 : 0) };
         const aggregate = calculateSkillProgress(unit.skillId, interim);
         const skillProgress = { ...current.skillProgress, [unit.skillId]: aggregate };
         return { ...interim, skillProgress, progress: skillProgress };
@@ -114,7 +126,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     recordWarmup(attempt) { setData((current) => ({ ...current, warmups: [...current.warmups, attempt], questionAttempts: current.questionAttempts + 1 })); },
     updateQuestion(question) { setData((current) => ({ ...current, questions: current.questions.map((item) => item.id === question.id ? question : item) })); },
     addQuestion(question) { setData((current) => ({ ...current, questions: [...current.questions, question] })); },
-    updateDrillUnit(unit) { setData((current) => ({ ...current, drillUnits: current.drillUnits.map((item) => item.id === unit.id ? unit : item) })); },
+    updateDrillUnit(unit) { setData((current) => ({ ...current, drillUnits: current.drillUnits.map((item) => item.id === unit.id ? unit : item), unitProgress: { ...current.unitProgress, [unit.id]: { ...current.unitProgress[unit.id], easyTotal: unit.easyQuestionCount, mediumTotal: unit.mediumQuestionCount, hardTotal: unit.hardQuestionCount, easyCompleted: Math.min(current.unitProgress[unit.id].easyCompleted, unit.easyQuestionCount), mediumCompleted: Math.min(current.unitProgress[unit.id].mediumCompleted, unit.mediumQuestionCount), hardCompleted: Math.min(current.unitProgress[unit.id].hardCompleted, unit.hardQuestionCount), updatedAt: new Date().toISOString() } } })); },
     reorderDrillUnit(unitId, direction) {
       setData((current) => {
         const selected = current.drillUnits.find((item) => item.id === unitId); if (!selected) return current;
@@ -129,7 +141,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setData((current) => {
         const skill = allSkills.find((item) => item.id === topicId); if (!skill) return current;
         const units = { ...current.unitProgress };
-        skill.drillUnits.forEach((item, index) => { units[item.id] = { drillUnitId: item.id, easyCompleted: 0, easyTotal: item.easyQuestionCount, mediumCompleted: 0, mediumTotal: item.mediumQuestionCount, status: index === 0 ? "available" : "locked", updatedAt: new Date().toISOString() }; });
+        skill.drillUnits.forEach((item) => { units[item.id] = { drillUnitId: item.id, easyCompleted: 0, easyTotal: item.easyQuestionCount, mediumCompleted: 0, mediumTotal: item.mediumQuestionCount, hardCompleted: 0, hardTotal: item.hardQuestionCount, stage: "examples", status: "available", updatedAt: new Date().toISOString() }; });
         const record = { skillId: topicId, topicId, easyCompleted: 0, mediumCompleted: 0, gateScore: null, status: "available" as const, challengeCompleted: false, updatedAt: new Date().toISOString() };
         const skillProgress = { ...current.skillProgress, [topicId]: record };
         return { ...current, unitProgress: units, skillProgress, progress: skillProgress };
