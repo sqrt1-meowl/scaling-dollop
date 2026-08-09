@@ -3632,7 +3632,7 @@ export default function App() {
   const [domain, setDomain] = useState(null);
   const [resume, setResume] = useState(null);
   const [readinessComplete, setReadinessComplete] = useState(false);
-  const [showMe, setShowMe] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
   const [storageWarning, setStorageWarning] = useState(false);
 
   useEffect(() => {
@@ -3643,7 +3643,7 @@ export default function App() {
 
   const reset = () => {
     setSpan(null); setSetNum(null); setDomain(null); setResume(null);
-    setReadinessComplete(false); setShowMe(false);
+    setReadinessComplete(false); setActivePanel(null);
   };
   const spanObj = SPANS.find((s) => s.id === span);
 
@@ -3678,7 +3678,9 @@ export default function App() {
       <style>{`@keyframes eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }`}</style>
       <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
         margin:"0 auto", padding:"24px 22px 70px" }}>
-        <TopBar user={user} onHome={reset} onMe={() => setShowMe(true)}
+        <TopBar user={user} onHome={reset} activePanel={activePanel}
+          onVocabulary={() => { reset(); setActivePanel("vocabulary"); }}
+          onProgress={() => { reset(); setActivePanel("progress"); }}
           onSignOut={() => { reset(); setUser(null); }} />
         {storageWarning && (
           <div role="alert" style={{ ...examPane, borderColor: C.clay, background: C.claySoft,
@@ -3692,7 +3694,8 @@ export default function App() {
               aria-label="Dismiss storage warning">Dismiss</button>
           </div>
         )}
-        {showMe ? <MePanel user={user} onBack={() => setShowMe(false)} />
+        {activePanel === "vocabulary" ? <VocabularyPanel user={user} onBack={reset} />
+        : activePanel === "progress" ? <MePanel user={user} onBack={reset} />
         : !span ? <SpanPick onPick={(id) => {
             if (SETS.some((set) => !!BANKS[set.id]?.[id])) setSpan(id);
           }} />
@@ -3723,28 +3726,212 @@ export default function App() {
   );
 }
 
-function TopBar({ user, onHome, onMe, onSignOut }) {
+function TopBar({ user, onHome, activePanel, onVocabulary, onProgress, onSignOut }) {
   return (
     <header style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
-      borderBottom:`2px solid ${C.ink}`, paddingBottom:14, marginBottom:18 }}>
+      gap:12, flexWrap:"wrap", borderBottom:`2px solid ${C.ink}`, paddingBottom:14, marginBottom:18 }}>
       <button onClick={onHome} style={{ background:"none", border:"none", cursor:"pointer",
         textAlign:"left", padding:0, fontFamily:"inherit" }}>
         <div style={{ fontSize:12, letterSpacing:3, textTransform:"uppercase", color:C.moss,
           fontFamily:"ui-monospace, monospace" }}>ELPAC-aligned practice</div>
         <div style={{ fontSize:24, fontWeight:700, marginTop:2, color:C.ink }}>The Practice Hub</div>
       </button>
-      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+      <nav aria-label="Student tools" style={{ display:"flex", alignItems:"center", gap:8,
+        flexWrap:"wrap", marginLeft:"auto", justifyContent:"flex-end" }}>
+        <button onClick={onVocabulary} aria-current={activePanel === "vocabulary" ? "page" : undefined}
+          style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
+            color:activePanel === "vocabulary" ? "#fff" : C.mute,
+            background:activePanel === "vocabulary" ? C.moss : "transparent",
+            borderColor:activePanel === "vocabulary" ? C.moss : C.line }}>
+          vocabulary
+        </button>
+        <button onClick={onProgress} aria-current={activePanel === "progress" ? "page" : undefined}
+          style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
+            color:activePanel === "progress" ? "#fff" : C.mute,
+            background:activePanel === "progress" ? C.moss : "transparent",
+            borderColor:activePanel === "progress" ? C.moss : C.line }}>
+          progress
+        </button>
         <button onClick={onSignOut} style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
           fontFamily:"ui-monospace, monospace" }}>sign out</button>
-        <button onClick={onMe} style={meBtn} title={user.name}>
+        <button onClick={onProgress} style={meBtn} title={`${user.name} — open progress`}>
           <span style={{ width:26, height:26, borderRadius:99, background:C.mossSoft, color:C.moss,
             display:"grid", placeItems:"center", fontSize:12, fontWeight:700,
             fontFamily:"ui-monospace, monospace" }}>
             {user.name.slice(0,2).toLowerCase()}
           </span>
         </button>
-      </div>
+      </nav>
     </header>
+  );
+}
+
+const VOCAB_GROUPS = [
+  {
+    id: "g35", label: "Grades 3–5", words: [
+      ["analyze", "verb", "Examine something carefully to understand it.", "Analyze the diagram before answering."],
+      ["compare", "verb", "Explain how two things are alike.", "Compare the two characters' choices."],
+      ["context", "noun", "Words or details surrounding an unfamiliar word or idea.", "Use context to determine the word's meaning."],
+      ["describe", "verb", "Tell what something is like using clear details.", "Describe what is happening in the picture."],
+      ["evidence", "noun", "Facts or details that support an answer.", "Use evidence from the passage."],
+      ["infer", "verb", "Reach a conclusion using clues and what you know.", "Infer how the speaker feels."],
+      ["sequence", "noun", "The order in which events or steps happen.", "Put the events in sequence."],
+      ["summarize", "verb", "State the most important ideas briefly.", "Summarize the article in two sentences."],
+    ],
+  },
+  {
+    id: "g68", label: "Grades 6–8", words: [
+      ["argument", "noun", "A claim supported by reasons and evidence.", "Identify the author's main argument."],
+      ["central idea", "noun", "The most important point developed in a text.", "State the central idea of the presentation."],
+      ["cite", "verb", "Refer to a specific source or piece of evidence.", "Cite one detail from the passage."],
+      ["contrast", "verb", "Explain how two things are different.", "Contrast the two proposed solutions."],
+      ["determine", "verb", "Find or decide after considering information.", "Determine why the experiment failed."],
+      ["evaluate", "verb", "Judge quality or value using evidence.", "Evaluate whether the source is reliable."],
+      ["relevant", "adjective", "Directly connected to the topic or question.", "Choose the most relevant detail."],
+      ["transition", "noun", "A word or phrase connecting ideas.", "Use a transition to introduce the example."],
+    ],
+  },
+  {
+    id: "g910", label: "Grades 9–10", words: [
+      ["articulate", "verb", "Express an idea clearly and effectively.", "Articulate your position in the opening paragraph."],
+      ["corroborate", "verb", "Confirm a statement with additional evidence.", "The second source corroborates the witness's account."],
+      ["derive", "verb", "Obtain or develop something from a source.", "Derive a conclusion from the data."],
+      ["distinguish", "verb", "Recognize or explain an important difference.", "Distinguish fact from opinion."],
+      ["formulate", "verb", "Develop an idea or plan carefully.", "Formulate a claim that answers the prompt."],
+      ["implication", "noun", "A possible result or meaning that is suggested.", "Explain one implication of the new policy."],
+      ["synthesize", "verb", "Combine information from multiple sources.", "Synthesize the article and the chart."],
+      ["valid", "adjective", "Logically or factually well supported.", "Decide whether the conclusion is valid."],
+    ],
+  },
+  {
+    id: "g1112", label: "Grades 11–12", words: [
+      ["ambiguous", "adjective", "Open to more than one interpretation.", "The speaker's final statement is ambiguous."],
+      ["coherent", "adjective", "Logical, consistent, and easy to follow.", "Organize the evidence into a coherent response."],
+      ["comprehensive", "adjective", "Complete and covering all important parts.", "Give a comprehensive explanation of the process."],
+      ["concession", "noun", "Acknowledgment that part of an opposing view is reasonable.", "The writer makes a concession before responding."],
+      ["empirical", "adjective", "Based on observation, experience, or experiment.", "The claim is supported by empirical evidence."],
+      ["nuance", "noun", "A subtle difference in meaning or expression.", "The summary preserves the nuance of the argument."],
+      ["substantiate", "verb", "Support a claim with proof or evidence.", "Substantiate your position with two sources."],
+      ["thesis", "noun", "The main claim an essay develops and supports.", "Revise the thesis to make the position precise."],
+    ],
+  },
+];
+
+function VocabularyPanel({ user, onBack }) {
+  const [band, setBand] = useState("g35");
+  const [mastered, setMastered] = useState(null);
+  const storageKey = `vocabulary:${user.id}`;
+
+  useEffect(() => {
+    (async () => {
+      const raw = await storeGet(storageKey);
+      if (!raw) return setMastered([]);
+      try { setMastered(JSON.parse(raw)); } catch { setMastered([]); }
+    })();
+  }, [storageKey]);
+
+  const group = VOCAB_GROUPS.find((item) => item.id === band) || VOCAB_GROUPS[0];
+  const allCount = VOCAB_GROUPS.reduce((sum, item) => sum + item.words.length, 0);
+  const masteredSet = new Set(mastered || []);
+  const overallCount = masteredSet.size;
+  const bandCount = group.words.filter(([word]) => masteredSet.has(`${group.id}:${word}`)).length;
+
+  async function toggleWord(word) {
+    if (!mastered) return;
+    const id = `${group.id}:${word}`;
+    const next = masteredSet.has(id) ? mastered.filter((item) => item !== id) : [...mastered, id];
+    setMastered(next);
+    await storeSet(storageKey, JSON.stringify(next));
+  }
+
+  return (
+    <div>
+      <Back onClick={onBack} label="practice" />
+      <div style={{ display:"flex", justifyContent:"space-between", gap:16,
+        alignItems:"flex-end", flexWrap:"wrap", marginBottom:14 }}>
+        <div>
+          <h2 style={{ fontSize:24, margin:"0 0 5px" }}>Academic Vocabulary</h2>
+          <p style={{ fontSize:14.5, color:C.mute, margin:0, lineHeight:1.5 }}>
+            Study high-utility words used in reading, writing, listening, and speaking prompts.
+          </p>
+        </div>
+        <div style={{ minWidth:210 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontFamily:"ui-monospace, monospace",
+            fontSize:11.5, color:C.mute, marginBottom:6 }}>
+            <span>overall progress</span><span>{overallCount}/{allCount}</span>
+          </div>
+          <div role="progressbar" aria-label="Overall vocabulary progress" aria-valuemin="0"
+            aria-valuemax={allCount} aria-valuenow={overallCount}
+            style={{ height:8, borderRadius:99, background:C.line, overflow:"hidden" }}>
+            <div style={{ width:`${(overallCount / allCount) * 100}%`, height:"100%",
+              background:C.moss, transition:"width .2s ease" }} />
+          </div>
+        </div>
+      </div>
+
+      <div role="tablist" aria-label="Vocabulary grade bands" style={{ display:"flex", gap:7,
+        flexWrap:"wrap", marginBottom:14 }}>
+        {VOCAB_GROUPS.map((item) => (
+          <button key={item.id} role="tab" aria-selected={band === item.id}
+            onClick={() => setBand(item.id)} style={{ ...ghostBtn, fontSize:12,
+              color:band === item.id ? "#fff" : C.mute,
+              background:band === item.id ? C.moss : "transparent",
+              borderColor:band === item.id ? C.moss : C.line }}>
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ ...examPane, marginBottom:12, display:"flex", justifyContent:"space-between",
+        gap:12, alignItems:"center" }}>
+        <div>
+          <div style={{ fontSize:16, fontWeight:700 }}>{group.label}</div>
+          <div style={{ fontSize:12.5, color:C.mute, marginTop:2 }}>
+            {bandCount} of {group.words.length} words mastered
+          </div>
+        </div>
+        <div style={{ width:"min(240px, 42%)", height:7, background:C.line,
+          borderRadius:99, overflow:"hidden" }}>
+          <div style={{ width:`${(bandCount / group.words.length) * 100}%`, height:"100%",
+            background:C.gold, transition:"width .2s ease" }} />
+        </div>
+      </div>
+
+      {mastered == null ? (
+        <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
+      ) : (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:10 }}>
+          {group.words.map(([word, part, definition, example]) => {
+            const complete = masteredSet.has(`${group.id}:${word}`);
+            return (
+              <article key={word} style={{ ...examPane, borderColor:complete ? C.moss : C.line,
+                background:complete ? C.mossSoft : C.card }}>
+                <div style={{ display:"flex", justifyContent:"space-between", gap:10,
+                  alignItems:"flex-start", marginBottom:8 }}>
+                  <div>
+                    <div style={{ fontSize:20, fontWeight:700 }}>{word}</div>
+                    <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+                      color:C.moss, textTransform:"uppercase", letterSpacing:1 }}>{part}</div>
+                  </div>
+                  <button type="button" onClick={() => toggleWord(word)}
+                    aria-pressed={complete} style={{ ...ghostBtn, padding:"5px 9px", fontSize:10.5,
+                      color:complete ? "#fff" : C.moss, background:complete ? C.moss : "transparent",
+                      borderColor:C.moss, flexShrink:0 }}>
+                    {complete ? "mastered ✓" : "mark mastered"}
+                  </button>
+                </div>
+                <p style={{ margin:"0 0 8px", fontSize:14.5, lineHeight:1.5 }}>{definition}</p>
+                <p style={{ margin:0, fontSize:13, lineHeight:1.5, color:C.mute, fontStyle:"italic" }}>
+                  “{example}”
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      )}
+      <p style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute,
+        margin:"14px 0 0" }}>Progress is saved in this browser for {user.name}.</p>
+    </div>
   );
 }
 
