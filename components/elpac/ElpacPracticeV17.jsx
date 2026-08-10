@@ -3923,6 +3923,60 @@ const READING_VOCAB = {
   },
 };
 
+// California's ELD standards formally distinguish general academic and
+// domain-specific vocabulary. "Everyday" is included here only as a study
+// support category; the familiar Tier 1/2/3 labels are not ELPAC score bands.
+const EVERYDAY_SUPPORT_WORDS = new Set([
+  "shelter", "country", "medicine", "floating", "chapter", "traveler",
+  "impossible", "photograph", "bridge", "cafeteria", "offer", "favorite",
+  "chocolate", "freezing", "stained", "announce", "balance", "ancient",
+  "accident", "return", "practice", "period", "fastest", "expensive",
+  "signal", "object", "consider", "relationship", "exhausted", "schedule",
+  "keeper", "channel", "downhill", "password", "account", "merchant",
+  "disease", "route", "assigned", "overflow", "visible", "fountain",
+]);
+
+const DOMAIN_SPECIFIC_WORDS = new Set([
+  "astronaut", "engineering", "bacteria", "pinecone", "recycling",
+  "satellite", "coastline", "mapmaker", "seaweed", "graphite", "cochlea",
+  "orbital", "astronomer", "Gutenberg", "sequoia", "engineer", "damper",
+  "flammable", "aqueduct", "chlorophyll", "pigment", "gravity", "navigation",
+  "lighthouse", "biology", "glacier", "velocity", "zero-trust", "telescope",
+  "photosynthesis", "glucose", "carbon dioxide", "globalization", "gunpowder",
+  "physics",
+]);
+
+const VOCAB_TYPES = {
+  all: { label: "All words", short: "All" },
+  everyday: { label: "Everyday support", short: "Everyday", tier: "Tier 1 study support" },
+  academic: { label: "General academic", short: "Academic", tier: "Tier 2 study term" },
+  domain: { label: "Domain-specific", short: "Subject", tier: "Tier 3 study term" },
+};
+
+const ELD_STUDY_LEVELS = {
+  emerging: {
+    label: "Emerging",
+    goal: "Learn a focused set of familiar academic and subject words.",
+    practice: "Say the word, then explain it in your own words.",
+  },
+  expanding: {
+    label: "Expanding",
+    goal: "Build a growing range and use words to add detail and precision.",
+    practice: "Use the word in a complete sentence that adds a clear detail.",
+  },
+  bridging: {
+    label: "Bridging",
+    goal: "Use a wide range accurately, including precise meanings and word forms.",
+    practice: "Use the word precisely, then give a synonym or related word form.",
+  },
+};
+
+function vocabularyType(word) {
+  if (DOMAIN_SPECIFIC_WORDS.has(word)) return "domain";
+  if (EVERYDAY_SUPPORT_WORDS.has(word)) return "everyday";
+  return "academic";
+}
+
 const VOCAB_BANDS = [
   ["g35", "Grades 3–5"],
   ["g68", "Grades 6–8"],
@@ -3933,6 +3987,8 @@ const VOCAB_BANDS = [
 function VocabularyPanel({ user, onBack }) {
   const [band, setBand] = useState("g35");
   const [studySet, setStudySet] = useState(1);
+  const [wordType, setWordType] = useState("all");
+  const [studyLevel, setStudyLevel] = useState("emerging");
   const [cardIndex, setCardIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [mastered, setMastered] = useState(null);
@@ -3949,13 +4005,22 @@ function VocabularyPanel({ user, onBack }) {
   useEffect(() => {
     setCardIndex(0);
     setRevealed(false);
+  }, [band, studySet, wordType]);
+
+  useEffect(() => {
+    setWordType("all");
   }, [band, studySet]);
 
-  const words = READING_VOCAB[band]?.[studySet] || [];
+  const allWords = READING_VOCAB[band]?.[studySet] || [];
+  const availableTypes = new Set(allWords.map(([word]) => vocabularyType(word)));
+  const words = wordType === "all"
+    ? allWords
+    : allWords.filter(([word]) => vocabularyType(word) === wordType);
   const current = words[cardIndex] || ["", ""];
+  const currentType = vocabularyType(current[0]);
   const masteredSet = new Set(mastered || []);
   const currentId = band + ":" + studySet + ":" + current[0];
-  const learnedCount = words.filter(([word]) => masteredSet.has(band + ":" + studySet + ":" + word)).length;
+  const learnedCount = allWords.filter(([word]) => masteredSet.has(band + ":" + studySet + ":" + word)).length;
 
   async function toggleCurrent() {
     if (!mastered || !current[0]) return;
@@ -3978,17 +4043,17 @@ function VocabularyPanel({ user, onBack }) {
         alignItems:"center", flexWrap:"wrap", marginBottom:12 }}>
         <div>
           <h2 style={{ fontSize:24, margin:"0 0 2px" }}>Vocabulary</h2>
-          <div style={{ fontSize:13, color:C.mute }}>Words from the reading practice sets</div>
+          <div style={{ fontSize:13, color:C.mute }}>Reading-set words organized for California ELD</div>
         </div>
         <div style={{ width:180 }}>
           <div style={{ display:"flex", justifyContent:"space-between",
             fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute, marginBottom:5 }}>
-            <span>set progress</span><span>{learnedCount}/{words.length}</span>
+            <span>set progress</span><span>{learnedCount}/{allWords.length}</span>
           </div>
           <div role="progressbar" aria-label="Vocabulary set progress" aria-valuemin="0"
-            aria-valuemax={words.length} aria-valuenow={learnedCount}
+            aria-valuemax={allWords.length} aria-valuenow={learnedCount}
             style={{ height:6, borderRadius:99, background:C.line, overflow:"hidden" }}>
-            <div style={{ width:(words.length ? learnedCount / words.length * 100 : 0) + "%",
+            <div style={{ width:(allWords.length ? learnedCount / allWords.length * 100 : 0) + "%",
               height:"100%", background:C.moss, transition:"width .2s ease" }} />
           </div>
         </div>
@@ -4015,6 +4080,36 @@ function VocabularyPanel({ user, onBack }) {
         </div>
       </div>
 
+      <div style={{ ...examPane, padding:"10px 12px", marginBottom:12,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        gap:12, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+          <label style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
+            ELD LEVEL{" "}
+            <select value={studyLevel} onChange={(event) => setStudyLevel(event.target.value)}
+              style={{ ...ghostBtn, padding:"5px 8px", marginLeft:4, background:C.card, color:C.ink }}>
+              {Object.entries(ELD_STUDY_LEVELS).map(([id, level]) => (
+                <option key={id} value={id}>{level.label}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
+            WORD TYPE{" "}
+            <select value={wordType} onChange={(event) => setWordType(event.target.value)}
+              style={{ ...ghostBtn, padding:"5px 8px", marginLeft:4, background:C.card, color:C.ink }}>
+              {Object.entries(VOCAB_TYPES).map(([id, type]) => (
+                <option key={id} value={id} disabled={id !== "all" && !availableTypes.has(id)}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div style={{ maxWidth:420, fontSize:12.5, lineHeight:1.4, color:C.mute }}>
+          {ELD_STUDY_LEVELS[studyLevel].goal}
+        </div>
+      </div>
+
       {mastered == null ? (
         <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
       ) : (
@@ -4030,12 +4125,25 @@ function VocabularyPanel({ user, onBack }) {
                 letterSpacing:1.4, textTransform:"uppercase", color:C.mute, marginBottom:18 }}>
                 Reading Set {studySet} · {cardIndex + 1} of {words.length}
               </div>
+              <div style={{ display:"inline-flex", gap:7, alignItems:"center", marginBottom:12,
+                padding:"4px 8px", border:"1px solid " + C.line, borderRadius:99,
+                fontFamily:"ui-monospace, monospace", fontSize:10, color:C.moss,
+                textTransform:"uppercase", letterSpacing:.7 }}>
+                <span>{VOCAB_TYPES[currentType].label}</span>
+                <span style={{ color:C.mute }}>· {VOCAB_TYPES[currentType].tier}</span>
+              </div>
               <div style={{ fontSize:34, fontWeight:700, lineHeight:1.15 }}>{current[0]}</div>
               <div style={{ marginTop:20, fontSize:revealed ? 17 : 12.5,
                 lineHeight:1.55, color:revealed ? C.ink : C.mute,
                 fontStyle:revealed ? "normal" : "italic" }}>
                 {revealed ? current[1] : "Click to reveal the definition"}
               </div>
+              {revealed && (
+                <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid " + C.line,
+                  fontSize:12.5, lineHeight:1.45, color:C.mute }}>
+                  {ELD_STUDY_LEVELS[studyLevel].practice}
+                </div>
+              )}
             </div>
           </button>
 
@@ -4066,7 +4174,8 @@ function VocabularyPanel({ user, onBack }) {
       )}
       <p style={{ textAlign:"center", fontFamily:"ui-monospace, monospace",
         fontSize:10.5, color:C.mute, margin:"12px 0 0" }}>
-        Learned words are saved for {user.name} on this device.
+        Learned words are saved for {user.name} on this device. ELD levels describe growing
+        range and precision, not fixed word lists.
       </p>
     </div>
   );
