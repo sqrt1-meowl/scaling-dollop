@@ -4928,6 +4928,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
                   task: b.task,
                   topic: b.topic,
                   prompt: b.stem || b.prompt,
+                  scene: b.scene || null,
                   response: responses[i] || null,
                 })),
               })}
@@ -5532,10 +5533,16 @@ function ProductionReview({ attempt, blocks }) {
         const prompt = item.prompt || block.stem || block.prompt || "Practice prompt";
         const topic = item.topic || block.topic || "Practice task";
         const taskLabel = item.task || block.task || (attempt.domain + " task " + (i + 1));
+        const scene = item.scene || block.scene || null;
 
         return (
           <div key={i} style={examPane}>
             <div style={paneLabel}>{taskLabel} · {topic}</div>
+            {scene && (
+              <div style={{ width: "100%", maxWidth: 680, margin: "0 0 14px" }}>
+                <Scene name={scene} />
+              </div>
+            )}
             <div style={{ fontSize: 15, lineHeight: 1.55, fontWeight: 600, marginBottom: 14 }}>
               {prompt}
             </div>
