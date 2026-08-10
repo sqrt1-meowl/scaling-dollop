@@ -3984,7 +3984,116 @@ const VOCAB_BANDS = [
   ["g1112", "Grades 11–12"],
 ];
 
-function VocabularyPanel({ user, onBack }) {
+const SIMPLE_VOCAB_TIERS = [
+  { id:"everyday", label:"Tier 1", name:"Everyday words" },
+  { id:"academic", label:"Tier 2", name:"Academic words" },
+  { id:"domain", label:"Tier 3", name:"Subject words" },
+];
+
+function VocabularyPanel({ onBack }) {
+  const [band, setBand] = useState("g35");
+  const [tier, setTier] = useState("everyday");
+  const [level, setLevel] = useState("emerging");
+
+  const words = Array.from(new Map(
+    Object.values(READING_VOCAB[band] || {})
+      .flat()
+      .filter(([word]) => vocabularyType(word) === tier)
+      .map((entry) => [entry[0].toLocaleLowerCase(), entry])
+  ).values()).sort(([first], [second]) => first.localeCompare(second));
+
+  const bandLabel = VOCAB_BANDS.find(([id]) => id === band)?.[1] || "";
+  const tierInfo = SIMPLE_VOCAB_TIERS.find((item) => item.id === tier);
+
+  return (
+    <div>
+      <Back onClick={onBack} label="practice" />
+      <div style={{ marginBottom:18 }}>
+        <h2 style={{ fontSize:24, margin:"0 0 3px" }}>Vocabulary</h2>
+        <div style={{ fontSize:13.5, color:C.mute }}>Choose a grade, tier, and ELD level.</div>
+      </div>
+
+      <section aria-labelledby="vocab-grade-heading" style={{ marginBottom:16 }}>
+        <div id="vocab-grade-heading" style={{ fontFamily:"ui-monospace, monospace",
+          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>1 · GRADE</div>
+        <div role="tablist" aria-label="Vocabulary grade bands"
+          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))", gap:7 }}>
+          {VOCAB_BANDS.map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={band === id} onClick={() => setBand(id)}
+              style={{ ...ghostBtn, padding:"9px 8px", fontSize:12,
+                color:band === id ? "#fff" : C.ink,
+                background:band === id ? C.moss : C.card,
+                borderColor:band === id ? C.moss : C.line }}>{label}</button>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="vocab-tier-heading" style={{ marginBottom:16 }}>
+        <div id="vocab-tier-heading" style={{ fontFamily:"ui-monospace, monospace",
+          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>2 · TIER</div>
+        <div role="tablist" aria-label="Vocabulary tiers"
+          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(145px, 1fr))", gap:7 }}>
+          {SIMPLE_VOCAB_TIERS.map((item) => (
+            <button key={item.id} role="tab" aria-selected={tier === item.id}
+              onClick={() => setTier(item.id)}
+              style={{ ...ghostBtn, padding:"9px 8px", textAlign:"left",
+                color:tier === item.id ? "#fff" : C.ink,
+                background:tier === item.id ? C.ink : C.card,
+                borderColor:tier === item.id ? C.ink : C.line }}>
+              <span style={{ display:"block", fontWeight:700, fontSize:12.5 }}>{item.label}</span>
+              <span style={{ display:"block", marginTop:2, fontSize:10.5,
+                color:tier === item.id ? "#e8ece8" : C.mute }}>{item.name}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="vocab-level-heading" style={{ marginBottom:20 }}>
+        <div id="vocab-level-heading" style={{ fontFamily:"ui-monospace, monospace",
+          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>3 · ELD LEVEL</div>
+        <div role="tablist" aria-label="ELD proficiency levels"
+          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))", gap:7 }}>
+          {Object.entries(ELD_STUDY_LEVELS).map(([id, item]) => (
+            <button key={id} role="tab" aria-selected={level === id} onClick={() => setLevel(id)}
+              style={{ ...ghostBtn, padding:"9px 8px", fontSize:12,
+                color:level === id ? "#fff" : C.ink,
+                background:level === id ? C.moss : C.card,
+                borderColor:level === id ? C.moss : C.line }}>{item.label}</button>
+          ))}
+        </div>
+        <div style={{ marginTop:7, fontSize:12.5, color:C.mute }}>
+          {ELD_STUDY_LEVELS[level].goal}
+        </div>
+      </section>
+
+      <section aria-labelledby="vocab-words-heading">
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline",
+          gap:10, marginBottom:9, paddingBottom:7, borderBottom:"1px solid " + C.line }}>
+          <h3 id="vocab-words-heading" style={{ margin:0, fontSize:17 }}>
+            {bandLabel} · {tierInfo.label}
+          </h3>
+          <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
+            {words.length} words
+          </span>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(145px, 1fr))",
+          gap:8 }}>
+          {words.map(([word]) => (
+            <div key={word} style={{ ...examPane, padding:"13px 14px", fontSize:16,
+              fontWeight:700, background:C.card }}>{word}</div>
+          ))}
+        </div>
+      </section>
+
+      <p style={{ margin:"13px 0 0", fontSize:11.5, lineHeight:1.45, color:C.mute }}>
+        ELD levels change how broadly and precisely students are expected to use vocabulary;
+        they are not separate official word lists.
+      </p>
+    </div>
+  );
+}
+
+function VocabularyPanelLegacy({ user, onBack }) {
   const [band, setBand] = useState("g35");
   const [studySet, setStudySet] = useState(1);
   const [wordType, setWordType] = useState("all");
