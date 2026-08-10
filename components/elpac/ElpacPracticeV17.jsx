@@ -3989,10 +3989,16 @@ function VocabularyPanel({ user, onBack }) {
   const [studySet, setStudySet] = useState(1);
   const [wordType, setWordType] = useState("all");
   const [studyLevel, setStudyLevel] = useState("emerging");
+  const [studyMode, setStudyMode] = useState("cards");
   const [cardIndex, setCardIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [recallAnswer, setRecallAnswer] = useState("");
+  const [recallChecked, setRecallChecked] = useState(false);
+  const [shuffledWords, setShuffledWords] = useState(null);
   const [mastered, setMastered] = useState(null);
+  const [reviews, setReviews] = useState(null);
   const storageKey = "reading-vocabulary:" + user.id;
+  const reviewStorageKey = "reading-vocabulary-reviews:" + user.id;
 
   useEffect(() => {
     (async () => {
@@ -4003,8 +4009,19 @@ function VocabularyPanel({ user, onBack }) {
   }, [storageKey]);
 
   useEffect(() => {
+    (async () => {
+      const raw = await storeGet(reviewStorageKey);
+      if (!raw) return setReviews({});
+      try { setReviews(JSON.parse(raw)); } catch { setReviews({}); }
+    })();
+  }, [reviewStorageKey]);
+
+  useEffect(() => {
     setCardIndex(0);
     setRevealed(false);
+    setRecallAnswer("");
+    setRecallChecked(false);
+    setShuffledWords(null);
   }, [band, studySet, wordType]);
 
   useEffect(() => {
@@ -4013,28 +4030,126 @@ function VocabularyPanel({ user, onBack }) {
 
   const allWords = READING_VOCAB[band]?.[studySet] || [];
   const availableTypes = new Set(allWords.map(([word]) => vocabularyType(word)));
-  const words = wordType === "all"
+  const baseWords = wordType === "all"
     ? allWords
     : allWords.filter(([word]) => vocabularyType(word) === wordType);
+  const words = shuffledWords || baseWords;
   const current = words[cardIndex] || ["", ""];
   const currentType = vocabularyType(current[0]);
   const masteredSet = new Set(mastered || []);
   const currentId = band + ":" + studySet + ":" + current[0];
   const learnedCount = allWords.filter(([word]) => masteredSet.has(band + ":" + studySet + ":" + word)).length;
-
-  async function toggleCurrent() {
-    if (!mastered || !current[0]) return;
-    const next = masteredSet.has(currentId)
-      ? mastered.filter((item) => item !== currentId)
-      : [...mastered, currentId];
-    setMastered(next);
-    await storeSet(storageKey, JSON.stringify(next));
-  }
+  const currentReview = reviews?.[currentId] || { intervalDays:0, reviews:0 };
+  const dueCount = allWords.filter(([word]) => {
+    const review = reviews?.[band + ":" + studySet + ":" + word];
+    return !review || !review.nextReview || review.nextReview <= Date.now();
+  }).length;
+  const visibleDueCount = baseWords.filter(([word]) => {
+    const review = reviews?.[band + ":" + studySet + ":" + word];
+    return !review || !review.nextReview || review.nextReview <= Date.now();
+  }).length;
+  const normalizedRecall = recallAnswer.trim().toLocaleLowerCase();
+  const recallCorrect = normalizedRecall === current[0].trim().toLocaleLowerCase();
+  const canRate = studyMode === "cards" ? revealed : recallChecked;
 
   function moveCard(amount) {
     setCardIndex((index) => (index + amount + words.length) % words.length);
     setRevealed(false);
+    setRecallAnswer("");
+    setRecallChecked(false);
   }
+
+  function shuffleCards() {
+    const next = [...baseWords];
+    for (let index = next.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+    }
+    setShuffledWords(next);
+    setCardIndex(0);
+    setRevealed(false);
+    setRecallAnswer("");
+    setRecallChecked(false);
+  }
+
+  function startDueReview() {
+    const now = Date.now();
+    const due = baseWords.filter(([word]) => {
+      const review = reviews?.[band + ":" + studySet + ":" + word];
+      return !review || !review.nextReview || review.nextReview <= now;
+    });
+    setShuffledWords(due.length ? due : baseWords);
+    setCardIndex(0);
+    setRevealed(false);
+    setRecallAnswer("");
+    setRecallChecked(false);
+  }
+
+  function speakCurrent() {
+    if (typeof window === "undefined" || !window.speechSynthesis || !current[0]) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(current[0]);
+    utterance.lang = "en-US";
+    utterance.rate = 0.82;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function reviewIntervals() {
+    const prior = currentReview.intervalDays || 0;
+    return {
+      again: 0,
+      hard: Math.max(1, Math.round(prior * 1.2)),
+      good: Math.max(3, Math.round(prior * 2.5)),
+      easy: Math.max(7, Math.round(prior * 4)),
+    };
+  }
+
+  async function rateCurrent(rating) {
+    if (!reviews || !mastered || !current[0]) return;
+    const intervals = reviewIntervals();
+    const intervalDays = intervals[rating];
+    const nextReviews = {
+      ...reviews,
+      [currentId]: {
+        rating,
+        intervalDays,
+        reviews:(currentReview.reviews || 0) + 1,
+        lastReviewed:Date.now(),
+        nextReview:Date.now() + intervalDays * 86400000,
+      },
+    };
+    let nextMastered = mastered;
+    if (rating === "good" || rating === "easy") {
+      if (!masteredSet.has(currentId)) nextMastered = [...mastered, currentId];
+    } else if (rating === "again" && masteredSet.has(currentId)) {
+      nextMastered = mastered.filter((item) => item !== currentId);
+    }
+    setReviews(nextReviews);
+    setMastered(nextMastered);
+    await Promise.all([
+      storeSet(reviewStorageKey, JSON.stringify(nextReviews)),
+      storeSet(storageKey, JSON.stringify(nextMastered)),
+    ]);
+    moveCard(1);
+  }
+
+  useEffect(() => {
+    function onStudyKeyDown(event) {
+      const tag = event.target?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (event.code === "Space" && studyMode === "cards") {
+        event.preventDefault();
+        if (revealed) rateCurrent("good");
+        else setRevealed(true);
+        return;
+      }
+      if (!canRate) return;
+      const rating = { "1":"again", "2":"hard", "3":"good", "4":"easy" }[event.key];
+      if (rating) rateCurrent(rating);
+    }
+    window.addEventListener("keydown", onStudyKeyDown);
+    return () => window.removeEventListener("keydown", onStudyKeyDown);
+  }, [studyMode, revealed, canRate, currentId, reviews, mastered, cardIndex, words.length]);
 
   return (
     <div>
@@ -4045,10 +4160,10 @@ function VocabularyPanel({ user, onBack }) {
           <h2 style={{ fontSize:24, margin:"0 0 2px" }}>Vocabulary</h2>
           <div style={{ fontSize:13, color:C.mute }}>Reading-set words organized for California ELD</div>
         </div>
-        <div style={{ width:180 }}>
+        <div style={{ width:230 }}>
           <div style={{ display:"flex", justifyContent:"space-between",
             fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute, marginBottom:5 }}>
-            <span>set progress</span><span>{learnedCount}/{allWords.length}</span>
+            <span>set progress</span><span>{learnedCount}/{allWords.length} learned · {dueCount} due</span>
           </div>
           <div role="progressbar" aria-label="Vocabulary set progress" aria-valuemin="0"
             aria-valuemax={allWords.length} aria-valuenow={learnedCount}
@@ -4110,14 +4225,37 @@ function VocabularyPanel({ user, onBack }) {
         </div>
       </div>
 
-      {mastered == null ? (
+      {mastered == null || reviews == null ? (
         <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
       ) : (
         <div style={{ maxWidth:680, margin:"0 auto" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+            gap:8, flexWrap:"wrap", marginBottom:8 }}>
+            <div role="tablist" aria-label="Vocabulary study mode" style={{ display:"flex", gap:6 }}>
+              <button type="button" role="tab" aria-selected={studyMode === "cards"}
+                onClick={() => { setStudyMode("cards"); setRevealed(false); setRecallChecked(false); }}
+                style={{ ...ghostBtn, fontSize:11.5, color:studyMode === "cards" ? "#fff" : C.mute,
+                  background:studyMode === "cards" ? C.ink : "transparent",
+                  borderColor:studyMode === "cards" ? C.ink : C.line }}>Flashcards</button>
+              <button type="button" role="tab" aria-selected={studyMode === "recall"}
+                onClick={() => { setStudyMode("recall"); setRevealed(false); setRecallAnswer(""); setRecallChecked(false); }}
+                style={{ ...ghostBtn, fontSize:11.5, color:studyMode === "recall" ? "#fff" : C.mute,
+                  background:studyMode === "recall" ? C.ink : "transparent",
+                  borderColor:studyMode === "recall" ? C.ink : C.line }}>Write answer</button>
+            </div>
+            <div style={{ display:"flex", gap:6 }}>
+              <button type="button" onClick={startDueReview} style={{ ...ghostBtn, fontSize:11.5,
+                color:visibleDueCount ? C.moss : C.mute }}>Review due ({visibleDueCount})</button>
+              <button type="button" onClick={shuffleCards} style={{ ...ghostBtn, fontSize:11.5 }}>Shuffle</button>
+              <button type="button" onClick={speakCurrent} style={{ ...ghostBtn, fontSize:11.5 }}
+                aria-label={"Hear " + current[0]}>Hear word</button>
+            </div>
+          </div>
           <button type="button" onClick={() => setRevealed((value) => !value)}
             aria-label={revealed ? "Hide definition" : "Reveal definition"}
+            aria-hidden={studyMode !== "cards"} tabIndex={studyMode === "cards" ? 0 : -1}
             style={{ ...examPane, width:"100%", minHeight:260, cursor:"pointer", fontFamily:"inherit",
-              display:"grid", placeItems:"center", textAlign:"center", padding:"32px 24px",
+              display:studyMode === "cards" ? "grid" : "none", placeItems:"center", textAlign:"center", padding:"32px 24px",
               borderColor:masteredSet.has(currentId) ? C.moss : C.line,
               background:masteredSet.has(currentId) ? C.mossSoft : C.card }}>
             <div>
@@ -4147,22 +4285,80 @@ function VocabularyPanel({ user, onBack }) {
             </div>
           </button>
 
-          <div style={{ display:"flex", gap:8, marginTop:10, alignItems:"center" }}>
-            <button type="button" onClick={() => moveCard(-1)} style={{ ...ghostBtn, flex:1 }}>← Previous</button>
-            <button type="button" onClick={toggleCurrent} aria-pressed={masteredSet.has(currentId)}
-              style={{ ...ghostBtn, flex:1.15, color:masteredSet.has(currentId) ? "#fff" : C.moss,
-                background:masteredSet.has(currentId) ? C.moss : "transparent", borderColor:C.moss }}>
-              {masteredSet.has(currentId) ? "✓ Learned" : "Mark learned"}
-            </button>
-            <button type="button" onClick={() => moveCard(1)} style={{ ...smallPrimary, flex:1 }}>Next →</button>
-          </div>
+          {studyMode === "recall" && (
+            <form onSubmit={(event) => { event.preventDefault(); setRecallChecked(true); }}
+              style={{ ...examPane, minHeight:260, display:"grid", placeItems:"center",
+                textAlign:"center", padding:"28px 24px",
+                borderColor:recallChecked && recallCorrect ? C.moss : C.line,
+                background:recallChecked && recallCorrect ? C.mossSoft : C.card }}>
+              <div style={{ width:"100%", maxWidth:520 }}>
+                <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+                  letterSpacing:1.2, textTransform:"uppercase", color:C.mute, marginBottom:14 }}>
+                  Active recall · Reading Set {studySet} · {cardIndex + 1} of {words.length}
+                </div>
+                <div style={{ fontSize:18, lineHeight:1.55, marginBottom:18 }}>{current[1]}</div>
+                <label style={{ display:"block", fontFamily:"ui-monospace, monospace",
+                  fontSize:10.5, color:C.mute, textAlign:"left", marginBottom:6 }}>
+                  TYPE THE WORD
+                </label>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={recallAnswer}
+                    onChange={(event) => { setRecallAnswer(event.target.value); setRecallChecked(false); }}
+                    autoCapitalize="none" autoComplete="off" spellCheck="false"
+                    aria-label="Type the vocabulary word"
+                    style={{ flex:1, minWidth:0, border:"1px solid " + C.line, borderRadius:4,
+                      background:C.paper, color:C.ink, padding:"10px 12px", fontFamily:"inherit",
+                      fontSize:16, outline:"none" }} />
+                  <button type="submit" disabled={!recallAnswer.trim()} style={{ ...smallPrimary,
+                    opacity:recallAnswer.trim() ? 1 : .45 }}>Check</button>
+                </div>
+                {recallChecked && (
+                  <div role="status" style={{ marginTop:14, fontSize:14,
+                    color:recallCorrect ? C.moss : C.rust }}>
+                    {recallCorrect ? "Correct." : <>Not quite. The word is <strong>{current[0]}</strong>.</>}
+                  </div>
+                )}
+              </div>
+            </form>
+          )}
+
+          {canRate ? (
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, minmax(0, 1fr))",
+              gap:6, marginTop:10 }}>
+              {Object.entries({ again:"Again", hard:"Hard", good:"Good", easy:"Easy" }).map(([id, label]) => {
+                const interval = reviewIntervals()[id];
+                return (
+                  <button key={id} type="button" onClick={() => rateCurrent(id)}
+                    style={{ ...ghostBtn, padding:"8px 5px", color:id === "again" ? C.rust : C.moss,
+                      borderColor:id === "again" ? C.rust : C.line }}>
+                    <span style={{ display:"block", fontWeight:700 }}>{label}</span>
+                    <span style={{ display:"block", marginTop:2, fontFamily:"ui-monospace, monospace",
+                      fontSize:9.5, color:C.mute }}>{interval === 0 ? "later today" : interval + "d"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ display:"flex", gap:8, marginTop:10, alignItems:"center" }}>
+              <button type="button" onClick={() => moveCard(-1)} style={{ ...ghostBtn, flex:1 }}>Previous</button>
+              <button type="button" onClick={() => studyMode === "cards" ? setRevealed(true) : setRecallChecked(true)}
+                disabled={studyMode === "recall" && !recallAnswer.trim()}
+                style={{ ...smallPrimary, flex:1.15,
+                  opacity:studyMode === "recall" && !recallAnswer.trim() ? .45 : 1 }}>
+                {studyMode === "cards" ? "Show answer" : "Check answer"}
+              </button>
+              <button type="button" onClick={() => moveCard(1)} style={{ ...ghostBtn, flex:1 }}>Next</button>
+            </div>
+          )}
 
           <div aria-label="Vocabulary cards" style={{ display:"flex", justifyContent:"center",
             gap:6, flexWrap:"wrap", marginTop:14 }}>
             {words.map(([word], index) => {
               const learned = masteredSet.has(band + ":" + studySet + ":" + word);
               return (
-                <button key={word} type="button" onClick={() => { setCardIndex(index); setRevealed(false); }}
+                <button key={word} type="button" onClick={() => {
+                    setCardIndex(index); setRevealed(false); setRecallAnswer(""); setRecallChecked(false);
+                  }}
                   aria-label={"Open " + word} title={word}
                   style={{ width:10, height:10, padding:0, borderRadius:99, cursor:"pointer",
                     border:"1px solid " + (index === cardIndex ? C.ink : learned ? C.moss : C.line),
