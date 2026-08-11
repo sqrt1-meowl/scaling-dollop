@@ -3984,85 +3984,121 @@ const VOCAB_BANDS = [
   ["g1112", "Grades 11–12"],
 ];
 
-const SIMPLE_VOCAB_TIERS = [
-  { id:"everyday", label:"Tier 1", name:"Everyday words" },
-  { id:"academic", label:"Tier 2", name:"Academic words" },
-  { id:"domain", label:"Tier 3", name:"Subject words" },
-];
+// Classroom-ready selections adapted from openly reusable vocabulary resources:
+// New Dolch List / NGSL (foundational), NAWL (academic), and CEFR-J (leveling).
+// These groupings are instructional recommendations, not official ELPAC lists.
+const OPEN_VOCABULARY = {
+  g35: {
+    emerging: [
+      "answer", "begin", "carry", "choose", "complete", "different",
+      "example", "follow", "happen", "important", "learn", "listen",
+      "notice", "picture", "question", "remember", "sentence", "understand",
+    ],
+    expanding: [
+      "compare", "describe", "detail", "explain", "idea", "include",
+      "information", "main", "meaning", "organize", "paragraph", "predict",
+      "reason", "result", "sequence", "similar", "subject", "support",
+    ],
+    bridging: [
+      "analyze", "category", "conclude", "context", "contrast", "determine",
+      "evidence", "identify", "infer", "influence", "method", "process",
+      "purpose", "relationship", "respond", "structure", "summarize", "topic",
+    ],
+  },
+  g68: {
+    emerging: [
+      "achieve", "allow", "cause", "change", "common", "create",
+      "decide", "develop", "effect", "energy", "environment", "increase",
+      "measure", "reduce", "require", "resource", "solution", "system",
+    ],
+    expanding: [
+      "adapt", "approach", "assess", "benefit", "challenge", "classify",
+      "concept", "consequence", "contribute", "data", "establish", "factor",
+      "function", "interpret", "pattern", "principle", "significant", "vary",
+    ],
+    bridging: [
+      "alternative", "assume", "complex", "demonstrate", "derive", "distribute",
+      "evaluate", "formulate", "indicate", "maintain", "occur", "perspective",
+      "relevant", "role", "specific", "theory", "transfer", "variable",
+    ],
+  },
+  g910: {
+    emerging: [
+      "accurate", "analyze", "argument", "available", "communicate", "compare",
+      "consider", "define", "evidence", "focus", "identify", "interpret",
+      "issue", "method", "occur", "process", "research", "source",
+    ],
+    expanding: [
+      "assess", "assume", "category", "concept", "consist", "context",
+      "contrast", "derive", "establish", "factor", "indicate", "principle",
+      "require", "respond", "significant", "structure", "valid", "vary",
+    ],
+    bridging: [
+      "abstract", "advocate", "coherent", "comprehensive", "criterion", "empirical",
+      "framework", "implication", "inherent", "justify", "methodology", "objective",
+      "perspective", "precise", "synthesize", "theoretical", "validate", "variable",
+    ],
+  },
+  g1112: {
+    emerging: [
+      "analyze", "approach", "assess", "concept", "context", "data",
+      "define", "establish", "evidence", "factor", "identify", "indicate",
+      "interpret", "method", "principle", "process", "significant", "structure",
+    ],
+    expanding: [
+      "abstract", "coherent", "comprehensive", "derive", "distribute", "evaluate",
+      "formulate", "framework", "implication", "infer", "justify", "maintain",
+      "objective", "perspective", "relevant", "require", "synthesize", "variable",
+    ],
+    bridging: [
+      "advocate", "ambiguous", "correlate", "criterion", "empirical", "explicit",
+      "facilitate", "hypothesis", "inherent", "integrate", "methodology", "nuance",
+      "phenomenon", "predominant", "refine", "theoretical", "validate", "viable",
+    ],
+  },
+};
 
 function VocabularyPanel({ onBack }) {
   const [band, setBand] = useState("g35");
-  const [tier, setTier] = useState("everyday");
   const [level, setLevel] = useState("emerging");
 
-  const words = Array.from(new Map(
-    Object.values(READING_VOCAB[band] || {})
-      .flat()
-      .filter(([word]) => vocabularyType(word) === tier)
-      .map((entry) => [entry[0].toLocaleLowerCase(), entry])
-  ).values()).sort(([first], [second]) => first.localeCompare(second));
+  const words = OPEN_VOCABULARY[band]?.[level] || [];
 
   const bandLabel = VOCAB_BANDS.find(([id]) => id === band)?.[1] || "";
-  const tierInfo = SIMPLE_VOCAB_TIERS.find((item) => item.id === tier);
+  const levelLabel = ELD_STUDY_LEVELS[level]?.label || "";
+  const selectStyle = {
+    width:"100%", minHeight:42, padding:"9px 38px 9px 12px", borderRadius:4,
+    border:`1px solid ${C.line}`, background:C.card, color:C.ink,
+    fontFamily:"inherit", fontSize:13.5,
+  };
 
   return (
     <div>
       <Back onClick={onBack} label="practice" />
-      <div style={{ marginBottom:18 }}>
+      <div style={{ marginBottom:16 }}>
         <h2 style={{ fontSize:24, margin:"0 0 3px" }}>Vocabulary</h2>
-        <div style={{ fontSize:13.5, color:C.mute }}>Choose a grade, tier, and ELD level.</div>
+        <div style={{ fontSize:13.5, color:C.mute }}>Choose a grade and ELD level.</div>
       </div>
 
-      <section aria-labelledby="vocab-grade-heading" style={{ marginBottom:16 }}>
-        <div id="vocab-grade-heading" style={{ fontFamily:"ui-monospace, monospace",
-          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>1 · GRADE</div>
-        <div role="tablist" aria-label="Vocabulary grade bands"
-          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))", gap:7 }}>
-          {VOCAB_BANDS.map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={band === id} onClick={() => setBand(id)}
-              style={{ ...ghostBtn, padding:"9px 8px", fontSize:12,
-                color:band === id ? "#fff" : C.ink,
-                background:band === id ? C.moss : C.card,
-                borderColor:band === id ? C.moss : C.line }}>{label}</button>
-          ))}
-        </div>
-      </section>
-
-      <section aria-labelledby="vocab-tier-heading" style={{ marginBottom:16 }}>
-        <div id="vocab-tier-heading" style={{ fontFamily:"ui-monospace, monospace",
-          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>2 · TIER</div>
-        <div role="tablist" aria-label="Vocabulary tiers"
-          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(145px, 1fr))", gap:7 }}>
-          {SIMPLE_VOCAB_TIERS.map((item) => (
-            <button key={item.id} role="tab" aria-selected={tier === item.id}
-              onClick={() => setTier(item.id)}
-              style={{ ...ghostBtn, padding:"9px 8px", textAlign:"left",
-                color:tier === item.id ? "#fff" : C.ink,
-                background:tier === item.id ? C.ink : C.card,
-                borderColor:tier === item.id ? C.ink : C.line }}>
-              <span style={{ display:"block", fontWeight:700, fontSize:12.5 }}>{item.label}</span>
-              <span style={{ display:"block", marginTop:2, fontSize:10.5,
-                color:tier === item.id ? "#e8ece8" : C.mute }}>{item.name}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section aria-labelledby="vocab-level-heading" style={{ marginBottom:20 }}>
-        <div id="vocab-level-heading" style={{ fontFamily:"ui-monospace, monospace",
-          fontSize:10.5, letterSpacing:1.2, color:C.mute, marginBottom:7 }}>3 · ELD LEVEL</div>
-        <div role="tablist" aria-label="ELD proficiency levels"
-          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))", gap:7 }}>
-          {Object.entries(ELD_STUDY_LEVELS).map(([id, item]) => (
-            <button key={id} role="tab" aria-selected={level === id} onClick={() => setLevel(id)}
-              style={{ ...ghostBtn, padding:"9px 8px", fontSize:12,
-                color:level === id ? "#fff" : C.ink,
-                background:level === id ? C.moss : C.card,
-                borderColor:level === id ? C.moss : C.line }}>{item.label}</button>
-          ))}
-        </div>
-        <div style={{ marginTop:7, fontSize:12.5, color:C.mute }}>
-          {ELD_STUDY_LEVELS[level].goal}
+      <section aria-label="Vocabulary filters" style={{ ...examPane, padding:14, marginBottom:20 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))",
+          gap:12, maxWidth:620 }}>
+          <label style={{ display:"grid", gap:6 }}>
+            <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+              letterSpacing:1.1, color:C.mute }}>GRADE</span>
+            <select value={band} onChange={(event) => setBand(event.target.value)} style={selectStyle}>
+              {VOCAB_BANDS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+            </select>
+          </label>
+          <label style={{ display:"grid", gap:6 }}>
+            <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+              letterSpacing:1.1, color:C.mute }}>ELD LEVEL</span>
+            <select value={level} onChange={(event) => setLevel(event.target.value)} style={selectStyle}>
+              {Object.entries(ELD_STUDY_LEVELS).map(([id, item]) => (
+                <option key={id} value={id}>{item.label}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
 
@@ -4070,7 +4106,7 @@ function VocabularyPanel({ onBack }) {
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline",
           gap:10, marginBottom:9, paddingBottom:7, borderBottom:"1px solid " + C.line }}>
           <h3 id="vocab-words-heading" style={{ margin:0, fontSize:17 }}>
-            {bandLabel} · {tierInfo.label}
+            {bandLabel} · {levelLabel}
           </h3>
           <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
             {words.length} words
@@ -4078,16 +4114,19 @@ function VocabularyPanel({ onBack }) {
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(145px, 1fr))",
           gap:8 }}>
-          {words.map(([word]) => (
+          {words.map((word) => (
             <div key={word} style={{ ...examPane, padding:"13px 14px", fontSize:16,
               fontWeight:700, background:C.card }}>{word}</div>
           ))}
         </div>
       </section>
 
-      <p style={{ margin:"13px 0 0", fontSize:11.5, lineHeight:1.45, color:C.mute }}>
-        ELD levels change how broadly and precisely students are expected to use vocabulary;
-        they are not separate official word lists.
+      <p style={{ margin:"15px 0 0", fontSize:11.5, lineHeight:1.5, color:C.mute }}>
+        Adapted from the{" "}
+        <a href="https://www.newgeneralservicelist.com/" target="_blank" rel="noreferrer">NGSL, New Dolch, and NAWL</a>
+        {" "}open word lists and{" "}
+        <a href="https://github.com/openlanguageprofiles/olp-en-cefrj" target="_blank" rel="noreferrer">CEFR-J</a>.
+        {" "}These study groupings are not official ELPAC word lists.
       </p>
     </div>
   );
