@@ -3679,7 +3679,7 @@ export default function App() {
       <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
         margin:"0 auto", padding:"24px 22px 70px" }}>
         <TopBar user={user} onHome={reset} activePanel={activePanel}
-          onVocabulary={() => { reset(); setActivePanel("vocabulary"); }}
+          onLearn={() => { reset(); setActivePanel("learn"); }}
           onProgress={() => { reset(); setActivePanel("progress"); }}
           onSignOut={() => { reset(); setUser(null); }} />
         {storageWarning && (
@@ -3694,7 +3694,7 @@ export default function App() {
               aria-label="Dismiss storage warning">Dismiss</button>
           </div>
         )}
-        {activePanel === "vocabulary" ? <VocabularyPanel user={user} onBack={reset} />
+        {activePanel === "learn" ? <LanguagePath user={user} onBack={reset} />
         : activePanel === "progress" ? <MePanel user={user} onBack={reset} />
         : !span ? <SpanPick onPick={(id) => {
             if (SETS.some((set) => !!BANKS[set.id]?.[id])) setSpan(id);
@@ -3726,7 +3726,7 @@ export default function App() {
   );
 }
 
-function TopBar({ user, onHome, activePanel, onVocabulary, onProgress, onSignOut }) {
+function TopBar({ user, onHome, activePanel, onLearn, onProgress, onSignOut }) {
   return (
     <header style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
       gap:12, flexWrap:"wrap", borderBottom:`2px solid ${C.ink}`, paddingBottom:14, marginBottom:18 }}>
@@ -3738,12 +3738,12 @@ function TopBar({ user, onHome, activePanel, onVocabulary, onProgress, onSignOut
       </button>
       <nav aria-label="Student tools" style={{ display:"flex", alignItems:"center", gap:8,
         flexWrap:"wrap", marginLeft:"auto", justifyContent:"flex-end" }}>
-        <button onClick={onVocabulary} aria-current={activePanel === "vocabulary" ? "page" : undefined}
+        <button onClick={onLearn} aria-current={activePanel === "learn" ? "page" : undefined}
           style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
-            color:activePanel === "vocabulary" ? "#fff" : C.mute,
-            background:activePanel === "vocabulary" ? C.moss : "transparent",
-            borderColor:activePanel === "vocabulary" ? C.moss : C.line }}>
-          vocabulary
+            color:activePanel === "learn" ? "#fff" : C.mute,
+            background:activePanel === "learn" ? C.moss : "transparent",
+            borderColor:activePanel === "learn" ? C.moss : C.line }}>
+          learn
         </button>
         <button onClick={onProgress} aria-current={activePanel === "progress" ? "page" : undefined}
           style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
@@ -3763,6 +3763,186 @@ function TopBar({ user, onHome, activePanel, onVocabulary, onProgress, onSignOut
         </button>
       </nav>
     </header>
+  );
+}
+
+const STARTER_WORDS = [
+  ["I", "the person speaking"],
+  ["you", "the person I am speaking to"],
+  ["help", "make something easier"],
+  ["need", "must have"],
+  ["understand", "know what something means"],
+  ["repeat", "say something again"],
+];
+
+const STARTER_PRACTICE = [
+  {
+    prompt: "Complete the sentence: I ___ help.",
+    options: ["need", "you", "repeat"],
+    answer: 0,
+    hint: "Use need when something is important or necessary.",
+  },
+  {
+    prompt: "You want your teacher to help you. What should you say?",
+    options: ["You need help.", "I need help.", "I repeat help."],
+    answer: 1,
+    hint: "Use I when you are talking about yourself.",
+  },
+  {
+    prompt: "The directions are confusing. What should you say?",
+    options: ["I don't understand.", "I don't help.", "You need repeat."],
+    answer: 0,
+    hint: "Understand means to know what something means.",
+  },
+  {
+    prompt: "Ask your teacher to say it again.",
+    options: ["Can you repeat that?", "Can I need that?", "You understand me."],
+    answer: 0,
+    hint: "Repeat means to say something again.",
+  },
+  {
+    prompt: "Which sentence asks another person for help?",
+    options: ["Can you help me?", "I can you.", "You repeat I."],
+    answer: 0,
+    hint: "Can you ...? is a simple way to ask someone to do something.",
+  },
+];
+
+function LanguagePath({ user, onBack }) {
+  const [lessonOpen, setLessonOpen] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const completionKey = `language-path:${user.id}:unit-1`;
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const stored = await storeGet(completionKey);
+      if (alive) {
+        setComplete(stored === "complete");
+        setLoaded(true);
+      }
+    })();
+    return () => { alive = false; };
+  }, [completionKey]);
+
+  async function finishLesson() {
+    setComplete(true);
+    await storeSet(completionKey, "complete");
+  }
+
+  if (lessonOpen) {
+    return <StarterLesson onExit={() => setLessonOpen(false)} onComplete={finishLesson} />;
+  }
+
+  return (
+    <main style={{ width:"100%", maxWidth:680, margin:"0 auto" }}>
+      <Back onClick={onBack} label="practice" />
+      <div style={{ marginBottom:22 }}>
+        <div style={{ fontFamily:"ui-monospace, monospace", color:C.moss, fontSize:11,
+          letterSpacing:1.5, textTransform:"uppercase" }}>English basics</div>
+        <h2 style={{ fontSize:28, margin:"5px 0 4px" }}>Learn English</h2>
+        <p style={{ margin:0, color:C.mute, fontSize:15 }}>Learn a few words. Use them right away.</p>
+      </div>
+
+      <section style={{ ...examPane, padding:22 }} aria-labelledby="unit-one-title">
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+          <span style={{ fontFamily:"ui-monospace, monospace", fontSize:11, color:C.moss,
+            textTransform:"uppercase", letterSpacing:1.2 }}>Unit 1</span>
+          {loaded && complete && <span style={{ fontSize:12, color:C.moss }}>Complete ✓</span>}
+        </div>
+        <h3 id="unit-one-title" style={{ fontSize:23, margin:"9px 0 5px" }}>I need help</h3>
+        <p style={{ color:C.mute, margin:"0 0 18px", fontSize:14.5 }}>
+          Five quick questions · about one minute
+        </p>
+        <button type="button" onClick={() => setLessonOpen(true)} style={{ ...primaryBtn, width:"100%" }}>
+          {complete ? "Do it again" : "Start"}
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function StarterLesson({ onExit, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [finished, setFinished] = useState(false);
+  const advanceTimer = useRef(null);
+  const item = STARTER_PRACTICE[step];
+  const correct = item && selected === item.answer;
+
+  useEffect(() => () => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
+  }, []);
+
+  function chooseAnswer(index) {
+    if (selected === item.answer) return;
+    setSelected(index);
+    if (index !== item.answer) return;
+    advanceTimer.current = setTimeout(() => {
+      if (step === STARTER_PRACTICE.length - 1) {
+        setFinished(true);
+        onComplete();
+      } else {
+        setStep((current) => current + 1);
+        setSelected(null);
+      }
+    }, 500);
+  }
+
+  if (finished) {
+    return (
+      <main style={{ width:"100%", maxWidth:620, margin:"40px auto 0", textAlign:"center" }}>
+        <div style={{ ...examPane, padding:"38px 24px" }}>
+          <div style={{ fontSize:42, marginBottom:10 }} aria-hidden="true">✓</div>
+          <h2 style={{ fontSize:27, margin:"0 0 8px" }}>Lesson complete</h2>
+          <p style={{ color:C.mute, margin:"0 0 22px" }}>Five questions finished. Keep moving.</p>
+          <button type="button" onClick={onExit} style={primaryBtn}>Back to Learn</button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main style={{ width:"100%", maxWidth:620, margin:"0 auto" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+        gap:12, marginBottom:14 }}>
+        <button type="button" onClick={onExit} style={ghostBtn}>Exit</button>
+        <span style={{ fontFamily:"ui-monospace, monospace", fontSize:11, color:C.mute }}>
+          {step + 1} of {STARTER_PRACTICE.length}
+        </span>
+      </div>
+      <div aria-hidden="true" style={{ height:6, background:C.line, borderRadius:99, marginBottom:22,
+        overflow:"hidden" }}>
+        <div style={{ height:"100%", width:`${((step + 1) / STARTER_PRACTICE.length) * 100}%`,
+          background:C.moss, borderRadius:99, transition:"width .2s ease" }} />
+      </div>
+
+      <section style={{ ...examPane, padding:22 }}>
+        <div style={{ fontFamily:"ui-monospace, monospace", fontSize:11, color:C.moss,
+          letterSpacing:1.2, textTransform:"uppercase" }}>Quick practice</div>
+        <h2 style={{ fontSize:22, lineHeight:1.35, margin:"9px 0 20px" }}>{item.prompt}</h2>
+        <div style={{ display:"grid", gap:9 }}>
+          {item.options.map((option, index) => {
+            const picked = selected === index;
+            const right = picked && index === item.answer;
+            const wrong = picked && index !== item.answer;
+            return (
+              <button key={option} type="button" onClick={() => chooseAnswer(index)}
+                style={{ ...optBtn, minHeight:52, borderColor:right ? C.moss : wrong ? C.clay : C.line,
+                  background:right ? C.mossSoft : wrong ? C.claySoft : C.card }}>
+                {option}
+              </button>
+            );
+          })}
+        </div>
+        <div aria-live="polite">
+          {selected !== null && (
+            <Note text={correct ? "Correct — moving on." : item.hint} tone={correct ? "moss" : "clay"} />
+          )}
+        </div>
+      </section>
+    </main>
   );
 }
 

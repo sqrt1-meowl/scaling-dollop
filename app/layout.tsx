@@ -12,10 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const image = new URL("/og.png", base).toString();
   return {
     metadataBase: base,
-    title: { default: "SAT Math Mastery", template: "%s | SAT Math Mastery" },
-    description: "A calm, workbook-first SAT Math mastery system for independent practice.",
-    openGraph: { title: "SAT Math Mastery", description: "Review. Learn. Practice. Master.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "SAT Math Mastery digital workbook" }] },
-    twitter: { card: "summary_large_image", title: "SAT Math Mastery", description: "Review. Learn. Practice. Master.", images: [image] },
+    title: { default: "The Practice Hub", template: "%s | The Practice Hub" },
+    description: "Simple ELPAC practice and practical English lessons for students.",
+    openGraph: { title: "The Practice Hub", description: "Learn English. Practice it. Use it.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "The Practice Hub English learning path" }] },
+    twitter: { card: "summary_large_image", title: "The Practice Hub", description: "Learn English. Practice it. Use it.", images: [image] },
   };
 }
 
