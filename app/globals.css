@@ -95,6 +95,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .packet-progress-map span:last-child { border-right: 0; }
 .packet-progress-map span.active { background: #111; color: #fff; }
 .packet-progress-map span.complete { color: #315c47; }
+.desmos-dashboard-band { display: flex; align-items: center; gap: 24px; border: 1px solid #203c58; background: #102b4d; padding: 26px 30px; box-shadow: 0 8px 24px rgba(23, 38, 61, .08); }
+.desmos-sheet { overflow: hidden; border: 1px solid var(--line); background: #fffdf8; box-shadow: 0 8px 24px rgba(23, 38, 61, .045); }
+.desmos-sheet-header { display: flex; align-items: end; justify-content: space-between; gap: 28px; border-bottom: 4px solid #2f766d; padding: 30px; }
+.desmos-band { display: grid; grid-template-columns: 54px 1fr minmax(180px, 240px); gap: 24px; padding: 26px 30px; }
+.desmos-band-number { font-family: Georgia, serif; font-size: 32px; color: #b9c8c5; }
+.desmos-expression { display: block; border-left: 3px solid #77bdb3; background: #eef5f3; padding: 9px 12px; color: #17365f; font-family: Consolas, monospace; font-size: 14px; }
+.desmos-submit { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); background: #f7f4ed; padding: 20px 30px; }
 @media (max-width: 760px) {
   .mobile-scroll { overflow-x: auto; }
   .lesson-sheet, .question-sheet { padding: 24px 20px; }
@@ -109,4 +116,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .packet-choices { grid-template-columns: 1fr; }
   .packet-answer { left: 18px; right: 18px; justify-content: flex-end; }
   .packet-worked-example { grid-column: auto; }
+  .desmos-dashboard-band, .desmos-sheet-header { align-items: stretch; flex-direction: column; }
+  .desmos-band { grid-template-columns: 36px 1fr; }
+  .desmos-band > :last-child { grid-column: 2; }
 }
