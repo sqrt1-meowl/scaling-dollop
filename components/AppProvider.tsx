@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AppData, ChallengeLesson, DrillUnitProgress, ErrorKind, Role, ScoreRecord, Session, TopicProgress, WarmupAttempt } from "@/lib/appState";
+import type { AppData, ChallengeLesson, DrillUnitProgress, ErrorKind, Role, ScoreRecord, Session, TopicLearningProgress, TopicProgress, WarmupAttempt } from "@/lib/appState";
 import { calculateSkillProgress, makeNewStudentData, makeSeedData, migrateAppData } from "@/lib/appState";
 import { allSkills, type DrillUnit, type FrameworkTarget, type Question } from "@/lib/curriculum";
 
@@ -25,6 +25,7 @@ interface AppContextValue {
   logout: () => void;
   updateProgress: (topicId: string, patch: Partial<TopicProgress>) => void;
   updateUnitProgress: (unitId: string, patch: Partial<DrillUnitProgress>) => void;
+  updateLearningProgress: (skillId: string, patch: Partial<TopicLearningProgress>) => void;
   addError: (questionId: string, topicId: string) => void;
   tagError: (errorId: string, kind: ErrorKind) => void;
   addScore: (date: string, score: number) => void;
@@ -120,6 +121,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return { ...interim, skillProgress, progress: skillProgress };
       });
     },
+    updateLearningProgress(skillId, patch) {
+      setData((current) => {
+        const previous = current.learningProgress[skillId];
+        if (!previous) return current;
+        const next = { ...previous, ...patch, skillId, updatedAt: new Date().toISOString() };
+        const learningProgress = { ...current.learningProgress, [skillId]: next };
+        const oldSkill = current.skillProgress[skillId];
+        const status = next.mastered ? "complete" as const : next.stage === "review" || next.stage === "concept" ? "available" as const : "in_progress" as const;
+        const skillProgress = { ...current.skillProgress, [skillId]: { ...oldSkill, status, challengeCompleted: next.mastered, updatedAt: next.updatedAt } };
+        return { ...current, learningProgress, skillProgress, progress: skillProgress };
+      });
+    },
     addError(questionId, topicId) { setData((current) => ({ ...current, errors: [...current.errors, { id: `err-${Date.now()}`, questionId, topicId, kind: null, date: new Date().toISOString().slice(0, 10) }] })); },
     tagError(errorId, kind) { setData((current) => ({ ...current, errors: current.errors.map((error) => error.id === errorId ? { ...error, kind } : error) })); },
     addScore(date, score) { const record: ScoreRecord = { id: `score-${Date.now()}`, date, score }; setData((current) => ({ ...current, scores: [...current.scores, record].sort((a, b) => a.date.localeCompare(b.date)) })); },
@@ -144,7 +157,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         skill.drillUnits.forEach((item) => { units[item.id] = { drillUnitId: item.id, easyCompleted: 0, easyTotal: item.easyQuestionCount, mediumCompleted: 0, mediumTotal: item.mediumQuestionCount, hardCompleted: 0, hardTotal: item.hardQuestionCount, stage: "examples", status: "available", updatedAt: new Date().toISOString() }; });
         const record = { skillId: topicId, topicId, easyCompleted: 0, mediumCompleted: 0, gateScore: null, status: "available" as const, challengeCompleted: false, updatedAt: new Date().toISOString() };
         const skillProgress = { ...current.skillProgress, [topicId]: record };
-        return { ...current, unitProgress: units, skillProgress, progress: skillProgress };
+        const first = allSkills.filter((item) => item.domainId === skill.domainId).sort((a, b) => a.order - b.order)[0]?.id === topicId;
+        const learningProgress = { ...current.learningProgress, [topicId]: { skillId: topicId, stage: first ? "concept" as const : "review" as const, currentSet: "A" as const, currentQuestion: 0, currentScore: 0, completedSets: [], scores: {}, mastered: false, updatedAt: new Date().toISOString() } };
+        return { ...current, unitProgress: units, learningProgress, skillProgress, progress: skillProgress };
       });
     },
     resetDemo() { const seed = makeSeedData(); setData(seed); setSession(null); window.localStorage.removeItem(DATA_KEY); window.localStorage.removeItem(NEW_STUDENT_DATA_KEY); window.localStorage.removeItem(LEGACY_DATA_KEY); window.localStorage.removeItem(LEGACY_NEW_STUDENT_DATA_KEY); window.localStorage.removeItem(SESSION_KEY); },

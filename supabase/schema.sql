@@ -112,7 +112,9 @@ create table public.questions (
   source_label text,
   source_question_id text,
   question_model_id text,
-  source_type text not null default 'legacy' check (source_type in ('original', 'legacy', 'placeholder')),
+  source_type text not null default 'legacy' check (source_type in ('college_board', 'original', 'legacy', 'placeholder')),
+  learning_stage text check (learning_stage in ('review', 'easy', 'medium', 'hard')),
+  set_id text check (set_id in ('A', 'B', 'C')),
   is_gate boolean not null default false,
   requires_review boolean not null default false,
   status text not null default 'draft' check (status in ('draft', 'active', 'review', 'archived')),
@@ -189,6 +191,21 @@ create table public.drill_unit_progress (
   unique (student_id, drill_unit_id)
 );
 
+create table public.topic_learning_progress (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.student_profiles(id) on delete cascade,
+  skill_id text not null references public.skills(id) on delete cascade,
+  stage text not null default 'concept' check (stage in ('review', 'concept', 'example', 'easy', 'medium', 'hard', 'mastered')),
+  current_set text not null default 'A' check (current_set in ('A', 'B', 'C')),
+  current_question integer not null default 0,
+  current_score integer not null default 0,
+  completed_sets jsonb not null default '[]'::jsonb,
+  scores jsonb not null default '{}'::jsonb,
+  mastered boolean not null default false,
+  updated_at timestamptz not null default now(),
+  unique (student_id, skill_id)
+);
+
 create table public.challenge_lessons (
   id uuid primary key default gen_random_uuid(),
   topic_id text not null unique references public.topics(id) on delete cascade,
@@ -235,6 +252,7 @@ create index questions_topic_difficulty_idx on public.questions(topic_id, diffic
 create index questions_unit_target_idx on public.questions(drill_unit_id, framework_target_id, difficulty, sort_order);
 create index drill_units_skill_order_idx on public.drill_units(skill_id, sort_order);
 create index drill_unit_progress_student_idx on public.drill_unit_progress(student_id, status);
+create index topic_learning_progress_student_idx on public.topic_learning_progress(student_id, mastered, updated_at desc);
 create index attempts_student_created_idx on public.student_question_attempts(student_id, created_at desc);
 create index progress_student_status_idx on public.topic_progress(student_id, status);
 create index scores_student_date_idx on public.score_records(student_id, test_date);
@@ -245,6 +263,7 @@ alter table public.student_question_attempts enable row level security;
 alter table public.topic_progress enable row level security;
 alter table public.skill_progress enable row level security;
 alter table public.drill_unit_progress enable row level security;
+alter table public.topic_learning_progress enable row level security;
 alter table public.warmup_attempts enable row level security;
 alter table public.score_records enable row level security;
 alter table public.error_tags enable row level security;
@@ -257,6 +276,8 @@ create policy "Students read their skill progress" on public.skill_progress for 
 create policy "Students write their skill progress" on public.skill_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
 create policy "Students read their drill unit progress" on public.drill_unit_progress for select using (student_id in (select id from public.student_profiles where user_id = auth.uid()));
 create policy "Students write their drill unit progress" on public.drill_unit_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students read their topic learning progress" on public.topic_learning_progress for select using (student_id in (select id from public.student_profiles where user_id = auth.uid()));
+create policy "Students write their topic learning progress" on public.topic_learning_progress for all using (student_id in (select id from public.student_profiles where user_id = auth.uid())) with check (student_id in (select id from public.student_profiles where user_id = auth.uid()));
 
 -- Add teacher/admin policies through a security-definer role helper before production.
 -- Store question images and MP4 files in private Supabase Storage buckets and persist paths above.

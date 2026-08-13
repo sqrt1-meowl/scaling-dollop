@@ -6,6 +6,8 @@ export type TopicStatus = ProgressStatus;
 export type QuestionDifficulty = "easy" | "medium" | "hard";
 export type QuestionType = "multiple_choice" | "student_response";
 export type QuestionStatus = "draft" | "active" | "review" | "archived";
+export type LearningQuestionStage = "review" | "easy" | "medium" | "hard";
+export type DrillSetId = "A" | "B" | "C";
 
 export interface FrameworkTarget { id: string; skillId: string; drillUnitId: string; description: string; order: number; }
 export interface DrillUnit {
@@ -27,7 +29,8 @@ export interface Question {
   id: string; domainId: string; domain: string; skillId: string; skillName: string; drillUnitId: string; drillUnitName: string;
   frameworkTarget: string; frameworkTargetId: string; difficulty: QuestionDifficulty; questionType: QuestionType;
   prompt: string; math?: string; imageUrl?: string; choices?: string[]; correctAnswer: string; explanation: string;
-  questionModelId?: string; sourceType: "original" | "legacy" | "placeholder"; sourceQuestionId?: string; order: number;
+  questionModelId?: string; sourceType: "college_board" | "original" | "legacy" | "placeholder"; sourceQuestionId?: string; order: number;
+  stage?: LearningQuestionStage; setId?: DrillSetId;
   status: QuestionStatus; isGate?: boolean; requiresReview?: boolean;
   /** Compatibility aliases retained while old records migrate. */
   categoryId: string; topicId: string; type: QuestionType; sourceLabel: string;
@@ -219,7 +222,7 @@ const q = (unitId: string, difficulty: QuestionDifficulty, order: number, prompt
   return { id: `${unitId}-${options.isGate ? "gate" : difficulty}-${order}`, domainId: categoryItem.id, domain: categoryItem.name, skillId: owningSkill.id, skillName: owningSkill.title,
     drillUnitId: drillUnit.id, drillUnitName: drillUnit.name, frameworkTarget: target.description, frameworkTargetId: target.id, difficulty,
     questionType: choices ? "multiple_choice" : "student_response", prompt, choices, correctAnswer: answer, explanation,
-    questionModelId: `${unitId}-${difficulty}-model`, sourceType: "original", sourceQuestionId: `${owningSkill.code}-${unitId.toUpperCase()}-${order}`, status: "active",
+    questionModelId: `${unitId}-${difficulty}-model`, sourceType: "original", sourceQuestionId: `${owningSkill.code}-${unitId.toUpperCase()}-${order}`, stage: difficulty, setId: "A", status: "active",
     order, categoryId: owningSkill.categoryId, topicId: owningSkill.id, type: choices ? "multiple_choice" : "student_response", sourceLabel: "SAT Math Drill original", ...options };
 };
 

@@ -4,21 +4,25 @@ import { allDrillUnits, allSkills, areaVolumeQuestions, getDrillUnit, getSkill, 
 export type Role = "student" | "admin";
 export type ErrorKind = "Concept" | "Procedure" | "Careless" | "Time";
 export type DrillStage = "examples" | "easy" | "medium" | "hard" | "video" | "complete";
+export type TopicLearningStage = "review" | "concept" | "example" | "easy" | "medium" | "hard" | "mastered";
+export type LearningSet = "A" | "B" | "C";
 export interface Session { email: string; role: Role; name: string; }
 export interface SkillProgress { skillId: string; topicId: string; easyCompleted: number; mediumCompleted: number; gateScore: number | null; status: ProgressStatus; challengeCompleted: boolean; updatedAt: string; }
 export type TopicProgress = SkillProgress;
 export interface DrillUnitProgress { drillUnitId: string; easyCompleted: number; easyTotal: number; mediumCompleted: number; mediumTotal: number; hardCompleted: number; hardTotal: number; stage: DrillStage; status: ProgressStatus; updatedAt: string; }
+export interface TopicLearningProgress { skillId: string; stage: TopicLearningStage; currentSet: LearningSet; currentQuestion: number; currentScore: number; completedSets: string[]; scores: Record<string, number>; mastered: boolean; updatedAt: string; }
 export interface ScoreRecord { id: string; date: string; score: number; }
 export interface ErrorRecord { id: string; questionId: string; topicId: string; kind: ErrorKind | null; date: string; }
 export interface WarmupAttempt { id: string; questionId: string; topicId: string; correct: boolean; seconds: number; date: string; }
 export interface ChallengeLesson { topicId: string; title: string; questionText: string; sourceId: string; imageUrl?: string; videoUrl: string; takeaway: string; notes: string; }
 
 export interface AppData {
-  curriculumVersion: 3;
+  curriculumVersion: 4;
   skillProgress: Record<string, SkillProgress>;
   /** v1 compatibility alias; kept in sync with skillProgress during migration. */
   progress: Record<string, TopicProgress>;
   unitProgress: Record<string, DrillUnitProgress>;
+  learningProgress: Record<string, TopicLearningProgress>;
   drillUnits: DrillUnit[];
   frameworkTargets: FrameworkTarget[];
   questionModels: QuestionModel[];
@@ -44,6 +48,7 @@ const challengeSeed = (): ChallengeLesson => ({
 const makeBase = (fresh: boolean): AppData => {
   const progress: Record<string, TopicProgress> = {};
   const unitProgress: Record<string, DrillUnitProgress> = {};
+  const learningProgress: Record<string, TopicLearningProgress> = {};
   allSkills.forEach((item, skillIndex) => {
     const isComplete = !fresh && completedSkills.has(item.id);
     const isG1 = !fresh && item.id === "area-and-volume";
@@ -52,6 +57,19 @@ const makeBase = (fresh: boolean): AppData => {
       mediumCompleted: isComplete ? item.drillUnits.reduce((sum, u) => sum + u.mediumQuestionCount, 0) : isG1 ? 6 : 0,
       gateScore: isComplete ? item.gateThreshold : null, status: isComplete ? "complete" : isG1 ? "in_progress" : "available",
       challengeCompleted: isComplete, updatedAt: nowFor(skillIndex),
+    };
+    const isFirstInDomain = allSkills.filter((skill) => skill.domainId === item.domainId).sort((a, b) => a.order - b.order)[0]?.id === item.id;
+    const completedSets = isComplete ? ["easy-A", "easy-B", "easy-C", "medium-A", "medium-B", "medium-C", "hard-A"] : [];
+    learningProgress[item.id] = {
+      skillId: item.id,
+      stage: isComplete ? "mastered" : isG1 ? "medium" : isFirstInDomain ? "concept" : "review",
+      currentSet: "A",
+      currentQuestion: 0,
+      currentScore: 0,
+      completedSets,
+      scores: Object.fromEntries(completedSets.map((key) => [key, 5])),
+      mastered: isComplete,
+      updatedAt: nowFor(skillIndex),
     };
     item.drillUnits.forEach((drillUnit, unitIndex) => {
       const g1Completed = isG1 && unitIndex < 3;
@@ -72,7 +90,7 @@ const makeBase = (fresh: boolean): AppData => {
     });
   });
   return {
-    curriculumVersion: 3, skillProgress: progress, progress, unitProgress, drillUnits: structuredClone(allDrillUnits),
+    curriculumVersion: 4, skillProgress: progress, progress, unitProgress, learningProgress, drillUnits: structuredClone(allDrillUnits),
     frameworkTargets: structuredClone(allDrillUnits.flatMap((item) => item.frameworkTargets)), questionModels: structuredClone(questionModels),
     scores: fresh ? [] : [{ id: "score-1", date: "2026-05-20", score: 490 }, { id: "score-2", date: "2026-06-28", score: 570 }, { id: "score-3", date: "2026-08-02", score: 620 }],
     errors: fresh ? [] : [{ id: "err-1", questionId: "g1a-medium-1", topicId: "area-and-volume", kind: "Procedure", date: "2026-08-04" }],
@@ -204,14 +222,20 @@ export const migrateAppData = (raw: unknown, fresh = false): AppData => {
   const seed = fresh ? makeNewStudentData() : makeSeedData();
   if (!raw || typeof raw !== "object") return seed;
   const saved = raw as Omit<Partial<AppData>, "curriculumVersion"> & { curriculumVersion?: number };
-  if (saved.curriculumVersion === 2 || saved.curriculumVersion === 3) {
+  if (saved.curriculumVersion === 2 || saved.curriculumVersion === 3 || saved.curriculumVersion === 4) {
     const savedSkillProgress = saved.skillProgress ?? saved.progress ?? {};
     const mergedProgress = { ...seed.skillProgress };
     for (const [skillId, record] of Object.entries(savedSkillProgress)) mergedProgress[skillId] = { ...mergedProgress[skillId], ...record, status: record.status === "locked" ? "available" : record.status, skillId, topicId: skillId };
     const normalizedQuestions = saved.questions?.some((item) => "drillUnitId" in item) ? mergeSavedQuestions(saved.questions, seed.questions) : seed.questions;
     return {
-      ...seed, ...saved, curriculumVersion: 3,
+      ...seed, ...saved, curriculumVersion: 4,
       skillProgress: mergedProgress, progress: mergedProgress, unitProgress: normalizeUnitProgress(saved.unitProgress, seed.unitProgress),
+      learningProgress: Object.fromEntries(allSkills.map((skill) => {
+        const stored = saved.learningProgress?.[skill.id];
+        const legacySkill = mergedProgress[skill.id];
+        const fallback = seed.learningProgress[skill.id];
+        return [skill.id, stored ? { ...fallback, ...stored, skillId: skill.id } : legacySkill.status === "complete" ? { ...fallback, stage: "mastered", mastered: true, completedSets: ["easy-A", "easy-B", "easy-C", "medium-A", "medium-B", "medium-C", "hard-A"], scores: { "easy-A": 5, "easy-B": 5, "easy-C": 5, "medium-A": 5, "medium-B": 5, "medium-C": 5, "hard-A": 5 } } : fallback];
+      })),
       drillUnits: seed.drillUnits.map((unit) => {
         const savedUnit = saved.drillUnits?.find((candidate) => candidate.id === unit.id);
         return { ...unit, ...savedUnit, workedExampleCount: Math.max(2, Math.min(3, savedUnit?.workedExampleCount ?? unit.workedExampleCount)), easyQuestionCount: Math.max(5, savedUnit?.easyQuestionCount ?? unit.easyQuestionCount), mediumQuestionCount: Math.max(5, savedUnit?.mediumQuestionCount ?? unit.mediumQuestionCount), hardQuestionCount: 3, videoUrl: savedUnit?.videoUrl ?? unit.videoUrl };
@@ -272,4 +296,31 @@ export const calculateSkillUnitPercent = (skillId: string, data: AppData) => {
     return summary;
   }, { completed: 0, available: 0 });
   return totals.available ? Math.round(totals.completed / totals.available * 100) : 0;
+};
+
+export const learningSequence = ["easy-A", "easy-B", "easy-C", "medium-A", "medium-B", "medium-C", "hard-A"] as const;
+
+export const calculateTopicLearningPercent = (skillId: string, data: AppData) => {
+  const progress = data.learningProgress[skillId];
+  if (!progress) return 0;
+  if (progress.mastered) return 100;
+  const skill = allSkills.find((item) => item.id === skillId);
+  const firstInDomain = skill && allSkills.filter((item) => item.domainId === skill.domainId).sort((a, b) => a.order - b.order)[0]?.id === skill.id;
+  const introSteps = firstInDomain ? 2 : 3;
+  const introDone = progress.stage === "review" ? 0 : progress.stage === "concept" ? (firstInDomain ? 0 : 1) : progress.stage === "example" ? (firstInDomain ? 1 : 2) : introSteps;
+  return Math.round((introDone + progress.completedSets.length) / (introSteps + learningSequence.length) * 100);
+};
+
+export const calculateCategoryLearningPercent = (categoryId: string, data: AppData) => {
+  const skills = allSkills.filter((skill) => skill.domainId === categoryId);
+  return skills.length ? Math.round(skills.reduce((sum, skill) => sum + calculateTopicLearningPercent(skill.id, data), 0) / skills.length) : 0;
+};
+
+export const learningLocationLabel = (progress: TopicLearningProgress) => {
+  if (progress.stage === "review") return "Cumulative Review";
+  if (progress.stage === "concept") return "Concept";
+  if (progress.stage === "example") return "Worked Example";
+  if (progress.stage === "hard") return "Hard Challenge";
+  if (progress.stage === "mastered") return "Mastered";
+  return `${progress.stage === "easy" ? "Easy" : "Medium"} Drill ${progress.currentSet}`;
 };

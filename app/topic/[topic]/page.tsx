@@ -1,2 +1,2 @@
-import { DrillExperience } from "@/components/DrillExperience";
-export default function TopicPage() { return <DrillExperience/>; }
+import { TopicLearningFlow } from "@/components/learning/TopicLearningFlow";
+export default function TopicPage() { return <TopicLearningFlow/>; }

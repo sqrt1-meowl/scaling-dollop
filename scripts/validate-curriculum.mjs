@@ -69,6 +69,8 @@ for (const skill of allSkills) {
 for (const question of seedQuestions) {
   for (const field of ["domainId", "skillId", "skillName", "drillUnitId", "drillUnitName", "frameworkTargetId", "frameworkTarget", "difficulty", "questionType", "prompt", "correctAnswer", "explanation", "sourceType", "order", "status"]) assert(question[field] !== undefined && question[field] !== "", `${question.id} is missing ${field}`);
   assert(["easy", "medium", "hard"].includes(question.difficulty), `${question.id} has an invalid difficulty`);
+  assert(question.stage === question.difficulty, `${question.id} must map to its workbook learning stage`);
+  assert(["A", "B", "C"].includes(question.setId), `${question.id} must have a workbook set assignment`);
 }
 const baseMigration = await readFile(new URL("../drizzle/0001_curriculum_architecture.sql", import.meta.url), "utf8");
 for (const table of ["domains", "skills", "drill_units", "framework_targets", "questions", "question_models", "skill_progress", "drill_unit_progress"]) assert(baseMigration.includes(`TABLE IF NOT EXISTS ${table}`), `Base migration is missing ${table}`);
@@ -86,4 +88,8 @@ assert(!progressionMigration.includes("DELETE FROM"), "Drill-unit progression mi
 const simplifiedMigration = await readFile(new URL("../drizzle/0006_simplified_unlocked_practice.sql", import.meta.url), "utf8");
 assert(simplifiedMigration.includes("hard_completed") && simplifiedMigration.includes("worked_example_count"), "Simplified-practice migration must add Hard progress and worked-example configuration");
 assert(simplifiedMigration.includes("CASE WHEN status='locked' THEN 'available'"), "Simplified-practice migration must unlock existing unit progress");
+const workbookMigration = await readFile(new URL("../drizzle/0007_workbook_mastery_flow.sql", import.meta.url), "utf8");
+assert(workbookMigration.includes("topic_learning_progress"), "Workbook migration must persist topic-level learning progress");
+assert(workbookMigration.includes("current_question") && workbookMigration.includes("current_score") && workbookMigration.includes("completed_sets"), "Workbook migration must persist the exact current location and scores");
+assert(workbookMigration.includes("college_board") && workbookMigration.includes("learning_stage") && workbookMigration.includes("set_id"), "Workbook migration must support source and set metadata");
 console.log(`Validated ${categories.length} domains, ${allSkills.length} student-facing skills, ${allDrillUnits.length} ordered drill units, ${allFrameworkTargets.length} framework targets, ${seedQuestions.length} canonical questions, and ${questionModels.length} question models.`);

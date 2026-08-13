@@ -42,8 +42,9 @@ CREATE TABLE IF NOT EXISTS questions (
     question_type TEXT NOT NULL CHECK (question_type IN ('multiple_choice','student_response')),
     prompt TEXT NOT NULL, choices TEXT, correct_answer TEXT NOT NULL, explanation TEXT NOT NULL,
     question_model_id TEXT REFERENCES question_models(id) ON DELETE SET NULL,
-    source_type TEXT NOT NULL CHECK (source_type IN ('original','legacy','placeholder')),
-    source_question_id TEXT, sort_order INTEGER NOT NULL,
+    source_type TEXT NOT NULL CHECK (source_type IN ('college_board','original','legacy','placeholder')),
+    source_question_id TEXT, learning_stage TEXT CHECK (learning_stage IN ('review','easy','medium','hard')),
+    set_id TEXT CHECK (set_id IN ('A','B','C')), sort_order INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','active','review','archived')),
     requires_review INTEGER NOT NULL DEFAULT 0, is_gate INTEGER NOT NULL DEFAULT 0
   );
@@ -61,6 +62,14 @@ CREATE TABLE IF NOT EXISTS drill_unit_progress (
     status TEXT NOT NULL DEFAULT 'locked' CHECK (status IN ('locked','available','in_progress','complete','review')),
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (user_id, drill_unit_id)
   );
+CREATE TABLE IF NOT EXISTS topic_learning_progress (
+    user_id TEXT NOT NULL, skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+    stage TEXT NOT NULL DEFAULT 'concept' CHECK (stage IN ('review','concept','example','easy','medium','hard','mastered')),
+    current_set TEXT NOT NULL DEFAULT 'A' CHECK (current_set IN ('A','B','C')),
+    current_question INTEGER NOT NULL DEFAULT 0, current_score INTEGER NOT NULL DEFAULT 0,
+    completed_sets TEXT NOT NULL DEFAULT '[]', scores TEXT NOT NULL DEFAULT '{}', mastered INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (user_id, skill_id)
+  );
 CREATE INDEX IF NOT EXISTS skills_domain_order_idx ON skills(domain_id, sort_order);
 CREATE INDEX IF NOT EXISTS drill_units_skill_order_idx ON drill_units(skill_id, sort_order);
 CREATE INDEX IF NOT EXISTS targets_unit_order_idx ON framework_targets(drill_unit_id, sort_order);
@@ -68,6 +77,7 @@ CREATE INDEX IF NOT EXISTS questions_curriculum_idx ON questions(domain_id, skil
 CREATE INDEX IF NOT EXISTS questions_review_idx ON questions(status, requires_review);
 CREATE INDEX IF NOT EXISTS skill_progress_user_idx ON skill_progress(user_id, status);
 CREATE INDEX IF NOT EXISTS unit_progress_user_idx ON drill_unit_progress(user_id, status);
+CREATE INDEX IF NOT EXISTS topic_learning_progress_user_idx ON topic_learning_progress(user_id, mastered, updated_at);
 INSERT OR IGNORE INTO domains (id,name,short_name,sat_weight,accent,sort_order,status) VALUES ('algebra','Algebra','Algebra',35,'algebra',1,'active');
 INSERT OR IGNORE INTO domains (id,name,short_name,sat_weight,accent,sort_order,status) VALUES ('advanced-math','Advanced Math','Advanced Math',35,'advanced',2,'active');
 INSERT OR IGNORE INTO domains (id,name,short_name,sat_weight,accent,sort_order,status) VALUES ('problem-solving-data-analysis','Problem-Solving & Data Analysis','Problem Solving',15,'data',3,'active');

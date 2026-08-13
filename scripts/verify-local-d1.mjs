@@ -17,6 +17,8 @@ const query = `SELECT
   (SELECT MAX(target_count) FROM (SELECT COUNT(*) target_count FROM framework_targets GROUP BY drill_unit_id)) AS maximum_targets_per_unit,
   (SELECT COUNT(*) FROM (SELECT drill_unit_id, description FROM framework_targets GROUP BY drill_unit_id, description HAVING COUNT(*) > 1)) AS duplicate_targets_within_unit,
   (SELECT COUNT(*) FROM questions) AS questions,
+  (SELECT COUNT(*) FROM questions WHERE learning_stage IS NULL OR set_id IS NULL) AS questions_without_workbook_assignment,
+  (SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='topic_learning_progress') AS topic_learning_progress_table,
   (SELECT COUNT(*) FROM question_models) AS question_models,
   (SELECT COUNT(*) FROM drill_unit_progress WHERE stage NOT IN ('examples','easy','medium','hard','video','complete')) AS invalid_unit_stages,
   (SELECT COUNT(*) FROM drill_unit_progress WHERE status='locked') AS locked_unit_progress,
