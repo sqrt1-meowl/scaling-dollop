@@ -2205,7 +2205,7 @@ const S1_G68 = {
     { task: "Describe a Picture (Question 1)", topic: "Bus", scene: "s1-68-dp-bus", kind: "frame",
       stem: "Look at the picture. A classmate wrote: “The student get on the bus. The student carry a backpack.” Correct the two errors and combine the ideas into one clear sentence.",
       accept: ["gets", "carrying", "carries", "student", "bus", "backpack", "while", "with"], minWords: 6,
-      hint: "Fix the verbs, then join with “with” or “while”. Example: “The student gets on the bus carrying a backpack.”", points: 2 },
+      hint: "Fix the verbs, then join the ideas with “with” or “while”.", points: 2 },
     { task: "Describe a Picture (Question 2)", topic: "Bus", scene: "s1-68-dp-bus", kind: "frame",
       stem: "Look at the same picture. Write one complete sentence about something that might happen next. Add a detail that makes your prediction clear.",
       accept: ["will", "next", "sit", "ride", "school", "driver", "students", "then", "arrive", "seat"], minWords: 6,
@@ -3679,7 +3679,6 @@ export default function App() {
       <div style={{ width:"100%", maxWidth:1200, boxSizing:"border-box",
         margin:"0 auto", padding:"24px 22px 70px" }}>
         <TopBar user={user} onHome={reset} activePanel={activePanel}
-          onLearn={() => { reset(); setActivePanel("learn"); }}
           onProgress={() => { reset(); setActivePanel("progress"); }}
           onSignOut={() => { reset(); setUser(null); }} />
         {storageWarning && (
@@ -3694,8 +3693,7 @@ export default function App() {
               aria-label="Dismiss storage warning">Dismiss</button>
           </div>
         )}
-        {activePanel === "learn" ? <LanguagePath user={user} onBack={reset} />
-        : activePanel === "progress" ? <MePanel user={user} onBack={reset} />
+        {activePanel === "progress" ? <MePanel user={user} onBack={reset} />
         : !span ? <SpanPick onPick={(id) => {
             if (SETS.some((set) => !!BANKS[set.id]?.[id])) setSpan(id);
           }} />
@@ -3726,7 +3724,7 @@ export default function App() {
   );
 }
 
-function TopBar({ user, onHome, activePanel, onLearn, onProgress, onSignOut }) {
+function TopBar({ user, onHome, activePanel, onProgress, onSignOut }) {
   return (
     <header style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
       gap:12, flexWrap:"wrap", borderBottom:`2px solid ${C.ink}`, paddingBottom:14, marginBottom:18 }}>
@@ -3738,13 +3736,6 @@ function TopBar({ user, onHome, activePanel, onLearn, onProgress, onSignOut }) {
       </button>
       <nav aria-label="Student tools" style={{ display:"flex", alignItems:"center", gap:8,
         flexWrap:"wrap", marginLeft:"auto", justifyContent:"flex-end" }}>
-        <button onClick={onLearn} aria-current={activePanel === "learn" ? "page" : undefined}
-          style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
-            color:activePanel === "learn" ? "#fff" : C.mute,
-            background:activePanel === "learn" ? C.moss : "transparent",
-            borderColor:activePanel === "learn" ? C.moss : C.line }}>
-          learn
-        </button>
         <button onClick={onProgress} aria-current={activePanel === "progress" ? "page" : undefined}
           style={{ ...ghostBtn, padding:"5px 11px", fontSize:11,
             color:activePanel === "progress" ? "#fff" : C.mute,
@@ -4930,6 +4921,162 @@ function ExamBar({ domainLabel, position, total, elapsed, showTime, onToggleTime
   );
 }
 
+// Small, deliberately scoped pilot for Grades 6-8, Practice Set 1, task 1.
+// Every word in the Pluto passage has a short, student-friendly meaning.
+const PILOT_PLUTO_DEFINITIONS = {
+  for: "During a length of time.",
+  "seventy-six": "The number 76.",
+  years: "Periods of twelve months.",
+  pluto: "A small world that travels around the sun beyond Neptune.",
+  was: "A past-tense form of be.",
+  called: "Given a name or description.",
+  the: "Points to a particular person, place, or thing.",
+  ninth: "Number nine in an order.",
+  planet: "A large, round object that travels around a star.",
+  then: "After that; at the next time.",
+  astronomers: "Scientists who study space, stars, and planets.",
+  began: "Started.",
+  finding: "Discovering or noticing something.",
+  other: "Different or additional.",
+  icy: "Covered with or made mostly of ice.",
+  bodies: "Objects in space, such as planets or moons.",
+  of: "Shows that things are connected or belong together.",
+  similar: "Almost the same, but not exactly the same.",
+  size: "How large or small something is.",
+  in: "Inside a place, area, or group.",
+  same: "Not different.",
+  distant: "Far away.",
+  region: "A particular area or part of a larger place.",
+  and: "Joins words or ideas together.",
+  they: "Refers to more than one person or thing.",
+  faced: "Had to deal with a situation or problem.",
+  a: "Refers to one person or thing that is not yet specific.",
+  choice: "A decision between two or more possibilities.",
+  call: "Give something a name or description.",
+  all: "Every one of a group.",
+  them: "Refers to people or things already mentioned.",
+  planets: "More than one planet.",
+  or: "Shows a choice between possibilities.",
+  write: "Create words or a statement.",
+  clearer: "Easier to understand.",
+  definition: "A statement that explains what a word or idea means.",
+  agreed: "Had the same opinion or made the same decision.",
+  on: "Here, it means about or concerning something.",
+  has: "Owns, contains, or includes.",
+  three: "The number 3.",
+  parts: "Pieces or sections of a whole.",
+  must: "Is required to.",
+  orbit: "Travel around another object in space.",
+  sun: "The star at the center of our solar system.",
+  be: "To exist or have a quality.",
+  round: "Shaped like a circle or ball.",
+  have: "Own, contain, or include.",
+  cleared: "Removed other objects from an area.",
+  objects: "Things that can be seen or studied.",
+  out: "Away from the inside of a place or area.",
+  its: "Belonging to it.",
+  orbital: "Related to an orbit around another object.",
+  path: "The route something follows as it moves.",
+  meets: "Satisfies or reaches a requirement.",
+  first: "Number one in an order.",
+  two: "The number 2.",
+  conditions: "Requirements that must be true.",
+  but: "Connects two ideas that contrast.",
+  not: "Makes a statement negative.",
+  third: "Number three in an order.",
+  since: "Here, it means because.",
+  it: "Refers to a thing already mentioned.",
+  shares: "Uses or has something together with others.",
+  neighborhood: "The area around a place; here, the nearby area in space.",
+  with: "Together or connected to.",
+  many: "A large number of.",
+  reclassified: "Placed into a different official group or category.",
+  as: "In the role or category of.",
+  dwarf: "Smaller than the usual kind; a dwarf planet is a specific space category.",
+  which: "Refers back to an idea or thing just mentioned.",
+  changed: "Became different.",
+  label: "A name used to identify or classify something.",
+  object: "A thing that can be seen or studied.",
+};
+
+const PILOT_FULL_MARK_EXAMPLES = {
+  speaking: "Several students are taking part in a photography activity. One student is holding a camera while the others help arrange the scene, so they appear to be working together on a photo.",
+  writing: "The student gets on the bus while carrying a backpack.",
+};
+
+function LearningSupportToggle({ enabled, onToggle, domain }) {
+  const detail = domain === "reading"
+    ? "Tap any word in the passage to see a simple meaning."
+    : "See a full-mark example response for this task.";
+  return (
+    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12,
+      flexWrap:"wrap", border:`1px solid ${enabled ? C.moss : C.line}`,
+      background:enabled ? C.mossSoft : C.card, borderRadius:4, padding:"10px 12px",
+      marginBottom:12 }}>
+      <div>
+        <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
+          letterSpacing:1.2, textTransform:"uppercase", color:C.moss }}>Optional learning support</div>
+        <div style={{ fontSize:13, color:C.mute, marginTop:3 }}>{detail}</div>
+      </div>
+      <button type="button" onClick={onToggle} aria-pressed={enabled}
+        style={{ ...ghostBtn, padding:"7px 11px", color:enabled ? "#fff" : C.moss,
+          background:enabled ? C.moss : "transparent", borderColor:C.moss }}>
+        {enabled ? "On - turn off" : "Turn on"}
+      </button>
+    </div>
+  );
+}
+
+function PassageWordLookup({ passage }) {
+  const [selected, setSelected] = useState(null);
+  const parts = passage.split(/([A-Za-z]+(?:-[A-Za-z]+)*)/g);
+  const meaning = selected ? PILOT_PLUTO_DEFINITIONS[selected.toLowerCase()] : null;
+  return (
+    <div>
+      <p style={{ fontSize:15, lineHeight:1.75, margin:0 }}>
+        {parts.map((part, index) => {
+          const isWord = /^[A-Za-z]+(?:-[A-Za-z]+)*$/.test(part);
+          if (!isWord) return <span key={`${part}-${index}`}>{part}</span>;
+          const active = selected?.toLowerCase() === part.toLowerCase();
+          return (
+            <button key={`${part}-${index}`} type="button" onClick={() => setSelected(part)}
+              title={`Look up ${part}`} aria-label={`Look up ${part}`}
+              style={{ border:0, borderBottom:`1px dotted ${C.moss}`, padding:0,
+                margin:0, background:active ? C.mossSoft : "transparent", color:C.ink,
+                font:"inherit", lineHeight:"inherit", cursor:"help" }}>
+              {part}
+            </button>
+          );
+        })}
+      </p>
+      <div aria-live="polite" style={{ marginTop:14, minHeight:62, border:`1px solid ${C.line}`,
+        background:C.paper, borderRadius:4, padding:"10px 12px" }}>
+        {selected ? (
+          <>
+            <div style={{ fontSize:16, fontWeight:700 }}>{selected}</div>
+            <div style={{ fontSize:13.5, color:C.mute, lineHeight:1.5, marginTop:3 }}>
+              {meaning || "No simple meaning is available for this word yet."}
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize:13, color:C.mute }}>Tap an underlined word to look it up.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FullMarkExample({ domain }) {
+  return (
+    <div style={{ border:`1px solid ${C.moss}`, background:C.mossSoft, borderRadius:4,
+      padding:"11px 12px", marginTop:14, marginBottom:14 }}>
+      <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, letterSpacing:1.2,
+        textTransform:"uppercase", color:C.moss, marginBottom:6 }}>Full-mark example</div>
+      <div style={{ fontSize:14, lineHeight:1.6 }}>{PILOT_FULL_MARK_EXAMPLES[domain]}</div>
+    </div>
+  );
+}
+
 function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, onExit }) {
   const isMC = domain === "listening" || domain === "reading";
   const listening = domain === "listening";
@@ -4946,6 +5093,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
   const [responses, setResponses] = useState(() => resume?.responses || {}); // production response by block index
   const [elapsed, setElapsed] = useState(() => Number.isFinite(resume?.elapsed) ? resume.elapsed : 0);
   const [showTime, setShowTime] = useState(true);
+  const [supportOn, setSupportOn] = useState(false);
   const [nav, setNav] = useState({});           // production blocks report nav here
   const [heardBlocks, setHeardBlocks] = useState(() => new Set(
     Array.isArray(resume?.heardBlocks) ? resume.heardBlocks
@@ -5002,6 +5150,8 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
   const DOMAIN_LABEL = { listening: "Listening", reading: "Reading",
     speaking: "Speaking", writing: "Writing" }[domain];
   const block = blocks[bIdx];
+  const isSupportPilot = span === "g68" && setNum === 1 && bIdx === 0
+    && (domain === "reading" || domain === "speaking" || domain === "writing");
 
   // ---- listening audio control (real clip if available, else browser voice) ----
   const stopAudioRef = useRef(null);
@@ -5188,6 +5338,10 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
         nextLabel={isMC ? mcNextLabel : nav.nextLabel}
         onExit={() => { stopSpeaking(); if (stopAudioRef.current) stopAudioRef.current(); onExit(); }}
       />
+      {isSupportPilot && (
+        <LearningSupportToggle enabled={supportOn} onToggle={() => setSupportOn((value) => !value)}
+          domain={domain} />
+      )}
       <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: 1.4,
         textTransform: "uppercase", color: C.mute, marginBottom: 8 }}>
         {block.task} <span style={{ color: C.line }}>|</span> {block.topic}
@@ -5195,15 +5349,18 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
       {domain === "speaking"
         ? <SpeakBlock key={bIdx} block={block} onDone={prodAdvance} setNav={setNav}
             setNum={setNum} span={span}
+            supportOn={isSupportPilot && supportOn}
             initialResponse={responses[bIdx]}
             onResponse={(response) => setResponses((prev) => ({ ...prev, [bIdx]: response }))} />
         : domain === "writing"
           ? <WriteBlock key={bIdx} block={block} onDone={prodAdvance} setNav={setNav}
               onBack={prodBack} canBack={bIdx > 0}
+              supportOn={isSupportPilot && supportOn}
               initialResponse={responses[bIdx]}
               onResponse={(response) => setResponses((prev) => ({ ...prev, [bIdx]: response }))} />
           : <MCBlock key={`${bIdx}:${qIdx}`} block={block} listening={listening}
               bIdx={bIdx} qIdx={qIdx} answers={answers} phase={phase} wide={wide}
+              supportOn={isSupportPilot && supportOn}
               onSelect={(k, v) => setAnswers((a) => ({ ...a, [k]: v }))} />}
     </div>
   );
@@ -5212,7 +5369,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
 // MC section: NO live feedback. Answers are collected silently across all
 // blocks and questions, then handed up for the end-of-section review.
 // `answers` is keyed "bIdx:qIdx" -> chosen option index, owned by DomainRunner.
-function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide }) {
+function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide, supportOn }) {
   const key = `${bIdx}:${qIdx}`;
   const picked = answers[key];
 
@@ -5301,7 +5458,9 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide 
       <div style={paneLabel}>{block.topic}</div>
       {block.scene && <Scene name={block.scene} />}
       {block.passage && (
-        <p style={{ fontSize: 15, lineHeight: 1.75, margin: 0 }}>{block.passage}</p>
+        supportOn
+          ? <PassageWordLookup passage={block.passage} />
+          : <p style={{ fontSize: 15, lineHeight: 1.75, margin: 0 }}>{block.passage}</p>
       )}
     </div>
   );
@@ -5397,7 +5556,8 @@ function MCReview({ blocks, answers, listening }) {
   );
 }
 
-function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initialResponse }) {
+function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initialResponse,
+  supportOn }) {
   const [val, setVal] = useState(() => initialResponse?.text || "");
   const wide = useIsWide();
   useEffect(() => {
@@ -5419,6 +5579,7 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
         style={{ ...textInput, resize: "vertical", flex: wide ? "1 1 auto" : undefined,
           minHeight: wide ? (block.minWords > 12 ? 260 : 180) : undefined }} />
       <div style={{ fontSize: 12.5, color: C.mute, margin: "8px 0 0", lineHeight: 1.5 }}>{block.hint}</div>
+      {supportOn && <FullMarkExample domain="writing" />}
     </div>
   );
 
@@ -5449,7 +5610,8 @@ function blobToDataUrl(blob) {
   });
 }
 
-function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span }) {
+function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span,
+  supportOn }) {
   const isSummary = block.task === "Summarize an Academic Presentation";
   const [recState, setRecState] = useState(() => initialResponse?.audio ? "done" : "idle");
   const [audioURL, setAudioURL] = useState(() => initialResponse?.audio || null);
@@ -5543,6 +5705,7 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       <div style={{ fontSize:13, color:C.mute, marginBottom:14 }}>
         To score well: {block.checks.join(" · ")}
       </div>
+      {supportOn && <FullMarkExample domain="speaking" />}
 
       {isSummary && (
         <div style={{ border: `1px solid ${presentationState === "played" ? C.moss : C.gold}`,

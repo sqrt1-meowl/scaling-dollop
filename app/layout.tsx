@@ -13,9 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: base,
     title: { default: "The Practice Hub", template: "%s | The Practice Hub" },
-    description: "Simple ELPAC practice and practical English lessons for students.",
-    openGraph: { title: "The Practice Hub", description: "Learn English. Practice it. Use it.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "The Practice Hub English learning path" }] },
-    twitter: { card: "summary_large_image", title: "The Practice Hub", description: "Learn English. Practice it. Use it.", images: [image] },
+    description: "Simple ELPAC-aligned reading, listening, speaking, and writing practice for students.",
+    openGraph: { title: "The Practice Hub", description: "Clear ELPAC-aligned practice for students.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "The Practice Hub ELPAC-aligned practice" }] },
+    twitter: { card: "summary_large_image", title: "The Practice Hub", description: "Clear ELPAC-aligned practice for students.", images: [image] },
   };
 }
 
