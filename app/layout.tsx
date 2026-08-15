@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "IdeaSpeak",
-  description: "Short speaking and listening practice for immigrant students."
+  title: "The Practice Hub",
+  description: "Simple ELPAC-aligned reading, listening, speaking, and writing practice for students."
 };
 
 export default function RootLayout({
