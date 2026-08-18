@@ -45,20 +45,18 @@ export function StudentDashboard() {
     <div className="mb-10 max-w-3xl">
       <p className="label text-[var(--muted)]">SAT Math workbook</p>
       <h2 className="academic-heading mt-3 text-4xl md:text-5xl">Welcome back, {session?.name}.</h2>
-      <p className="mt-3 text-[15px] leading-7 text-[var(--muted)]">Choose a category. Every level is filed under the SAT Math domain it belongs to.</p>
     </div>
 
     <div className="grid gap-5 md:grid-cols-2">
       {categoryRows.map(({ category, categoryLevels, mastered, active, next, percent }, index) => <section
-        className={`workbook-card relative overflow-hidden p-7 md:min-h-[292px] md:p-8 ${category.id === "foundations-skills" ? "md:col-span-2" : ""}`}
+        className={`workbook-card relative overflow-hidden p-7 md:min-h-[248px] md:p-8 ${category.id === "foundations-skills" ? "md:col-span-2" : ""}`}
         key={category.id}
         style={{ "--accent": category.color } as React.CSSProperties}
       >
         <div className="absolute right-7 top-6 font-serif text-5xl opacity-10">0{index + 1}</div>
         <p className="label" style={{ color: category.color }}>{category.id === "foundations-skills" ? "Core readiness" : "College Board domain"}</p>
         <h3 className="academic-heading mt-4 max-w-xl text-3xl leading-tight">{category.name}</h3>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">{category.description}</p>
-        <div className="mt-7">
+        <div className="mt-6">
           <div className="mb-2 flex justify-between text-xs font-bold">
             <span>{percent}% complete</span>
             <span className="text-[var(--muted)]">{mastered} / {categoryLevels.length} levels</span>
@@ -67,9 +65,8 @@ export function StudentDashboard() {
         </div>
         <div className="mt-6 flex flex-col items-start justify-between gap-5 border-t border-[var(--line)] pt-5 sm:flex-row sm:items-end">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">{active ? "Current level" : "First level in this category"}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">{active ? "Current level" : "Start here"}</p>
             <p className="mt-1 text-sm font-extrabold">{next.code} — {next.name}</p>
-            <p className="mt-1 text-xs text-[var(--muted)]">{next.skillCode} · {next.skillName}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {active && <Link className="btn-primary" href={`/worksheet/${worksheetIdFor(active.code, 1)}`}>Continue<ArrowRight size={15}/></Link>}
@@ -84,7 +81,6 @@ export function StudentDashboard() {
       <div className="min-w-0 flex-1">
         <p className="label text-[#77bdb3]">Foundations & Skills</p>
         <h3 className="academic-heading mt-2 text-3xl text-white">Desmos Grind</h3>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">Calculator technique stays in Foundations & Skills—not inside an unrelated College Board math domain.</p>
       </div>
       <div className="min-w-[150px]">
         <div className="mb-2 flex justify-between text-xs font-bold text-white"><span>Best score</span><span>{desmosProgress.bestScore} / 5</span></div>
