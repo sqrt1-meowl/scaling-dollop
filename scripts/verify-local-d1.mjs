@@ -32,7 +32,29 @@ const query = `SELECT
   (SELECT COUNT(*) FROM questions WHERE id LIKE 'p3g-%' AND drill_unit_id = 'p3f') +
   (SELECT COUNT(*) FROM questions WHERE id LIKE 'p6e-%' AND drill_unit_id = 'p6d') +
   (SELECT COUNT(*) FROM questions WHERE id LIKE 'p7e-%' AND drill_unit_id = 'p7d') AS preserved_retired_unit_questions`;
+const masteryQuery = `SELECT
+  (SELECT COUNT(*) FROM mastery_strands) AS mastery_strands,
+  (SELECT COUNT(*) FROM mastery_skills) AS mastery_skills,
+  (SELECT COUNT(*) FROM mastery_levels) AS mastery_levels,
+  (SELECT COUNT(*) FROM mastery_levels WHERE tier='CORE') AS mastery_core_levels,
+  (SELECT COUNT(*) FROM mastery_levels WHERE tier='EXT') AS mastery_ext_levels,
+  (SELECT COUNT(*) FROM mastery_worksheets) AS mastery_worksheets,
+  (SELECT COUNT(*) FROM mastery_problems) AS mastery_problems,
+  (SELECT COUNT(*) FROM mastery_students) AS mastery_students,
+  (SELECT COUNT(*) FROM mastery_levels WHERE accuracy_threshold != 90) AS mastery_nondefault_thresholds,
+  (SELECT COUNT(*) FROM mastery_levels WHERE time_standard_seconds IS NULL) AS mastery_pending_time_standards,
+  (SELECT COUNT(*) FROM (SELECT sequence_index FROM mastery_levels GROUP BY sequence_index HAVING COUNT(*) > 1)) AS mastery_duplicate_sequences,
+  (SELECT COUNT(*) FROM mastery_levels level WHERE NOT EXISTS (
+    SELECT 1 FROM mastery_worksheets worksheet WHERE worksheet.level_id=level.id
+    GROUP BY worksheet.level_id HAVING COUNT(*)=5
+  )) AS mastery_levels_without_five_worksheets`;
 const child = spawn(process.execPath, [wrangler, "d1", "execute", "DB", "--local", "--config", "wrangler.jsonc", "--command", query], {
   cwd: root, stdio: "inherit", env: { ...process.env, XDG_CONFIG_HOME: configHome, WRANGLER_LOG_PATH: logPath, WRANGLER_WRITE_LOGS: "false" },
 });
-child.on("exit", (code) => process.exit(code ?? 1));
+child.on("exit", (code) => {
+  if (code) process.exit(code);
+  const masteryChild = spawn(process.execPath, [wrangler, "d1", "execute", "DB", "--local", "--config", "wrangler.jsonc", "--command", masteryQuery], {
+    cwd: root, stdio: "inherit", env: { ...process.env, XDG_CONFIG_HOME: configHome, WRANGLER_LOG_PATH: logPath, WRANGLER_WRITE_LOGS: "false" },
+  });
+  masteryChild.on("exit", (masteryCode) => process.exit(masteryCode ?? 1));
+});

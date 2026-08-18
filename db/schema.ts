@@ -73,3 +73,70 @@ export const curriculumSchema = [
   `CREATE INDEX IF NOT EXISTS skill_progress_user_idx ON skill_progress(user_id, status)`,
   `CREATE INDEX IF NOT EXISTS unit_progress_user_idx ON drill_unit_progress(user_id, status)`,
 ] as const;
+
+/** Additive schema for the fixed 210-level Kumon-style mastery spine. */
+export const masterySchema = [
+  `CREATE TABLE IF NOT EXISTS mastery_strands (
+    code TEXT PRIMARY KEY, name TEXT NOT NULL, sort_order INTEGER NOT NULL UNIQUE
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_skills (
+    code TEXT PRIMARY KEY, name TEXT NOT NULL,
+    strand_code TEXT NOT NULL REFERENCES mastery_strands(code) ON DELETE RESTRICT,
+    sort_order INTEGER NOT NULL UNIQUE
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_levels (
+    id TEXT PRIMARY KEY, code TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+    strand_code TEXT NOT NULL REFERENCES mastery_strands(code) ON DELETE RESTRICT,
+    skill_code TEXT NOT NULL REFERENCES mastery_skills(code) ON DELETE RESTRICT,
+    sequence_index INTEGER NOT NULL UNIQUE CHECK (sequence_index BETWEEN 1 AND 210),
+    tier TEXT NOT NULL CHECK (tier IN ('CORE','EXT')),
+    time_standard_seconds INTEGER CHECK (time_standard_seconds > 0),
+    accuracy_threshold INTEGER NOT NULL DEFAULT 90 CHECK (accuracy_threshold BETWEEN 0 AND 100),
+    video_url TEXT NOT NULL DEFAULT ''
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_worksheets (
+    id TEXT PRIMARY KEY,
+    level_id TEXT NOT NULL REFERENCES mastery_levels(id) ON DELETE CASCADE,
+    worksheet_index INTEGER NOT NULL CHECK (worksheet_index BETWEEN 1 AND 5),
+    worksheet_type TEXT NOT NULL CHECK (worksheet_type IN ('PRACTICE','MIXED','MASTERY_CHECK')),
+    UNIQUE (level_id, worksheet_index)
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_problems (
+    id TEXT PRIMARY KEY,
+    worksheet_id TEXT NOT NULL REFERENCES mastery_worksheets(id) ON DELETE CASCADE,
+    band TEXT NOT NULL CHECK (band IN ('FLUENCY','APPLIED','SAT')),
+    position INTEGER NOT NULL CHECK (position > 0), stem TEXT NOT NULL, answer TEXT NOT NULL,
+    answer_format TEXT NOT NULL CHECK (answer_format IN ('MC','SPR')),
+    choices TEXT NOT NULL DEFAULT '[]', solution_explanation TEXT NOT NULL DEFAULT '',
+    desmos_enabled INTEGER NOT NULL DEFAULT 0 CHECK (desmos_enabled IN (0,1)),
+    UNIQUE (worksheet_id, band, position)
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_students (
+    id TEXT PRIMARY KEY, display_name TEXT NOT NULL DEFAULT 'Student',
+    placement_level_index INTEGER NOT NULL DEFAULT 1 CHECK (placement_level_index BETWEEN 1 AND 210),
+    current_level_id TEXT NOT NULL REFERENCES mastery_levels(id) ON DELETE RESTRICT,
+    daily_page_target INTEGER NOT NULL DEFAULT 3 CHECK (daily_page_target > 0),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_attempts (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES mastery_students(id) ON DELETE CASCADE,
+    worksheet_id TEXT NOT NULL REFERENCES mastery_worksheets(id) ON DELETE RESTRICT,
+    started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, submitted_at TEXT,
+    elapsed_seconds INTEGER, score REAL, passed INTEGER CHECK (passed IN (0,1)),
+    answers TEXT NOT NULL DEFAULT '[]'
+  )`,
+  `CREATE TABLE IF NOT EXISTS mastery_records (
+    student_id TEXT NOT NULL REFERENCES mastery_students(id) ON DELETE CASCADE,
+    level_id TEXT NOT NULL REFERENCES mastery_levels(id) ON DELETE CASCADE,
+    attempts_count INTEGER NOT NULL DEFAULT 0 CHECK (attempts_count >= 0),
+    mastered_at TEXT, last_reviewed_at TEXT,
+    PRIMARY KEY (student_id, level_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_levels_strand_sequence ON mastery_levels(strand_code, sequence_index)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_levels_skill_sequence ON mastery_levels(skill_code, sequence_index)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_worksheets_level_index ON mastery_worksheets(level_id, worksheet_index)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_problems_worksheet_band_position ON mastery_problems(worksheet_id, band, position)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_attempts_student_worksheet_active ON mastery_attempts(student_id, worksheet_id, submitted_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_records_student_reviewed ON mastery_records(student_id, last_reviewed_at)`,
+] as const;

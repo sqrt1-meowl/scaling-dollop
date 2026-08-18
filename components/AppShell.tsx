@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, BookOpen, Calculator, ClipboardList, FileQuestion, LayoutDashboard, LogOut, Users, Video } from "lucide-react";
+import { BarChart3, BookOpen, Calculator, ClipboardList, FileQuestion, LayoutDashboard, LogOut, Route, Users, Video } from "lucide-react";
 import { RoleGuard, useApp } from "./AppProvider";
 
 const studentNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/spine", label: "My Spine", icon: Route },
   { href: "/progress", label: "My Progress", icon: BarChart3 },
   { href: "/desmos", label: "Desmos Grind", icon: Calculator },
 ];

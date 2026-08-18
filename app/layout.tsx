@@ -12,10 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const image = new URL("/og.png", base).toString();
   return {
     metadataBase: base,
-    title: { default: "The Practice Hub", template: "%s | The Practice Hub" },
-    description: "Simple ELPAC-aligned reading, listening, speaking, and writing practice for students.",
-    openGraph: { title: "The Practice Hub", description: "Clear ELPAC-aligned practice for students.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "The Practice Hub ELPAC-aligned practice" }] },
-    twitter: { card: "summary_large_image", title: "The Practice Hub", description: "Clear ELPAC-aligned practice for students.", images: [image] },
+    title: { default: "SAT Math Mastery", template: "%s | SAT Math Mastery" },
+    description: "A focused, worksheet-first SAT Math mastery program built on one ordered 210-level spine.",
+    openGraph: { title: "SAT Math Mastery", description: "Daily SAT Math practice on one clear mastery spine.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "SAT Math Mastery digital workbook" }] },
+    twitter: { card: "summary_large_image", title: "SAT Math Mastery", description: "Daily SAT Math practice on one clear mastery spine.", images: [image] },
   };
 }
 
