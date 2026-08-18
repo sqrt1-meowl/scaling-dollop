@@ -102,27 +102,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .desmos-band-number { font-family: Georgia, serif; font-size: 32px; color: #b9c8c5; }
 .desmos-expression { display: block; border-left: 3px solid #77bdb3; background: #eef5f3; padding: 9px 12px; color: #17365f; font-family: Consolas, monospace; font-size: 14px; }
 .desmos-submit { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); background: #f7f4ed; padding: 20px 30px; }
-.spine-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 260px); gap: 42px; align-items: end; background: var(--navy-dark); padding: clamp(28px, 5vw, 48px); }
-.spine-score { border-left: 1px solid rgba(255,255,255,.18); padding-left: 28px; color: white; }
-.spine-score b { display: block; font-family: Georgia, serif; font-size: 42px; font-weight: 500; line-height: 1; }
-.spine-score span { display: block; margin-top: 7px; color: rgba(255,255,255,.58); font-size: 12px; }
-.spine-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); background: #fffdf8; }
-.spine-tabs button { min-height: 54px; flex: 1 0 170px; border: 0; border-bottom: 3px solid transparent; background: transparent; padding: 10px 16px; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.25; cursor: pointer; }
-.spine-tabs button:hover { background: #f5f3ed; color: var(--ink); }
-.spine-tabs button.active { border-bottom-color: var(--navy); color: var(--navy); }
-.spine-skill-heading { display: flex; align-items: center; gap: 9px; margin: 25px 0 9px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; }
-.spine-skill-heading span { color: var(--navy); font-family: ui-monospace, monospace; }
-.spine-level { display: flex; min-height: 78px; align-items: center; gap: 15px; border: 1px solid var(--line); background: #fffdf8; padding: 14px 16px; color: var(--ink); text-decoration: none; }
-.spine-level.current { border-color: var(--navy); border-left-width: 4px; background: white; box-shadow: 0 7px 20px rgba(23, 54, 95, .08); }
-.spine-level.mastered { background: #fbfdfb; }
-.spine-level.locked { color: #7c8490; }
-.spine-node { display: grid; width: 32px; height: 32px; flex: none; place-items: center; border: 1px solid #cfd4da; border-radius: 50%; background: #f5f5f2; color: #87909b; }
-.spine-node.current { border-color: var(--navy); background: var(--navy); color: white; }
-.spine-node.mastered { border-color: #8eb09a; background: #e8f1eb; color: #2f6a49; }
-.spine-state { flex: none; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.spine-state.current { color: var(--navy); }
-.spine-state.mastered { color: #2f6a49; }
-.spine-state.locked { color: #9299a2; }
+.category-level-row { display: flex; min-height: 78px; align-items: center; gap: 15px; border-bottom: 1px solid var(--line); padding: 14px 18px; }
+.category-level-row:last-child { border-bottom: 0; }
+.category-level-row.current { border-left: 4px solid var(--navy); background: #fff; }
+.category-level-row.mastered { background: #fbfdfb; }
+.category-level-row.locked { color: #7c8490; }
+.category-node { display: grid; width: 32px; height: 32px; flex: none; place-items: center; border: 1px solid #cfd4da; border-radius: 50%; background: #f5f5f2; color: #87909b; }
+.category-node.current { border-color: var(--navy); background: var(--navy); color: white; }
+.category-node.mastered { border-color: #8eb09a; background: #e8f1eb; color: #2f6a49; }
+.category-state { flex: none; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.category-state.current { color: var(--navy); }
+.category-state.mastered { color: #2f6a49; }
+.category-state.locked { color: #9299a2; }
 .worksheet-player { max-width: 920px; margin: 0 auto; }
 .worksheet-player-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; border-bottom: 4px solid var(--navy); background: #fffdf8; padding: 28px 30px; }
 .worksheet-timer { display: flex; min-width: 126px; align-items: center; gap: 10px; border: 1px solid var(--line); background: white; padding: 10px 13px; }
@@ -174,10 +165,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .desmos-dashboard-band, .desmos-sheet-header { align-items: stretch; flex-direction: column; }
   .desmos-band { grid-template-columns: 36px 1fr; }
   .desmos-band > :last-child { grid-column: 2; }
-  .spine-hero { grid-template-columns: 1fr; gap: 24px; }
-  .spine-score { border-top: 1px solid rgba(255,255,255,.18); border-left: 0; padding-top: 20px; padding-left: 0; }
-  .spine-level { gap: 11px; padding: 13px 12px; }
-  .spine-state { display: none; }
+  .category-level-row { align-items: flex-start; gap: 11px; padding: 14px 12px; }
+  .category-state { display: none; }
+  .category-level-row .btn-primary { min-height: 36px; padding: 7px 10px; font-size: 12px; }
   .worksheet-player-header { align-items: stretch; flex-direction: column; padding: 22px 18px; }
   .worksheet-timer { align-self: flex-start; }
   .worked-example-box { grid-template-columns: 1fr; gap: 10px; padding: 18px; }

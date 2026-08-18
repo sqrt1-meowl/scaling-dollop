@@ -83,7 +83,7 @@ export function WorksheetPlayer({ worksheetId, levelCode, levelName }: { workshe
     <div className="worksheet-player">
       <header className="worksheet-player-header">
         <div>
-          <Link href="/spine" className="label text-[var(--muted)] hover:text-[var(--ink)]">← My Spine</Link>
+          <Link href="/category/foundations-skills" className="label text-[var(--muted)] hover:text-[var(--ink)]">← Foundations & Skills</Link>
           <h2 className="academic-heading mt-3 text-3xl md:text-4xl">{levelName}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">{levelCode} · Practice worksheet 1 of 5</p>
         </div>
@@ -114,7 +114,7 @@ export function WorksheetPlayer({ worksheetId, levelCode, levelName }: { workshe
         <p className="label mt-5 text-[#2f6a49]">Player preview complete</p>
         <h3 className="academic-heading mt-2 text-3xl">All three bands cleared.</h3>
         <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--muted)]">This phase verifies the page flow and refresh-safe timer. Scoring, corrections, and mastery promotion are intentionally reserved for the next build stage.</p>
-        <Link href="/spine" className="btn-primary mt-7">Return to My Spine<ArrowRight size={15}/></Link>
+        <Link href="/category/foundations-skills" className="btn-primary mt-7">Return to category<ArrowRight size={15}/></Link>
       </section> : <section className={`worksheet-problem band-${band.toLowerCase()}`}>
         <div className="worksheet-problem-meta">
           <div><span>{bandCopy[band].number}</span><div><b>{bandCopy[band].title}</b><p>{bandCopy[band].note}</p></div></div>

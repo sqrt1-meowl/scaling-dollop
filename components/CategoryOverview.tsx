@@ -2,31 +2,83 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, LockKeyhole, MapPin } from "lucide-react";
 import { AppShell } from "./AppShell";
-import { useApp } from "./AppProvider";
-import { accentColor, getCategory } from "@/lib/curriculum";
-import { calculateCategoryLearningPercent, calculateTopicLearningPercent, learningLocationLabel } from "@/lib/appState";
+import { categoryIncludesStrand, getMasteryCategory } from "@/lib/masteryCategories";
+import type { SpineLevelRow } from "@/lib/masteryDb";
+import { masteryLevels, masterySkills, worksheetIdFor } from "@/lib/masterySpine";
+
+const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
+const initialLevels: SpineLevelRow[] = masteryLevels.map((level, index) => ({
+  id: level.id, code: level.code, name: level.name, strandCode: level.strandCode,
+  skillCode: level.skillCode, skillName: skillNames.get(level.skillCode) ?? level.skillCode,
+  sequenceIndex: level.sequenceIndex, tier: level.tier, timeStandardSeconds: level.timeStandardSeconds,
+  accuracyThreshold: level.accuracyThreshold, videoUrl: level.videoUrl,
+  state: index === 0 ? "current" : "locked",
+}));
+
+function stateLabel(state: SpineLevelRow["state"]) {
+  return state === "mastered" ? "Complete" : state === "current" ? "Current" : "Not started";
+}
 
 export function CategoryOverview() {
   const params = useParams<{ category: string }>();
-  const category = getCategory(params.category);
-  const { data } = useApp();
+  const category = getMasteryCategory(params.category);
+  const [levels, setLevels] = useState<SpineLevelRow[]>(initialLevels);
+
+  useEffect(() => {
+    fetch("/api/mastery/spine", { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() as Promise<{ levels: SpineLevelRow[] }> : Promise.reject())
+      .then((payload) => setLevels(payload.levels))
+      .catch(() => undefined);
+  }, []);
+
+  const visible = useMemo(() => category ? levels.filter((level) => categoryIncludesStrand(category, level.strandCode)) : [], [category, levels]);
+  const skillGroups = useMemo(() => masterySkills
+    .filter((skill) => visible.some((level) => level.skillCode === skill.code))
+    .map((skill) => ({ skill, levels: visible.filter((level) => level.skillCode === skill.code) })), [visible]);
+
   if (!category) return <AppShell role="student"><p>Category not found.</p></AppShell>;
-  const color = accentColor[category.accent];
-  const percent = calculateCategoryLearningPercent(category.id, data);
+  const mastered = visible.filter((level) => level.state === "mastered").length;
+  const percent = visible.length ? Math.round(mastered / visible.length * 100) : 0;
+
   return <AppShell role="student" title={category.name}>
     <Link href="/dashboard" className="mb-8 inline-flex items-center gap-2 text-xs font-bold text-[var(--muted)]"><ArrowLeft size={14}/>Dashboard</Link>
-    <div className="mb-10 flex flex-col justify-between gap-6 border-b-2 border-[var(--ink)] pb-7 sm:flex-row sm:items-end"><div><p className="label" style={{ color }}>{category.weight}% of SAT Math</p><h2 className="academic-heading mt-3 text-4xl md:text-5xl">{category.name}</h2><p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">Work through each topic at your own pace. Every topic follows the same mastery sequence.</p></div><div className="w-full max-w-[260px]"><div className="mb-2 flex justify-between text-xs font-bold"><span>Category progress</span><span>{percent}%</span></div><div className="progress-track"><div className="progress-fill" style={{ width: `${percent}%`, background: color }}/></div></div></div>
-    <section className="workbook-card overflow-hidden">{category.skills.map((skill, index) => {
-      const progress = data.learningProgress[skill.id];
-      const topicPercent = calculateTopicLearningPercent(skill.id, data);
-      const status = progress?.mastered ? "Mastered" : topicPercent > 0 || progress?.stage !== (index === 0 ? "concept" : "review") ? "In Progress" : "Not Started";
-      return <div key={skill.id} className="grid gap-4 border-b border-[var(--line)] px-5 py-6 last:border-0 sm:grid-cols-[54px_1fr_auto] sm:items-center md:px-7">
-        <div className="font-serif text-3xl text-[#9aa2ad]">{index + 1}</div>
-        <div><div className="flex flex-wrap items-center gap-3"><h3 className="text-[16px] font-extrabold">{skill.title}</h3>{progress?.mastered && <Check size={15} className="text-[#4f7a66]"/>}</div><div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs"><span className={`font-bold ${progress?.mastered ? "text-[#4f7a66]" : "text-[var(--muted)]"}`}>{status}</span><span className="text-[var(--muted)]">{progress ? learningLocationLabel(progress) : "Concept"}</span><span className="text-[var(--muted)]">{topicPercent}%</span></div></div>
-        <Link href={`/topic/${skill.id}`} className="btn-secondary">{progress?.mastered ? "Review" : topicPercent ? "Continue" : "Begin"}<ArrowRight size={14}/></Link>
-      </div>;
-    })}</section>
+    <div className="mb-9 flex flex-col justify-between gap-6 border-b-2 border-[var(--ink)] pb-7 sm:flex-row sm:items-end">
+      <div>
+        <p className="label" style={{ color: category.color }}>{category.id === "foundations-skills" ? "Core readiness" : "College Board domain"}</p>
+        <h2 className="academic-heading mt-3 text-4xl md:text-5xl">{category.name}</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">{category.description}</p>
+      </div>
+      <div className="w-full max-w-[260px]">
+        <div className="mb-2 flex justify-between text-xs font-bold"><span>Category progress</span><span>{mastered} / {visible.length}</span></div>
+        <div className="progress-track"><div className="progress-fill" style={{ width: `${percent}%`, background: category.color }}/></div>
+      </div>
+    </div>
+
+    <div className="grid gap-6">
+      {skillGroups.map(({ skill, levels: skillLevels }) => {
+        const skillMastered = skillLevels.filter((level) => level.state === "mastered").length;
+        return <section className="workbook-card overflow-hidden" key={skill.code}>
+          <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] bg-[#f7f4ed] px-5 py-5 md:px-7">
+            <div><p className="label" style={{ color: category.color }}>{skill.code}</p><h3 className="academic-heading mt-2 text-2xl">{skill.name}</h3></div>
+            <p className="text-xs font-bold text-[var(--muted)]">{skillMastered} / {skillLevels.length} levels complete</p>
+          </header>
+          <div>{skillLevels.map((level) => {
+            const Icon = level.state === "mastered" ? Check : level.state === "current" ? MapPin : LockKeyhole;
+            return <div key={level.id} className={`category-level-row ${level.state}`}>
+              <div className={`category-node ${level.state}`}><Icon size={15}/></div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2"><b className="font-mono text-sm">{level.code}</b>{level.tier === "EXT" && <span className="status-pill">Extension</span>}</div>
+                <p className="mt-1 text-sm leading-5">{level.name}</p>
+              </div>
+              <span className={`category-state ${level.state}`}>{stateLabel(level.state)}</span>
+              {level.state === "current" && <Link className="btn-primary" href={`/worksheet/${worksheetIdFor(level.code, 1)}`}>Continue<ArrowRight size={14}/></Link>}
+            </div>;
+          })}</div>
+        </section>;
+      })}
+    </div>
   </AppShell>;
 }
