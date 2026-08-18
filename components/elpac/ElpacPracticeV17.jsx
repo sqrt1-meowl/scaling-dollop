@@ -4801,80 +4801,6 @@ const PILOT_PLUTO_DEFINITIONS = {
   object: "A thing that can be seen or studied.",
 };
 
-const PILOT_FULL_MARK_EXAMPLES = {
-  speaking: "Several students are taking part in a photography activity. One student is holding a camera while the others help arrange the scene, so they appear to be working together on a photo.",
-  writing: "The student gets on the bus while carrying a backpack.",
-};
-
-function LearningSupportToggle({ enabled, onToggle, domain }) {
-  const detail = domain === "reading"
-    ? "Tap any word in the passage to see a simple meaning."
-    : "See a full-mark example response for this task.";
-  return (
-    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12,
-      flexWrap:"wrap", border:`1px solid ${enabled ? C.moss : C.line}`,
-      background:enabled ? C.mossSoft : C.card, borderRadius:4, padding:"10px 12px",
-      marginBottom:12 }}>
-      <div>
-        <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-          letterSpacing:1.2, textTransform:"uppercase", color:C.moss }}>Optional learning support</div>
-        <div style={{ fontSize:13, color:C.mute, marginTop:3 }}>{detail}</div>
-      </div>
-      <button type="button" onClick={onToggle} aria-pressed={enabled}
-        style={{ ...ghostBtn, padding:"7px 11px", color:enabled ? "#fff" : C.moss,
-          background:enabled ? C.moss : "transparent", borderColor:C.moss }}>
-        {enabled ? "On - turn off" : "Turn on"}
-      </button>
-    </div>
-  );
-}
-
-function PassageWordLookup({ passage }) {
-  const [selected, setSelected] = useState(null);
-  const parts = passage.split(/([A-Za-z]+(?:-[A-Za-z]+)*)/g);
-  const meaning = selected ? PILOT_PLUTO_DEFINITIONS[selected.toLowerCase()] : null;
-  return (
-    <div>
-      <p style={{ fontSize:15, lineHeight:1.75, margin:0 }}>
-        {parts.map((part, index) => {
-          const isWord = /^[A-Za-z]+(?:-[A-Za-z]+)*$/.test(part);
-          if (!isWord) return <span key={`${part}-${index}`}>{part}</span>;
-          const active = selected?.toLowerCase() === part.toLowerCase();
-          return (
-            <button key={`${part}-${index}`} type="button" onClick={() => setSelected(part)}
-              title={`Look up ${part}`} aria-label={`Look up ${part}`}
-              style={{ border:0, borderBottom:`1px dotted ${C.moss}`, padding:0, margin:0,
-                background:active ? C.mossSoft : "transparent", color:C.ink,
-                font:"inherit", lineHeight:"inherit", cursor:"help" }}>
-              {part}
-            </button>
-          );
-        })}
-      </p>
-      <div aria-live="polite" style={{ marginTop:14, minHeight:62, border:`1px solid ${C.line}`,
-        background:C.paper, borderRadius:4, padding:"10px 12px" }}>
-        {selected ? <>
-          <div style={{ fontSize:16, fontWeight:700 }}>{selected}</div>
-          <div style={{ fontSize:13.5, color:C.mute, lineHeight:1.5, marginTop:3 }}>
-            {meaning || "No simple meaning is available for this word yet."}
-          </div>
-        </> : <div style={{ fontSize:13, color:C.mute }}>Tap an underlined word to look it up.</div>}
-      </div>
-    </div>
-  );
-}
-
-function FullMarkExample({ domain }) {
-  return (
-    <div style={{ border:`1px solid ${C.moss}`, background:C.mossSoft, borderRadius:4,
-      padding:"11px 12px", marginTop:14, marginBottom:14 }}>
-      <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, letterSpacing:1.2,
-        textTransform:"uppercase", color:C.moss, marginBottom:6 }}>Full-mark example</div>
-      <div style={{ fontSize:14, lineHeight:1.6 }}>{PILOT_FULL_MARK_EXAMPLES[domain]}</div>
-    </div>
-  );
-}
-
 function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, onExit }) {
   const isMC = domain === "listening" || domain === "reading";
   const listening = domain === "listening";
@@ -4891,7 +4817,6 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
   const [responses, setResponses] = useState(() => resume?.responses || {}); // production response by block index
   const [elapsed, setElapsed] = useState(() => Number.isFinite(resume?.elapsed) ? resume.elapsed : 0);
   const [showTime, setShowTime] = useState(true);
-  const [supportOn, setSupportOn] = useState(false);
   const [nav, setNav] = useState({});           // production blocks report nav here
   const [heardBlocks, setHeardBlocks] = useState(() => new Set(
     Array.isArray(resume?.heardBlocks) ? resume.heardBlocks
@@ -4948,8 +4873,6 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
   const DOMAIN_LABEL = { listening: "Listening", reading: "Reading",
     speaking: "Speaking", writing: "Writing" }[domain];
   const block = blocks[bIdx];
-  const isSupportPilot = span === "g68" && setNum === 1 && bIdx === 0
-    && (domain === "reading" || domain === "speaking" || domain === "writing");
 
   // ---- listening audio control (real clip if available, else browser voice) ----
   const stopAudioRef = useRef(null);
@@ -5136,10 +5059,6 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
         nextLabel={isMC ? mcNextLabel : nav.nextLabel}
         onExit={() => { stopSpeaking(); if (stopAudioRef.current) stopAudioRef.current(); onExit(); }}
       />
-      {isSupportPilot && (
-        <LearningSupportToggle enabled={supportOn} onToggle={() => setSupportOn((value) => !value)}
-          domain={domain} />
-      )}
       <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: 1.4,
         textTransform: "uppercase", color: C.mute, marginBottom: 8 }}>
         {block.task} <span style={{ color: C.line }}>|</span> {block.topic}
@@ -5147,18 +5066,15 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
       {domain === "speaking"
         ? <SpeakBlock key={bIdx} block={block} onDone={prodAdvance} setNav={setNav}
             setNum={setNum} span={span}
-            supportOn={isSupportPilot && supportOn}
             initialResponse={responses[bIdx]}
             onResponse={(response) => setResponses((prev) => ({ ...prev, [bIdx]: response }))} />
         : domain === "writing"
           ? <WriteBlock key={bIdx} block={block} onDone={prodAdvance} setNav={setNav}
               onBack={prodBack} canBack={bIdx > 0}
-              supportOn={isSupportPilot && supportOn}
               initialResponse={responses[bIdx]}
               onResponse={(response) => setResponses((prev) => ({ ...prev, [bIdx]: response }))} />
           : <MCBlock key={`${bIdx}:${qIdx}`} block={block} listening={listening}
               bIdx={bIdx} qIdx={qIdx} answers={answers} phase={phase} wide={wide}
-              supportOn={isSupportPilot && supportOn}
               onSelect={(k, v) => setAnswers((a) => ({ ...a, [k]: v }))} />}
     </div>
   );
@@ -5167,7 +5083,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
 // MC section: NO live feedback. Answers are collected silently across all
 // blocks and questions, then handed up for the end-of-section review.
 // `answers` is keyed "bIdx:qIdx" -> chosen option index, owned by DomainRunner.
-function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide, supportOn }) {
+function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide }) {
   const key = `${bIdx}:${qIdx}`;
   const picked = answers[key];
 
@@ -5255,11 +5171,7 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide,
       minHeight: wide ? 500 : undefined, maxHeight: wide ? 600 : 340, overflowY: "auto" }}>
       <div style={paneLabel}>{block.topic}</div>
       {block.scene && <Scene name={block.scene} />}
-      {block.passage && (
-        supportOn
-          ? <PassageWordLookup passage={block.passage} />
-          : <p style={{ fontSize: 15, lineHeight: 1.75, margin: 0 }}>{block.passage}</p>
-      )}
+      {block.passage && <p style={{ fontSize: 15, lineHeight: 1.75, margin: 0 }}>{block.passage}</p>}
     </div>
   );
 
@@ -5354,8 +5266,7 @@ function MCReview({ blocks, answers, listening }) {
   );
 }
 
-function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initialResponse,
-  supportOn }) {
+function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initialResponse }) {
   const [val, setVal] = useState(() => initialResponse?.text || "");
   const wide = useIsWide();
   useEffect(() => {
@@ -5377,7 +5288,6 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
         style={{ ...textInput, resize: "vertical", flex: wide ? "1 1 auto" : undefined,
           minHeight: wide ? (block.minWords > 12 ? 260 : 180) : undefined }} />
       <div style={{ fontSize: 12.5, color: C.mute, margin: "8px 0 0", lineHeight: 1.5 }}>{block.hint}</div>
-      {supportOn && <FullMarkExample domain="writing" />}
     </div>
   );
 
@@ -5408,8 +5318,7 @@ function blobToDataUrl(blob) {
   });
 }
 
-function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span,
-  supportOn }) {
+function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span }) {
   const isSummary = block.task === "Summarize an Academic Presentation";
   const [recState, setRecState] = useState(() => initialResponse?.audio ? "done" : "idle");
   const [audioURL, setAudioURL] = useState(() => initialResponse?.audio || null);
@@ -5503,7 +5412,6 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       <div style={{ fontSize:13, color:C.mute, marginBottom:14 }}>
         To score well: {block.checks.join(" · ")}
       </div>
-      {supportOn && <FullMarkExample domain="speaking" />}
 
       {isSummary && (
         <div style={{ border: `1px solid ${presentationState === "played" ? C.moss : C.gold}`,
