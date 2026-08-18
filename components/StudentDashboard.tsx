@@ -7,7 +7,7 @@ import { AppShell } from "./AppShell";
 import { useApp } from "./AppProvider";
 import { categoryIncludesStrand, masteryCategories } from "@/lib/masteryCategories";
 import type { SpineLevelRow } from "@/lib/masteryDb";
-import { masteryLevels, masterySkills, worksheetIdFor } from "@/lib/masterySpine";
+import { masteryLevels, masterySkills } from "@/lib/masterySpine";
 import { desmosStorageKey, emptyDesmosProgress, type DesmosProgress } from "@/lib/desmos";
 
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
@@ -36,9 +36,7 @@ export function StudentDashboard() {
   const categoryRows = useMemo(() => masteryCategories.map((category) => {
     const categoryLevels = levels.filter((level) => categoryIncludesStrand(category, level.strandCode));
     const mastered = categoryLevels.filter((level) => level.state === "mastered").length;
-    const active = categoryLevels.find((level) => level.state === "current");
-    const next = active ?? categoryLevels.find((level) => level.state !== "mastered") ?? categoryLevels.at(-1)!;
-    return { category, categoryLevels, mastered, active, next, percent: Math.round(mastered / categoryLevels.length * 100) };
+    return { category, categoryLevels, mastered, percent: Math.round(mastered / categoryLevels.length * 100) };
   }), [levels]);
 
   return <AppShell role="student" title="Dashboard">
@@ -48,8 +46,8 @@ export function StudentDashboard() {
     </div>
 
     <div className="grid gap-5 md:grid-cols-2">
-      {categoryRows.map(({ category, categoryLevels, mastered, active, next, percent }, index) => <section
-        className={`workbook-card relative overflow-hidden p-7 md:min-h-[248px] md:p-8 ${category.id === "foundations-skills" ? "md:col-span-2" : ""}`}
+      {categoryRows.map(({ category, categoryLevels, mastered, percent }, index) => <section
+        className={`workbook-card relative overflow-hidden p-7 md:min-h-[220px] md:p-8 ${category.id === "foundations-skills" ? "md:col-span-2" : ""}`}
         key={category.id}
         style={{ "--accent": category.color } as React.CSSProperties}
       >
@@ -63,15 +61,8 @@ export function StudentDashboard() {
           </div>
           <div className="progress-track"><div className="progress-fill" style={{ width: `${percent}%` }}/></div>
         </div>
-        <div className="mt-6 flex flex-col items-start justify-between gap-5 border-t border-[var(--line)] pt-5 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">{active ? "Current level" : "Start"}</p>
-            <p className="mt-1 text-sm font-extrabold">{next.code} — {next.name}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {active && <Link className="btn-primary" href={`/worksheet/${worksheetIdFor(active.code, 1)}`}>Continue<ArrowRight size={15}/></Link>}
-            <Link className={active ? "btn-secondary" : "btn-primary"} href={`/category/${category.id}`}>View levels<ArrowRight size={15}/></Link>
-          </div>
+        <div className="mt-6 flex justify-end border-t border-[var(--line)] pt-5">
+          <Link className="btn-primary" href={`/category/${category.id}`}>View levels<ArrowRight size={15}/></Link>
         </div>
       </section>)}
     </div>
