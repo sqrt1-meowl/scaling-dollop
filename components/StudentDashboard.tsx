@@ -65,7 +65,7 @@ export function StudentDashboard() {
         </div>
         <div className="mt-6 flex flex-col items-start justify-between gap-5 border-t border-[var(--line)] pt-5 sm:flex-row sm:items-end">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">{active ? "Current level" : "Start here"}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">{active ? "Current level" : "Start"}</p>
             <p className="mt-1 text-sm font-extrabold">{next.code} — {next.name}</p>
           </div>
           <div className="flex flex-wrap gap-2">
