@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "sites:build": "vinext build",
     "start": "next start",
     "lint": "next lint",
     "elpac:validate": "node scripts/validate-elpac-banks.cjs",
@@ -14,13 +15,24 @@
   "dependencies": {
     "lucide-react": "0.468.0",
     "next": "^16.2.6",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@types/node": "22.10.1",
-    "@types/react": "19.0.1",
-    "@types/react-dom": "19.0.2",
-    "typescript": "5.7.2"
-  }
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@openai/sites-vite-plugin": "0.1.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "react-server-dom-webpack": "19.2.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.7.2",
+    "vinext": "1.0.0-beta.2",
+    "vite": "8.0.13",
+    "wrangler": "4.92.0"
+  },
+  "type": "module"
 }

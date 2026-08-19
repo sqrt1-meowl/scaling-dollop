@@ -40,6 +40,7 @@
     "node_modules",
     "real-life-replay",
     "real-life-replay-next",
-    "paper-assistant"
+    "paper-assistant",
+    "sat-math-mvp"
   ]
 }

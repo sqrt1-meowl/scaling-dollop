@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The Practice Hub",
-  description: "Simple ELPAC-aligned reading, listening, speaking, and writing practice for students."
+  title: "Ayala 4-Year Planner",
+  description: "Plan Ayala High School and community-college courses across grades 9–12."
 };
 
 export default function RootLayout({
@@ -12,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ margin: 0 }}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
