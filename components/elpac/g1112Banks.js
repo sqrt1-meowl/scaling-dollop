@@ -1,3 +1,5 @@
+import { G1112_ADDITIONAL_BANKS } from "./g1112AdditionalBanks";
+
 const q = (stem, correct, ...distractors) => ({
   stem,
   options: [correct, ...distractors],
@@ -157,4 +159,4 @@ const set1 = {
   ],
 };
 
-export const G1112_BANKS = { 1: set1 };
+export const G1112_BANKS = { 1: set1, ...G1112_ADDITIONAL_BANKS };

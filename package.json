@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "elpac:validate": "node scripts/validate-elpac-banks.cjs",
     "paper-assistant:server": "node paper-assistant/server/server.js",
     "paper-assistant:check": "node --check paper-assistant/server/server.js && node --check paper-assistant/extension/background/background.js && node --check paper-assistant/extension/content/content.js && node --check paper-assistant/extension/sidepanel/sidepanel.js"
   },

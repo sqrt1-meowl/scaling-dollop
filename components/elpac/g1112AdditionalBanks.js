@@ -1,0 +1,210 @@
+const q = (stem, correct, ...distractors) => ({ stem, options: [correct, ...distractors], answer: 0 });
+const listen = (task, topic, transcript, qs) => ({ task, topic, intro: "You will hear the recording only once.", transcript, qs });
+const read = (task, topic, passage, qs) => ({
+  task, topic, passage,
+  qs: qs.map((item) => item.options.length >= 4 ? item : ({ ...item, options: [...item.options, "The passage does not support this statement"] })),
+});
+const speak = (task, topic, prompt, points, checks, scene) => ({ task, topic, prompt, points, checks, ...(scene ? { scene } : {}) });
+const write = (task, topic, stem, points, hint, scene) => ({ task, topic, kind: "frame", stem, points, hint, ...(scene ? { scene } : {}) });
+
+const set2 = {
+  listening: [
+    listen("Listen to a Short Exchange", "Research Ethics Form", "Student: May I begin interviewing participants tomorrow? Teacher: Not yet. Your questions are approved, but every participant must sign the consent form before you collect any responses.", [
+      q("What must happen before the student collects responses?", "Participants must sign consent forms", "The teacher must conduct the interviews", "The questions must be shortened"),
+    ]),
+    listen("Listen to a Short Exchange", "Studio Reservation", "Student: I reserved the media studio for fourth period, but the confirmation says fifth. Technician: Forward me the confirmation. If fourth period is still open, I can correct it before noon.", [
+      q("What should the student send the technician?", "The reservation confirmation", "The finished media project", "A new class schedule"),
+    ]),
+    listen("Listen to a Short Exchange", "Transcript Request", "Student: Will my official transcript arrive by Friday? Counselor: The electronic copy will. A paper copy takes five business days, so choose electronic delivery if Friday is firm.", [
+      q("What does the counselor recommend?", "Choose electronic delivery", "Move the Friday deadline", "Pick up a paper copy today"),
+    ]),
+    listen("Listen to a Classroom Conversation", "Research Symposium", "Teacher: Your symposium poster should present one claim, the evidence supporting it, and one limitation. Elena: May our evidence include survey results? Teacher: Yes, if you explain how participants were selected. Marcus: Do references belong on the poster? Teacher: Include brief citations there and submit the complete reference list separately. Elena: Then we should replace our long introduction with the sampling explanation.", [
+      q("What three elements must the poster present?", "A claim, supporting evidence, and a limitation", "A title, biography, and schedule", "A survey, photograph, and complete essay"),
+      q("What condition applies to the survey results?", "The group must explain participant selection", "Every student must answer the survey", "The results must appear without interpretation"),
+      q("Why will Elena shorten the introduction?", "To make room for the sampling explanation", "To remove the group's claim", "To add the complete reference list"),
+    ]),
+    listen("Listen to an Oral Presentation", "Urban Water Reuse", "Cities increasingly treat wastewater so it can be used again. After solids are removed, water passes through biological treatment, fine filtration, and disinfection. Recycled water may irrigate parks or cool industrial equipment. With additional purification, some systems return it to drinking-water supplies. Reuse reduces demand on rivers and reservoirs, but it requires careful monitoring because a failure at any treatment stage can affect water quality. Public trust also depends on transparent testing and clear explanations of how the process works.", [
+      q("What happens after solids are removed?", "The water receives several stages of treatment", "The water is immediately bottled", "The water is returned untreated to a river"),
+      q("What is one non-drinking use of recycled water?", "Irrigating parks", "Increasing reservoir evaporation", "Producing untreated sewage"),
+      q("Why is careful monitoring necessary?", "A treatment failure can affect water quality", "Filtration always removes all need for testing", "Public parks cannot use recycled water"),
+      q("What is the presentation's main idea?", "Water reuse offers benefits but requires reliable treatment and public transparency", "All recycled water is immediately safe to drink", "Cities should stop using rivers and reservoirs"),
+    ]),
+    listen("Listen to an Oral Presentation", "Gene Editing", "CRISPR gene editing uses a guide molecule to direct an enzyme to a chosen location in DNA. The enzyme cuts the DNA, and the cell's repair process can disable a gene or incorporate a designed change. The method has accelerated research into inherited disease and agriculture. Precision, however, is not absolute. An edit may occur at an unintended location, and a change in one gene can have effects that are difficult to predict. Researchers therefore compare multiple tests, monitor long-term outcomes, and distinguish laboratory evidence from claims about clinical safety.", [
+      q("What directs the enzyme to a location in DNA?", "A guide molecule", "A blood cell", "A microscope lens"),
+      q("What can happen after the DNA is cut?", "The cell's repair process can create a change", "The cell stops containing DNA", "Every inherited disease disappears"),
+      q("What limitation does the speaker identify?", "An edit may occur in an unintended location", "The method cannot be tested in laboratories", "The enzyme never reaches DNA"),
+      q("Why do researchers use multiple tests and long-term monitoring?", "To evaluate accuracy and possible consequences", "To guarantee immediate clinical approval", "To avoid distinguishing evidence from claims"),
+    ]),
+    listen("Listen to a Speaker Support an Opinion", "Open Educational Resources", "Schools should expand their use of openly licensed textbooks. Commercial editions can become outdated while replacement costs delay access. Open materials can be revised and translated without purchasing an entirely new book. Quality is a reasonable concern because availability does not guarantee accuracy. The district should therefore require subject specialists to review each resource and publish a revision schedule. Careful review would preserve quality while allowing teachers to adapt materials for their students.", [
+      q("What does the speaker support?", "Expanding use of openly licensed textbooks", "Eliminating all review of course materials", "Replacing teachers with online books"),
+      q("What advantage of open materials is identified?", "They can be revised and translated", "They never require updates", "They are automatically accurate"),
+      q("What concern does the speaker acknowledge?", "Available materials may vary in quality", "Students refuse to use textbooks", "Specialists cannot review books"),
+      q("How does the proposal address the concern?", "Require expert review and a revision schedule", "Use every resource immediately", "Ban teachers from adapting materials"),
+    ]),
+    listen("Listen to a Speaker Support an Opinion", "Dual Enrollment Access", "The district should pay course fees for students who qualify for dual enrollment. College courses can let students explore advanced subjects and earn credit, but fees create unequal access even when admission standards are the same. Opponents argue that the district cannot fund every elective. A fair pilot could prioritize courses unavailable at the high school and report completion rates, credit earned, and total cost. Those results would show whether the program deserves expansion.", [
+      q("What change does the speaker propose?", "District payment of qualifying dual-enrollment fees", "Automatic college admission for every student", "Eliminating advanced high-school courses"),
+      q("What equity problem does the speaker identify?", "Fees can restrict access for qualified students", "Admission standards differ for every student", "College credit has no value"),
+      q("Which courses would the pilot prioritize?", "Courses unavailable at the high school", "Courses students have already completed", "Only courses without credit"),
+      q("Why would the pilot report outcomes and cost?", "To provide evidence for an expansion decision", "To prevent students from earning credit", "To replace admission requirements"),
+    ]),
+  ],
+  reading: [
+    read("Read a Short Informational Passage", "Algorithmic Bias", "An algorithm can apply the same rule to every case and still produce unequal results. The problem may begin with training data. If past decisions reflect limited access or discrimination, a model trained on those decisions may reproduce the pattern. Bias can also enter when designers choose an outcome to predict or a threshold for action. Audits therefore compare error rates across groups and examine whether the data represent the people affected. An audit does not automatically make a system fair, but it can reveal where revision is necessary.", [
+      q("How can an algorithm reproduce an unequal pattern?", "It may learn from biased past decisions", "It always ignores training data", "It applies a different program to every person"),
+      q("What do audits compare?", "Error rates across groups", "Only the speed of the computer", "The salaries of the designers"),
+      q("What limitation of an audit does the author note?", "It can reveal problems without automatically solving them", "It cannot examine training data", "It guarantees that a system is fair"),
+    ]),
+    read("Read a Short Informational Passage", "Perovskite Solar Cells", "Perovskite solar cells use a crystal structure that absorbs light efficiently and can be manufactured in thin, flexible layers. In laboratory tests, their efficiency has risen rapidly. Commercial use remains limited because many versions degrade when exposed to moisture, heat, or prolonged sunlight. Some also contain lead, creating concerns about damage and disposal. Researchers are testing protective coatings, more stable chemical combinations, and recycling systems. The technology's promise therefore depends not only on efficiency but also on durability and responsible production.", [
+      q("What is one advantage of perovskite solar cells?", "They can be made in thin, flexible layers", "They contain no chemical materials", "They generate power without light"),
+      q("Why is commercial use still limited?", "Many versions degrade under environmental stress", "Laboratory efficiency has never improved", "The cells are too durable to replace"),
+      q("What broader criterion does the final sentence emphasize?", "Durability and responsible production matter along with efficiency", "Efficiency is the only meaningful measure", "Recycling prevents cells from absorbing light"),
+    ]),
+    read("Read a Student Essay", "Paid Internships for Credit", "Our high school should allow a carefully supervised paid internship to satisfy one elective requirement. An internship can connect academic knowledge with workplace expectations: students must communicate with adults, revise work after feedback, and manage deadlines whose consequences extend beyond a grade. Credit should not be awarded simply because a student has a job. Participants should establish learning goals, meet regularly with a faculty adviser, and submit a portfolio demonstrating growth. Critics warn that available placements may differ greatly in quality. That risk is real, so the school should approve sites in advance and evaluate both the employer and the student's work. With consistent standards, paid internships can provide rigorous learning while making participation possible for students who cannot afford unpaid work.", [
+      q("What is the essay's central claim?", "Supervised paid internships should be able to satisfy an elective requirement", "Every job should replace a required course", "Only unpaid internships provide learning"),
+      q("Which workplace expectation does the writer mention?", "Revising work after feedback", "Avoiding communication with adults", "Ignoring deadlines outside school"),
+      q("Why would students submit a portfolio?", "To demonstrate learning and growth", "To advertise the employer", "To avoid setting learning goals"),
+      q("What concern does the writer acknowledge?", "Placements may differ in quality", "Students cannot be paid for work", "Faculty advisers cannot meet students"),
+      q("How does the writer address that concern?", "Approve sites and evaluate the experience", "Accept every available workplace", "Remove all academic standards"),
+      q("What does 'That risk is real' accomplish?", "It concedes a reasonable counterargument", "It abandons the main claim", "It introduces a chronological event"),
+      q("Why does the writer emphasize paid internships?", "They can include students unable to work without pay", "They require no supervision", "They guarantee identical placements"),
+      q("How is the argument organized?", "Claim, benefits, safeguards, counterargument, and response", "A sequence of unrelated definitions", "A fictional conflict with no conclusion"),
+    ]),
+    read("Read a Literary Passage", "Load Test", "The bridge model held through the first four weight plates. On the fifth, a joint snapped and the deck tilted toward the floor. Priya stared at the broken pieces while the neighboring team celebrated. She had designed that joint and had defended it during every review. Mateo quietly opened their measurement log. 'The failure happened exactly where the strain readings changed yesterday,' he said. Priya wanted to rebuild immediately, but instead she traced the numbers and found that the thin support had begun bending long before anyone noticed. At the next test, their redesigned bridge did not carry the greatest load in the class. It did, however, behave exactly as their calculations predicted. Priya photographed the final graph before the model was dismantled. For the first time, prediction felt more satisfying than surprise.", [
+      q("Why is Priya upset after the first test?", "A joint she defended fails", "Mateo refuses to examine the data", "Another team breaks her bridge"),
+      q("What evidence helps the team locate the problem?", "A change in recorded strain readings", "A photograph from another class", "The number of neighboring teams"),
+      q("Why does Priya delay rebuilding?", "She decides to analyze the measurements first", "The laboratory closes permanently", "She no longer wants to test the bridge"),
+      q("How is the second test different?", "The result matches the team's calculations", "The bridge carries every possible load", "No measurements are collected"),
+      q("What does the final sentence suggest about Priya?", "She has come to value accurate reasoning over a dramatic result", "She now dislikes engineering", "She believes surprises prove a design is correct"),
+      q("Which theme is best supported?", "Failure can become useful when evidence guides revision", "Competition prevents collaboration", "A successful design never needs revision"),
+    ]),
+    read("Read an Informational Passage", "Citizen Science Data", "Citizen-science projects invite volunteers to collect observations that professional researchers could not gather alone. Thousands of participants may record bird calls, rainfall, or nighttime temperatures across a large region. The scale is valuable, but variation in experience and equipment can introduce error. Strong projects reduce that risk by providing clear protocols, short training activities, and automated checks for unusual entries. Researchers may also compare a sample of volunteer observations with expert measurements. These steps do not make every record perfect. Instead, they allow scientists to estimate uncertainty and decide which conclusions the data can reasonably support.", [
+      q("What is a major advantage of citizen science?", "It can collect observations across a large area", "It eliminates the need for research questions", "It makes all equipment identical"),
+      q("What can introduce error?", "Differences in volunteer experience and equipment", "Clear collection protocols", "Comparisons with expert measurements"),
+      q("How can automated checks help?", "They can flag unusual entries for review", "They can guarantee every observation is correct", "They can replace the project's protocol"),
+      q("Why compare some observations with expert measurements?", "To evaluate the quality of volunteer data", "To remove volunteers from the project", "To increase the geographic area"),
+      q("What do the quality-control steps allow researchers to do?", "Estimate uncertainty and limit conclusions appropriately", "Claim that every record is perfect", "Avoid explaining their methods"),
+      q("How is the passage organized?", "A benefit, a limitation, and methods for managing the limitation", "A fictional narrative in chronological order", "Two unrelated historical accounts"),
+    ]),
+  ],
+  speaking: [
+    speak("Talk about a Scene (1 of 4)", "Engineering Lab", "Look at the scene. Describe what is happening.", 1, ["Relevant description"], "g1112-engineering-lab"),
+    speak("Talk about a Scene (2 of 4)", "Engineering Lab", "Describe the roles of two people in the scene and how their actions are connected.", 1, ["Two people", "Connected actions"], "g1112-engineering-lab"),
+    speak("Talk about a Scene (3 of 4)", "Engineering Lab", "What stage of the design process does the scene most likely show? Support your inference with visual evidence.", 2, ["Inference", "Visual evidence"], "g1112-engineering-lab"),
+    speak("Talk about a Scene (4 of 4)", "Engineering Lab", "Describe a time evidence caused you to revise a plan. Explain what changed.", 2, ["Relevant experience", "Clear change"], "g1112-engineering-lab"),
+    speak("Speech Functions", "Deadline Revision", "Ask an instructor for a brief extension. Acknowledge the deadline and propose a specific completion plan.", 2, ["Appropriate register", "Specific plan"]),
+    speak("Speech Functions", "Method Clarification", "Your group received conflicting instructions about a lab method. Politely ask the instructor to clarify which procedure to follow.", 2, ["Clear problem", "Appropriate request"]),
+    speak("Support an Opinion", "Internship Credit", "Should supervised internships qualify for elective credit? State and support your position.", 3, ["Position", "Developed support"]),
+    speak("Support an Opinion", "Open Textbooks", "Should schools prioritize openly licensed textbooks? State your position, support it, and address one concern.", 3, ["Position", "Reason", "Concern"]),
+    speak("Present and Discuss Information", "Program Enrollment", "Summarize the information shown in the graph, including the overall trend and important details.", 3, ["Accurate summary", "Relevant details"], "linegraph"),
+    speak("Present and Discuss Information", "Program Enrollment", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim.", 3, ["Evaluate claim", "Graph evidence"], "linegraph"),
+    speak("Summarize an Academic Presentation", "Urban Water Reuse", "Summarize the water-reuse process, its benefits, and the safeguards it requires.", 4, ["Process", "Benefits", "Safeguards"]),
+    speak("Summarize an Academic Presentation", "Gene Editing", "Summarize how CRISPR makes an edit and why researchers evaluate accuracy and long-term effects.", 4, ["Mechanism", "Limitations", "Evaluation"]),
+  ],
+  writing: [
+    write("Describe a Picture (Question 1)", "Engineering Lab", "Write one complete sentence describing a student's action in the scene, using a precise verb.", 2, "Describe a visible action precisely.", "g1112-engineering-lab"),
+    write("Describe a Picture (Question 2)", "Engineering Lab", "Write one complete sentence predicting what the group will do next, and support the prediction with a visual detail.", 2, "Prediction plus visual evidence.", "g1112-engineering-lab"),
+    write("Write About an Experience", "Revising a Plan", "Write about a time evidence or feedback caused you to revise a plan. Explain the original plan, the new information, and the result.", 4, "Develop the experience with a clear sequence and relevant detail."),
+    write("Write About Academic Information (Question 4)", "Program Enrollment", "Summarize the enrollment pattern shown in the graph. Use at least two accurate details.", 2, "Report the overall pattern and key values.", "linegraph"),
+    write("Write About Academic Information (Question 5)", "Program Enrollment", "A student claims enrollment rose at a constant rate. Complete an academic paragraph that evaluates the claim using evidence from the graph.", 3, "State whether the claim is supported and cite relevant changes.", "linegraph"),
+    write("Justify an Opinion", "Paid Internship Credit", "Should a supervised paid internship be allowed to satisfy an elective requirement? State your position, support it with developed reasons, and address one counterargument.", 4, "Use connected reasoning and an appropriate academic register."),
+  ],
+};
+
+const set3 = {
+  listening: [
+    listen("Listen to a Short Exchange", "Abstract Revision", "Student: I reduced my research abstract to two hundred words, but the portal still rejects it. Teacher: The title counts toward the limit. Shorten the title or remove another sentence before you upload it again.", [q("Why does the portal reject the abstract?", "The title makes it exceed the word limit", "The research topic is not approved", "The student omitted the title")]),
+    listen("Listen to a Short Exchange", "Archive Access", "Student: Can I photograph this historical letter? Archivist: Yes, after you place the document on the support and turn off the flash. Bright light can damage the ink.", [q("What must the student do before taking the photograph?", "Support the document and disable the flash", "Translate the letter", "Remove the letter from the archive")]),
+    listen("Listen to a Short Exchange", "Volunteer Schedule", "Student: I can lead Saturday's orientation, but I have to leave at noon. Coordinator: That works. I will assign another volunteer to the afternoon practice session.", [q("How will the coordinator adjust the schedule?", "Another volunteer will lead the afternoon session", "The orientation will be canceled", "The student will stay after noon")]),
+    listen("Listen to a Classroom Conversation", "Policy Forum", "Teacher: At tomorrow's policy forum, each team will present a proposal and answer two questions from another team. Jordan: Do we submit our evidence chart before class? Teacher: Upload it tonight so your reviewers have time to examine the sources. Amara: May we revise the proposal after the questions? Teacher: Yes. Your final reflection should explain which feedback you accepted and why. Jordan: Then we need to label the sources more clearly before uploading.", [
+      q("What will each team do at the forum?", "Present a proposal and answer questions", "Write a proposal without speaking", "Review only its own evidence"),
+      q("Why must the chart be uploaded tonight?", "Reviewers need time to examine the sources", "The final reflection is due tonight", "The teacher will replace the sources"),
+      q("What must the final reflection explain?", "Which feedback the team accepted and why", "Why no revision was permitted", "How the team selected its speaking order"),
+    ]),
+    listen("Listen to an Oral Presentation", "Geothermal Microgrids", "A geothermal heat-pump system transfers heat between a building and the ground, whose underground temperature changes less than outdoor air. In winter, fluid circulating through buried pipes absorbs ground heat; in summer, it carries building heat downward. When several buildings share this infrastructure, the network can operate as a thermal microgrid. The system can reduce energy demand, but installation requires substantial drilling and careful study of local geology. Its value therefore depends on long-term savings, site conditions, and whether construction can be coordinated across buildings.", [
+      q("Why is the ground useful for heat exchange?", "Its underground temperature is relatively stable", "It produces electricity without equipment", "Its surface temperature never changes"),
+      q("What happens during summer?", "Heat from buildings is transferred into the ground", "Ground heat is burned as fuel", "The buried pipes are removed"),
+      q("What is one challenge of the system?", "Installation requires drilling and geological study", "It cannot serve more than one building", "It increases energy demand in every climate"),
+      q("What does the speaker emphasize about evaluating the system?", "Benefits must be considered with cost and site conditions", "Short-term installation cost is irrelevant", "Every location is equally suitable"),
+    ]),
+    listen("Listen to an Oral Presentation", "Digital Preservation", "Saving a digital file is not the same as preserving it. Storage media fail, software becomes obsolete, and a file can lose meaning if no record explains its origin. Digital archivists create redundant copies in separate locations, verify that files have not changed, and migrate data into newer formats when necessary. They also preserve metadata describing who created a file, when it was modified, and how it may be used. Migration can introduce errors, so archivists document each action and compare the new copy with the original. Preservation is an ongoing process rather than a one-time backup.", [
+      q("Why is saving a file once insufficient?", "Media and software can become unusable", "Every digital file changes each day", "Backups remove a file's origin"),
+      q("What does metadata describe?", "A file's origin, history, and use", "Only the file's visual color", "The price of storage equipment"),
+      q("Why do archivists compare migrated files with originals?", "Migration can introduce errors", "Original files contain no information", "New formats never preserve data"),
+      q("What is the central idea?", "Digital preservation requires repeated technical and documentary work", "One backup permanently preserves a file", "Metadata makes redundant copies unnecessary"),
+    ]),
+    listen("Listen to a Speaker Support an Opinion", "Student Data Privacy", "Schools should publish a clear privacy review before adopting educational software. An application may improve instruction while also collecting location, browsing, or behavioral data that students do not realize they are sharing. A review should identify what is collected, why it is needed, how long it is retained, and whether a vendor can sell it. Some administrators worry that reviews will delay useful tools. A standard checklist and firm review deadline can make the process efficient without treating privacy as an afterthought.", [
+      q("What does the speaker propose?", "A public privacy review before software adoption", "A ban on all educational software", "Permanent storage of all student data"),
+      q("What problem does the speaker identify?", "Students may not know what data applications collect", "Applications never collect behavioral data", "Schools cannot use software for instruction"),
+      q("What concern do administrators have?", "Reviews may delay useful tools", "Vendors refuse to explain software", "Checklists always reveal private data"),
+      q("How does the speaker respond?", "Use a standard checklist and review deadline", "Adopt tools without review", "Allow vendors to set all privacy rules"),
+    ]),
+    listen("Listen to a Speaker Support an Opinion", "Apprenticeship Pathways", "High schools should expand apprenticeships alongside college-preparation courses. Apprentices combine paid work with structured instruction and can enter skilled careers without giving up future education. Critics sometimes treat apprenticeships as a lower academic track. That risk is serious if students are assigned rather than choosing. Programs should therefore remain voluntary, include transferable academic credit, and publish completion and wage outcomes. Transparent standards would make apprenticeships an informed option, not a reduced expectation.", [
+      q("What expansion does the speaker support?", "Voluntary apprenticeship pathways", "Eliminating college-preparation courses", "Assigning every student to paid work"),
+      q("What benefit is identified?", "Students combine paid work and structured instruction", "Students avoid all future education", "Employers set graduation standards alone"),
+      q("What risk does the speaker acknowledge?", "Apprenticeships may become a lower track imposed on students", "Students cannot earn wages", "Academic credit cannot transfer"),
+      q("Which safeguard is proposed?", "Voluntary choice, transferable credit, and published outcomes", "Placement without student consent", "Removing academic instruction"),
+    ]),
+  ],
+  reading: [
+    read("Read a Short Informational Passage", "Microplastics Sampling", "Microplastics are plastic particles smaller than five millimeters, but measuring them consistently is difficult. A net with large openings misses tiny particles, while a fine filter may collect fibers shed by clothing or laboratory equipment. Researchers use blank samples to detect this contamination and report the mesh or filter size so results can be compared. Counts from two studies may still differ because they sampled different depths, seasons, or locations. A credible comparison therefore depends on method as well as the number reported.", [
+      q("Why can a fine filter create a measurement problem?", "It may collect fibers introduced during sampling", "It cannot collect small particles", "It makes blank samples unnecessary"),
+      q("What is the purpose of a blank sample?", "To detect contamination from the process", "To increase the number of ocean locations", "To replace the study's real samples"),
+      q("What does the final sentence emphasize?", "Methods must be considered when comparing results", "The largest count is always most credible", "Season and depth never affect a sample"),
+    ]),
+    read("Read a Short Informational Passage", "Open-Source Licenses", "Open-source software makes its source code available, but that does not mean the code has no conditions. A license explains whether users may modify, redistribute, or combine the code with another project. Some licenses require modified versions to remain under the same open terms; others permit inclusion in proprietary products if attribution is provided. Developers must examine compatibility before combining components because two individually open licenses may impose conflicting requirements.", [
+      q("What does an open-source license explain?", "Conditions for using and redistributing code", "How to hide all source code", "The price of every software product"),
+      q("How can open-source licenses differ?", "They can impose different conditions on modified work", "Some prohibit users from reading code", "All require proprietary distribution"),
+      q("Why should developers check compatibility?", "Open licenses can contain conflicting requirements", "Compatible code never needs attribution", "A single project cannot use components"),
+    ]),
+    read("Read a Student Essay", "Community College Partnership", "The district should guarantee every high school student access to at least one course taught jointly with the local community college. A shared course can expose students to college expectations while support from their high-school teacher remains available. The partnership should not be measured only by enrollment. Completion, credit transfer, and differences in participation among student groups should also be reported. Some educators worry that college coursework could overwhelm students who are still developing foundational skills. That concern supports careful advising, not exclusion. Students should review workload, prerequisites, and alternatives before choosing a course. With transparent outcomes and informed choice, the partnership can expand opportunity without pretending that one pathway fits everyone.", [
+      q("What does the writer propose?", "Guaranteed access to a jointly taught college course", "Required full-time college enrollment", "Replacing all high-school teachers"),
+      q("What support would remain available?", "Help from a high-school teacher", "Automatic completion of assignments", "Removal of course prerequisites"),
+      q("Why is enrollment alone an insufficient measure?", "It does not show completion, transfer, or equitable participation", "It reports too much about student outcomes", "It prevents colleges from teaching courses"),
+      q("What concern does the writer acknowledge?", "Some students may be overwhelmed", "No students want college credit", "Advising eliminates every challenge"),
+      q("How does the writer address the concern?", "Provide careful advising and informed choice", "Exclude students with questions", "Make every course mandatory"),
+      q("What does 'not exclusion' clarify?", "The concern should lead to support rather than denial of access", "The writer no longer supports the partnership", "Only enrollment totals matter"),
+      q("Which evidence would best evaluate the proposal?", "Completion and credit-transfer data by student group", "The color of college classrooms", "A list of unrelated electives"),
+      q("What qualification appears in the conclusion?", "One pathway will not suit every student", "All students need identical courses", "Transparent outcomes are unnecessary"),
+    ]),
+    read("Read a Literary Passage", "The Missing Caption", "Leila had spent three weeks researching the photograph: a crowd outside a factory gate, one woman looking directly at the camera. Her museum caption identified the year, the strike, and the wage dispute. Minutes before the exhibit opened, an archivist handed her a second photograph showing the same woman inside the factory two years later. Leila's caption suddenly seemed too certain; it called the woman a strike organizer, although the records never did. Visitors were already entering the hall. She removed the title card, wrote 'Participant in the 1934 gathering; role unknown,' and added a note inviting further information. The new caption looked less impressive. It was also the first sentence in the exhibit that Leila trusted completely.", [
+      q("Why does Leila reconsider the caption?", "New evidence reveals that her claim is too certain", "The exhibit has been canceled", "The photograph shows a different factory"),
+      q("What was unsupported in the original caption?", "The claim that the woman organized the strike", "The year of the gathering", "The existence of a wage dispute"),
+      q("Why is time pressure important?", "Visitors are entering as Leila revises the text", "The archive will close in three weeks", "The factory has changed its hours"),
+      q("What does the invitation for information show?", "Leila acknowledges uncertainty and allows future evidence", "Leila wants visitors to rewrite every caption", "The museum has no historical records"),
+      q("Why does Leila trust the less impressive caption?", "It distinguishes known facts from inference", "It contains more dramatic language", "It identifies the woman by name"),
+      q("Which theme is best supported?", "Responsible interpretation may require admitting uncertainty", "A confident claim is always more accurate", "Historical research ends when an exhibit opens"),
+    ]),
+    read("Read an Informational Passage", "Urban Heat Mapping", "A citywide average temperature can hide sharp differences among neighborhoods. Researchers map urban heat by combining satellite surface temperatures with sensors placed near where people live and walk. Satellite data cover large areas but measure roofs and pavement more directly than the air people experience. Ground sensors provide local detail but can be distorted if placed beside an air conditioner or in direct sun. Teams document placement, time, and weather, then compare heat patterns with tree cover, building materials, and health data. The resulting maps can guide investments, but they do not by themselves prove why a neighborhood is hotter or which intervention will work best.", [
+      q("Why can a citywide average be misleading?", "It can conceal neighborhood differences", "It measures only one season", "It includes too many ground sensors"),
+      q("What is one limitation of satellite data?", "Surface temperature is not identical to the air people experience", "It covers only a few streets", "It cannot measure pavement"),
+      q("How can ground-sensor placement distort results?", "Nearby heat sources or direct sun can affect readings", "Tree cover automatically lowers every reading", "Documentation makes sensors inaccurate"),
+      q("Why do teams document weather and placement?", "To interpret and compare measurements responsibly", "To avoid using local detail", "To prove every intervention works"),
+      q("What can the maps help cities do?", "Target further study and investment", "Prove a single cause of heat", "Select an intervention without evaluation"),
+      q("What qualification does the final sentence add?", "Patterns alone do not establish cause or guarantee a solution", "Maps cannot show temperature differences", "Health data should never be compared"),
+    ]),
+  ],
+  speaking: [
+    speak("Talk about a Scene (1 of 4)", "Community Proposal", "Look at the scene. Describe what is happening.", 1, ["Relevant description"], "g1112-community-presentation"),
+    speak("Talk about a Scene (2 of 4)", "Community Proposal", "Describe how the presenter and audience appear to be participating.", 1, ["Two roles", "Connected description"], "g1112-community-presentation"),
+    speak("Talk about a Scene (3 of 4)", "Community Proposal", "What is one reasonable inference about the purpose of the presentation? Support it with visual evidence.", 2, ["Inference", "Evidence"], "g1112-community-presentation"),
+    speak("Talk about a Scene (4 of 4)", "Community Proposal", "Describe a time you presented an idea and responded to a question or criticism.", 2, ["Relevant experience", "Response to feedback"], "g1112-community-presentation"),
+    speak("Speech Functions", "Source Concern", "Politely tell a classmate that a source may not be reliable and suggest how the group should verify it.", 2, ["Appropriate register", "Verification step"]),
+    speak("Speech Functions", "Workplace Clarification", "Ask a supervisor to clarify two priorities that appear to conflict, and explain why you need a decision.", 2, ["Clear conflict", "Appropriate request"]),
+    speak("Support an Opinion", "Student Data Privacy", "Should schools publish privacy reviews for learning software? State and support your position.", 3, ["Position", "Developed support"]),
+    speak("Support an Opinion", "Apprenticeships", "Should schools expand voluntary apprenticeship pathways? Support your position and address one concern.", 3, ["Position", "Reason", "Concern"]),
+    speak("Present and Discuss Information", "Club Membership", "Summarize the club-membership graph, including its main pattern and relevant values.", 3, ["Accurate summary", "Graph details"], "barclubs"),
+    speak("Present and Discuss Information", "Club Membership", "A student claims the two smallest clubs together have more members than the largest club. Explain whether the graph supports the claim.", 3, ["Evaluate claim", "Graph evidence"], "barclubs"),
+    speak("Summarize an Academic Presentation", "Geothermal Microgrids", "Summarize how a geothermal microgrid transfers heat and what factors determine whether it is practical.", 4, ["Process", "Benefits", "Constraints"]),
+    speak("Summarize an Academic Presentation", "Digital Preservation", "Summarize why digital preservation requires more than a backup and describe the main preservation steps.", 4, ["Problem", "Steps", "Ongoing process"]),
+  ],
+  writing: [
+    write("Describe a Picture (Question 1)", "Community Proposal", "Write one complete sentence describing what the presenter is doing, using a precise verb.", 2, "Describe a visible action precisely.", "g1112-community-presentation"),
+    write("Describe a Picture (Question 2)", "Community Proposal", "Write one complete sentence predicting how someone in the audience may respond, supported by a visual detail.", 2, "Prediction plus visual evidence.", "g1112-community-presentation"),
+    write("Write About an Experience", "Responding to Criticism", "Write about a time you received a question or criticism about your work. Explain how you responded and what you learned.", 4, "Use a clear sequence, reflection, and relevant detail."),
+    write("Write About Academic Information (Question 4)", "Club Membership", "Summarize the membership data shown in the graph. Use at least two accurate comparisons.", 2, "Describe the main pattern with graph evidence.", "barclubs"),
+    write("Write About Academic Information (Question 5)", "Club Membership", "Complete an academic paragraph evaluating the claim that the two smallest clubs together exceed the largest club. Use evidence from the graph.", 3, "State whether the claim is supported and compare the relevant values.", "barclubs"),
+    write("Justify an Opinion", "Community College Partnership", "Should every high school student have access to a jointly taught community-college course? State your position, support it with developed reasons, and address one counterargument.", 4, "Use connected reasoning and an appropriate academic register."),
+  ],
+};
+
+export const G1112_ADDITIONAL_BANKS = { 2: set2, 3: set3 };

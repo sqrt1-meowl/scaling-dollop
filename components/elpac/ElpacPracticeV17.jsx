@@ -34,6 +34,8 @@ const SCENE_PHOTOS = {
   "mikhail-timeline": "/elpac/media/mikhail-timeline.webp",
   "club-budget-chart": "/elpac/media/club-budget-chart.webp",
   "energy-sources-chart": "/elpac/media/energy-sources-chart.webp",
+  "g1112-engineering-lab": "/elpac/media/g1112-engineering-lab.webp",
+  "g1112-community-presentation": "/elpac/media/g1112-community-presentation.webp",
 };
 
 const SCENE_ALTS = {
@@ -64,6 +66,8 @@ const SCENE_ALTS = {
   "mikhail-timeline": "Timeline of five important events in Mikhail's life from 1903 to 1952",
   "club-budget-chart": "Table of club funding requests and the amount over budget",
   "energy-sources-chart": "Two line charts showing solar power cost and local solar electricity share",
+  "g1112-engineering-lab": "High school students testing a model bridge in an engineering laboratory",
+  "g1112-community-presentation": "High school students presenting a community transportation proposal",
 };
 
 function sceneAlt(name) {
@@ -1885,9 +1889,9 @@ const S2_G35 = {
       accept: ["climbing", "wall", "swings", "basketball", "hoop", "14", "9", "7", "most", "students", "chose", "fewest"], minWords: 8,
       hint: "Use two or more numbers from the chart in a complete sentence.", points: 2 },
     { task: "Write About Academic Information (Question 5)", topic: "Playground Survey", scene: "playground-survey-chart", kind: "frame",
-      stem: "Using the same chart, tell which equipment the school should buy and explain why, using details from the chart. Write at least two sentences.",
+      stem: "Using the same chart, add another fact about how the students' choices compare. Use details from the chart and write at least two sentences.",
       accept: ["climbing", "wall", "because", "most", "14", "students", "chose", "should", "buy", "popular", "swings"], minWords: 18,
-      hint: "Name your choice, then use a number from the chart to explain why.", points: 3 },
+      hint: "Compare two choices or explain which choice received the most or fewest votes.", points: 3 },
     { task: "Justify an Opinion", topic: "Longer Recess", kind: "frame",
       stem: "Some students think recess should be longer. Do you agree? Write your opinion and give at least two reasons. Use three or more sentences.",
       accept: ["recess", "longer", "think", "because", "play", "friends", "exercise", "learn", "also", "tired", "students"], minWords: 20,
@@ -2051,9 +2055,9 @@ const S3_G35 = {
       accept: ["sunny", "cloudy", "rainy", "16", "8", "6", "days", "most", "month", "fewest"], minWords: 8,
       hint: "Use two or more numbers from the chart in a complete sentence.", points: 2 },
     { task: "Write About Academic Information (Question 5)", topic: "Weather Chart", scene: "weather-chart", kind: "frame",
-      stem: "Using the same chart, tell what kind of month this was for playing outside, and explain why using details from the chart. Write at least two sentences.",
+      stem: "Using the same chart, add another fact that compares the kinds of weather last month. Use details from the chart and write at least two sentences.",
       accept: ["sunny", "16", "days", "because", "outside", "play", "good", "rainy", "only", "6", "most"], minWords: 18,
-      hint: "Say what kind of month it was, then use numbers from the chart to explain.", points: 3 },
+      hint: "Compare two weather types or explain which occurred most or least often.", points: 3 },
     { task: "Justify an Opinion", topic: "Class Pets", kind: "frame",
       stem: "Some teachers think every classroom should have a class pet. Do you agree? Write your opinion and give at least two reasons. Use three or more sentences.",
       accept: ["pet", "class", "think", "because", "learn", "responsible", "care", "also", "students", "should", "allergies"], minWords: 20,
@@ -2551,8 +2555,8 @@ const S3_G68 = {
 // (Grade 9–10 content is carried over unchanged from the earlier build.)
 const RAW_BANKS = {
   1: { ...BANK,  g35: S1_G35, g68: S1_G68, g1112: G1112_BANKS[1] },
-  2: { ...BANK2, g35: S2_G35, g68: S2_G68, g1112: BANK2.g910 },
-  3: { ...BANK3, g35: S3_G35, g68: S3_G68, g1112: BANK3.g910 },
+  2: { ...BANK2, g35: S2_G35, g68: S2_G68, g1112: G1112_BANKS[2] },
+  3: { ...BANK3, g35: S3_G35, g68: S3_G68, g1112: G1112_BANKS[3] },
 };
 
 const addedQuestion = (stem, correct, ...distractors) => ({
@@ -2565,16 +2569,23 @@ const G35_SPEECH_FUNCTIONS = {
   3: ["Explain a Mistake", "You accidentally took a classmate's notebook. What would you say when you return it?"],
 };
 
-const EXTRA_PRESENT_TASKS = {
+// The official Present and Discuss Information task is a linked pair:
+// first summarize the graphic, then evaluate a deliberately inaccurate claim.
+const PRESENT_TASK_PAIRS = {
   g68: {
-    1: ["Travel to School", "Compare the two most common ways students travel to school. Then explain one reasonable conclusion supported by the graph.", "s1-68-graph-travel"],
-    2: ["Club Membership", "Compare membership in the two smallest clubs. Then explain whether their combined membership is greater than the largest club.", "s2-68-graph-clubs"],
-    3: ["Reading Minutes", "Identify the largest month-to-month change in reading time. Then explain what the graph does and does not prove about the cause.", "s3-68-graph-reading"],
+    1: ["Travel to School", "s1-68-graph-travel", "Summarize how students travel to school. Include the most and least common methods and important details from the graph.", "A student says about the same number of students use each method. Explain whether the graph supports that statement."],
+    2: ["Club Membership", "s2-68-graph-clubs", "Summarize the club-membership graph. Include the most and least popular clubs and relevant comparisons.", "A student says the two smallest clubs together have fewer members than the largest club. Explain whether the graph supports that statement."],
+    3: ["Reading Minutes", "s3-68-graph-reading", "Summarize the pattern in average weekly reading time. Include the overall change and important month-to-month details.", "A student says reading time increased every month. Explain whether the graph supports that statement."],
   },
   g910: {
-    1: ["Geometry", "Compare the largest and smallest changes in geometry enrollment. Use values from the graph to support your comparison.", "linegraph"],
-    2: ["Club Membership", "Compare the two largest clubs and explain whether their combined membership is more than half of all students shown.", "barclubs"],
-    3: ["Geometry Enrollment", "Identify the strongest change in enrollment and explain one conclusion the graph supports and one it does not support.", "linegraph"],
+    1: ["Geometry Enrollment", "linegraph", "Summarize the geometry-enrollment graph. Describe the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that statement."],
+    2: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that statement."],
+    3: ["Geometry Enrollment", "linegraph", "Summarize the geometry-enrollment graph. Describe the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that statement."],
+  },
+  g1112: {
+    1: ["Program Enrollment", "linegraph", "Summarize the enrollment graph, including the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim."],
+    2: ["Program Enrollment", "linegraph", "Summarize the enrollment graph, including the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim."],
+    3: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that claim."],
   },
 };
 
@@ -2717,6 +2728,19 @@ function completeBlueprint(bank, span, setNum) {
     writing: (bank.writing || []).map((item) => ({ ...item })),
   };
 
+  // This elementary task is officially presented with exactly three choices.
+  if (span === "g35") {
+    completed.reading
+      .filter((item) => item.task === "Read and Choose a Sentence")
+      .forEach((item) => {
+        item.qs = item.qs.map((question) => ({
+          ...question,
+          options: question.options.slice(0, 3),
+          answer: Math.min(question.answer, 2),
+        }));
+      });
+  }
+
   if (span === "g35") {
     const [topic, prompt] = G35_SPEECH_FUNCTIONS[setNum];
     const firstSummary = completed.speaking.findIndex((item) => item.task.startsWith("Summarize"));
@@ -2741,18 +2765,25 @@ function completeBlueprint(bank, span, setNum) {
     essay.qs = [...essay.qs, ...G68_ESSAY_QUESTIONS[setNum]];
   }
 
-  const structuralSpan = span === "g1112" && setNum > 1 ? "g910" : span;
-
-  if (structuralSpan === "g68" || structuralSpan === "g910") {
-    const [topic, prompt, scene] = EXTRA_PRESENT_TASKS[structuralSpan][setNum];
+  if (span !== "g35") {
+    const [topic, scene, summaryPromptText, claimPromptText] = PRESENT_TASK_PAIRS[span][setNum];
+    completed.speaking = completed.speaking.filter((item) => item.task !== "Present and Discuss Information");
     const insertAt = completed.speaking.findIndex((item) => item.task.startsWith("Summarize"));
-    completed.speaking.splice(insertAt, 0, {
-      task: "Present and Discuss Information", topic, prompt, scene, points: 3,
-      checks: ["Accurate use of the visual", "Evidence-based explanation"],
-    });
+    completed.speaking.splice(insertAt, 0,
+      {
+        task: "Present and Discuss Information", topic, prompt: summaryPromptText, scene, points: 3,
+        presentRole: "summary",
+        checks: ["Accurate summary of the visual", "Relevant supporting details"],
+      },
+      {
+        task: "Present and Discuss Information", topic, prompt: claimPromptText, scene, points: 3,
+        presentRole: "claim",
+        checks: ["Clear evaluation of the claim", "Accurate evidence from the visual"],
+      },
+    );
   }
 
-  if (structuralSpan === "g910") {
+  if (span === "g910") {
     completed.listening = completed.listening.map((block) => {
       const extra = G910_EXTRA_LISTENING[setNum][block.topic];
       return extra ? { ...block, qs: [...block.qs, extra] } : block;
@@ -2763,17 +2794,12 @@ function completeBlueprint(bank, span, setNum) {
     }
   }
 
-  if (span === "g1112" && setNum > 1) {
-    completed.speaking = completed.speaking.map((item) => ({
-      ...item,
-      prompt: `${item.prompt} Use precise, grade-appropriate academic language and develop your explanation.`,
-      checks: [...(item.checks || []), "Precise academic language"],
-    }));
-    completed.writing = completed.writing.map((item) => ({
-      ...item,
-      stem: `${item.stem} Develop your response with precise language and an appropriate academic register.`,
-      hint: item.hint || "Use connected reasoning and relevant details.",
-    }));
+  if (span === "g910" && setNum === 1) {
+    const timelineItems = completed.writing.filter((item) => item.topic === "Mikhail Timeline");
+    if (timelineItems.length === 2 && /2 of 2|same timeline/i.test(timelineItems[0].task + timelineItems[0].stem)) {
+      const firstIndex = completed.writing.indexOf(timelineItems[0]);
+      completed.writing.splice(firstIndex, 2, timelineItems[1], timelineItems[0]);
+    }
   }
 
   completed.speaking = completed.speaking.map((item, index) => {
