@@ -110,6 +110,9 @@ function uniquePlanItems(items: PlanItem[]) {
 export default function AyalaPlanner() {
   const [tab, setTab] = useState<PlannerTab>("plan");
   const [items, setItems] = useState<PlanItem[]>(DEFAULT_PLAN);
+  const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
+  const [showRequirements, setShowRequirements] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
   const [notes, setNotes] = useState<Record<number, string>>({ 9: "Completed Health in fall.", 10: "Ask about summer options.", 11: "", 12: "Consider Chaffey course in summer." });
   const [profile, setProfile] = useState<GoalProfile>({ currentGrade: "10", graduationYear: "2029", direction: "4-year university", interests: "Engineering, design, computer science" });
   const [loaded, setLoaded] = useState(false);
@@ -279,62 +282,42 @@ export default function AyalaPlanner() {
       </header>
 
       {tab === "plan" && (
-        <main className="mx-auto max-w-[1600px] px-4 py-4 lg:px-7">
-          <section className="mb-3 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Four-year plan</h1>
-              <p className="mt-0.5 text-xs text-[#6d796f]">Class of {profile.graduationYear || "—"} · Ayala, summer, and college courses</p>
-            </div>
-            <div className="no-print flex gap-2">
-              <button onClick={() => { setProviderFilter("Chaffey"); setTab("college"); }} className="rounded-md border border-[#cad7ce] bg-white px-3 py-2 text-xs font-semibold text-[#2c5a46] hover:bg-[#f4f8f5]">Add college course</button>
-              <button onClick={() => openExplorer(9)} className="flex items-center gap-1.5 rounded-md bg-[#214f3d] px-3 py-2 text-xs font-semibold text-white hover:bg-[#173d2f]"><Plus size={14} />Add course</button>
-            </div>
+        <main className="mx-auto max-w-4xl px-5 py-8">
+          <section>
+            <h1 className="text-xl font-bold tracking-tight">Four-year plan</h1>
+            <p className="mt-1 text-xs text-[#6d796f]">Choose a grade to view its schedule.</p>
           </section>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_285px]">
-            <section className="grid min-w-0 gap-3 md:grid-cols-2 2xl:grid-cols-4" aria-label="Four-year course plan">
-              {grades.map((grade) => {
-                const gradeItems = items.filter((item) => item.grade === grade);
-                const uniqueCount = new Set(gradeItems.filter((i) => !i.alternate).map((i) => i.id)).size;
-                return (
-                  <article key={grade} className="flex min-h-[560px] flex-col rounded-lg border border-[#d8ded9] bg-white">
-                    <div className="flex items-center justify-between border-b border-[#e5e9e5] px-3 py-2.5">
-                      <div>
-                        <p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#7b877f]">Grade {grade}</p>
-                        <h2 className="text-base font-bold">{grade}th grade</h2>
-                      </div>
-                      <span className="text-[11px] font-semibold text-[#6f7b73]">{uniqueCount} courses</span>
-                    </div>
-                    <div className="flex-1 p-2.5">
-                      {(["Year-long", "Semester 1", "Semester 2", "Summer"] as const).map((term) => {
-                        const termItems = gradeItems.filter((item) => item.term === term);
-                        if (!termItems.length && term !== "Summer") return null;
-                        return (
-                          <div key={term} className="mb-3 last:mb-1">
-                            <div className="mb-1.5 flex items-center justify-between">
-                              <h3 className={`text-[9px] font-bold uppercase tracking-[.12em] ${term === "Summer" ? "text-[#8a642f]" : "text-[#758178]"}`}>{term}</h3>
-                              <span className="text-[10px] font-semibold text-[#9aa39d]">{termItems.length} {termItems.length === 1 ? "course" : "courses"}</span>
-                            </div>
-                            <div className="space-y-1.5">
-                              {termItems.map((item) => <PlanCourseCard key={`${item.id}-${term}`} item={item} onUpdate={updateItem} onRemove={removeItem} />)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <button onClick={() => openExplorer(grade)} className="no-print mt-1 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-[#cbd5ce] py-2 text-[11px] font-semibold text-[#60776a] hover:border-[#6f9982] hover:bg-[#f5f8f6]"><Plus size={12} /> Add course</button>
-                    </div>
-                    <div className="border-t border-[#e8ece8] bg-[#fafbfa] p-2.5">
-                      <label className="block text-[9px] font-bold uppercase tracking-[.1em] text-[#7a867e]" htmlFor={`notes-${grade}`}>Notes</label>
-                      <textarea id={`notes-${grade}`} value={notes[grade] || ""} onChange={(event) => setNotes((current) => ({ ...current, [grade]: event.target.value }))} placeholder="Summer, alternate, counselor question…" className="mt-1 min-h-11 w-full resize-none rounded-md border border-[#dfe5df] bg-white p-2 text-[11px] leading-relaxed placeholder:text-[#a1aaa4]" />
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-            <RequirementPanel school={requirementData.school} ag={requirementData.ag} />
-          </div>
+          <section className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4" aria-label="Choose a grade">
+            {grades.map((grade) => {
+              const count = items.filter((item) => item.grade === grade && !item.alternate).length;
+              const active = selectedGrade === grade;
+              return (
+                <button
+                  key={grade}
+                  onClick={() => { setSelectedGrade(active ? null : grade); setShowRequirements(false); setShowQuestions(false); }}
+                  aria-expanded={active}
+                  className={`min-h-24 border p-4 text-left transition-colors ${active ? "border-[#214f3d] bg-[#214f3d] text-white" : "border-[#d8ded9] bg-white hover:border-[#789182]"}`}
+                >
+                  <span className="block text-lg font-bold">{grade}th grade</span>
+                  <span className={`mt-1 block text-[11px] ${active ? "text-white/70" : "text-[#78837b]"}`}>{count} courses</span>
+                </button>
+              );
+            })}
+          </section>
 
-          <QuestionsPanel questions={questions} />
+          {selectedGrade !== null && (
+            <div className="mt-5">
+              <GradeSchedule grade={selectedGrade} items={items} notes={notes[selectedGrade] || ""} onNotesChange={(value) => setNotes((current) => ({ ...current, [selectedGrade]: value }))} onOpenExplorer={openExplorer} onUpdate={updateItem} onRemove={removeItem} />
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <button onClick={() => setShowRequirements((value) => !value)} aria-expanded={showRequirements} className="flex items-center justify-between border border-[#d8ded9] bg-white px-4 py-3 text-left text-sm font-semibold hover:border-[#789182]"><span>Requirements</span><span className="text-xs font-normal text-[#718077]">{showRequirements ? "Hide" : "View"}</span></button>
+                <button onClick={() => setShowQuestions((value) => !value)} aria-expanded={showQuestions} className="flex items-center justify-between border border-[#d8ded9] bg-white px-4 py-3 text-left text-sm font-semibold hover:border-[#789182]"><span>Counselor review</span><span className="text-xs font-normal text-[#718077]">{showQuestions ? "Hide" : "View"}</span></button>
+              </div>
+              {showRequirements && <div className="mt-2"><RequirementPanel school={requirementData.school} ag={requirementData.ag} /></div>}
+              {showQuestions && <QuestionsPanel questions={questions} />}
+            </div>
+          )}
         </main>
       )}
 
@@ -354,6 +337,39 @@ export default function AyalaPlanner() {
 
       {toast && <div role="status" className="no-print fixed bottom-5 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 rounded-xl bg-[#17231e] px-4 py-3 text-center text-sm font-semibold text-white shadow-xl">{toast}</div>}
     </div>
+  );
+}
+
+function GradeSchedule({ grade, items, notes, onNotesChange, onOpenExplorer, onUpdate, onRemove }: { grade: number; items: PlanItem[]; notes: string; onNotesChange: (value: string) => void; onOpenExplorer: (grade: number) => void; onUpdate: (id: string, patch: Partial<PlanItem>) => void; onRemove: (id: string) => void }) {
+  const gradeItems = items.filter((item) => item.grade === grade);
+  return (
+    <section className="border border-[#d8ded9] bg-white" aria-label={`${grade}th grade schedule`}>
+      <div className="flex items-center justify-between border-b border-[#e5e9e5] px-4 py-3">
+        <h2 className="text-base font-bold">{grade}th grade schedule</h2>
+        <button onClick={() => onOpenExplorer(grade)} className="no-print flex items-center gap-1 text-xs font-semibold text-[#214f3d]"><Plus size={13} />Add course</button>
+      </div>
+      <div className="grid gap-5 p-4 sm:grid-cols-2">
+        {(["Year-long", "Semester 1", "Semester 2", "Summer"] as const).map((term) => {
+          const termItems = gradeItems.filter((item) => item.term === term);
+          if (!termItems.length && term !== "Summer") return null;
+          return (
+            <div key={term}>
+              <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[.12em] text-[#758178]">{term}</h3>
+              <div className="space-y-1.5">
+                {termItems.map((item) => <PlanCourseCard key={`${item.id}-${term}`} item={item} onUpdate={onUpdate} onRemove={onRemove} />)}
+                {!termItems.length && <p className="text-[11px] text-[#929c95]">No courses</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <details className="border-t border-[#e8ece8] bg-[#fafbfa]">
+        <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-[#59675e]">Notes</summary>
+        <div className="px-4 pb-4">
+          <textarea value={notes} onChange={(event) => onNotesChange(event.target.value)} placeholder="Summer, alternate, counselor question…" className="min-h-16 w-full resize-none border border-[#dfe5df] bg-white p-2 text-xs leading-relaxed placeholder:text-[#a1aaa4]" />
+        </div>
+      </details>
+    </section>
   );
 }
 
@@ -434,52 +450,50 @@ function QuestionsPanel({ questions }: { questions: string[] }) {
 }
 
 function CatalogPage({ courses, items, onAdd, search, setSearch, subjectFilter, setSubjectFilter, levelFilter, setLevelFilter }: { courses: Course[]; items: PlanItem[]; onAdd: (course: Course, grade: number, term: Term) => void; search: string; setSearch: (value: string) => void; subjectFilter: string; setSubjectFilter: (value: string) => void; levelFilter: string; setLevelFilter: (value: string) => void }) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const filtered = courses.filter((course) => (!search || `${course.name} ${course.code}`.toLowerCase().includes(search.toLowerCase())) && (subjectFilter === "All subjects" || course.subject === subjectFilter) && (levelFilter === "All levels" || course.level === levelFilter));
   return (
-    <main className="mx-auto max-w-[1400px] px-5 py-5">
+    <main className="mx-auto max-w-4xl px-5 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-xl font-bold tracking-tight">Ayala course catalog</h1><p className="mt-0.5 text-xs text-[#68756c]">2026–27 registration offerings. Placement and availability may change.</p></div><a href="https://ayala.chino.k12.ca.us/courseofferings" target="_blank" rel="noreferrer" className="border-b border-[#315f49] pb-0.5 text-xs font-semibold text-[#315f49]">Official materials ↗</a></div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-[220px_1fr]">
-        <aside className="h-fit rounded-lg border border-[#dce3dd] bg-white p-3 lg:sticky lg:top-20">
-          <div className="text-sm font-bold">Filters</div>
-          <label className="mt-4 block text-[10px] font-bold uppercase tracking-wide text-[#748078]">Search</label><SearchBox value={search} onChange={setSearch} placeholder="Course or code" />
-          <label className="mt-4 block text-[10px] font-bold uppercase tracking-wide text-[#748078]">Subject</label><FilterSelect value={subjectFilter} onChange={setSubjectFilter} options={["All subjects", ...Array.from(new Set(courses.map((c) => c.subject)))]} />
-          <label className="mt-4 block text-[10px] font-bold uppercase tracking-wide text-[#748078]">Level</label><FilterSelect value={levelFilter} onChange={setLevelFilter} options={["All levels", "CP", "Honors", "AP", "Standard"]} />
-          <button onClick={() => { setSearch(""); setSubjectFilter("All subjects"); setLevelFilter("All levels"); }} className="mt-3 w-full border-t border-[#e4e8e4] pt-2 text-left text-[11px] font-semibold text-[#536159]">Clear filters</button>
-        </aside>
-        <section>
-          <div className="mb-3 flex items-center justify-between text-xs text-[#718077]"><span><strong className="text-[#33453a]">{filtered.length}</strong> courses</span><span>{items.length} items in your plan</span></div>
-          <div className="grid gap-3 xl:grid-cols-2">{filtered.map((course) => <CourseResultCard key={course.id} course={course} onAdd={onAdd} />)}</div>
-        </section>
+      <div className="mt-5 flex items-end gap-2">
+        <div className="min-w-0 flex-1"><SearchBox value={search} onChange={setSearch} placeholder="Search courses" /></div>
+        <button onClick={() => setFiltersOpen((value) => !value)} aria-expanded={filtersOpen} className="h-10 border border-[#dce3dd] bg-white px-4 text-xs font-semibold text-[#536159]">{filtersOpen ? "Hide filters" : "Filters"}</button>
       </div>
+      {filtersOpen && <div className="mt-2 grid gap-2 border border-[#dce3dd] bg-white p-3 sm:grid-cols-[1fr_1fr_auto]"><FilterSelect value={subjectFilter} onChange={setSubjectFilter} options={["All subjects", ...Array.from(new Set(courses.map((c) => c.subject)))]} /><FilterSelect value={levelFilter} onChange={setLevelFilter} options={["All levels", "CP", "Honors", "AP", "Standard"]} /><button onClick={() => { setSearch(""); setSubjectFilter("All subjects"); setLevelFilter("All levels"); }} className="h-10 px-3 text-left text-xs font-semibold text-[#536159]">Clear</button></div>}
+      <section className="mt-5">
+        <div className="mb-2 flex items-center justify-between text-xs text-[#718077]"><span><strong className="text-[#33453a]">{filtered.length}</strong> courses</span><span>{items.length} in your plan</span></div>
+        <div className="space-y-2">{filtered.map((course) => <CourseResultCard key={course.id} course={course} onAdd={onAdd} />)}</div>
+      </section>
     </main>
   );
 }
 
 function CollegePage({ courses, items, onAdd, manual, setManual, addManual }: { courses: Course[]; items: PlanItem[]; onAdd: (course: Course, grade: number, term: Term) => void; manual: { college: string; code: string; title: string; term: Term; units: string; grade: string; notes: string }; setManual: React.Dispatch<React.SetStateAction<typeof manual>>; addManual: () => void }) {
+  const [section, setSection] = useState<"browse" | "manual" | null>(null);
   return (
-    <main className="mx-auto max-w-[1400px] px-5 py-7">
+    <main className="mx-auto max-w-4xl px-5 py-8">
       <section className="border-b border-[#cdd9e6] pb-4">
         <div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-xl font-bold">Chaffey dual enrollment</h1><p className="mt-0.5 max-w-2xl text-xs text-[#64748a]">Ayala is a Chaffey High School Partnership school. Sections and prerequisites may change.</p></div><a href="https://www.chaffey.edu/dual-enrollment/de-hs-partnership.php" target="_blank" rel="noreferrer" className="border-b border-[#315d87] pb-0.5 text-xs font-semibold text-[#315d87]">Current Chaffey options ↗</a></div>
-        <p className="mt-3 text-[11px] leading-relaxed text-[#5f6f80]">College enrollment does not automatically establish Ayala graduation, prerequisite, or A–G equivalency. Confirm the intended use with Ayala Counseling and Chaffey.</p>
       </section>
-      <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_360px]">
-        <section><div className="mb-3 flex items-end justify-between"><div><h2 className="text-base font-bold">Summer 2026 examples</h2></div><span className="text-xs font-semibold text-[#57708c]">{items.filter((i) => i.provider !== "Ayala").length} in plan</span></div><div className="grid gap-2 xl:grid-cols-2">{courses.map((course) => <CourseResultCard key={course.id} course={course} onAdd={onAdd} />)}</div></section>
-        <aside className="h-fit rounded-lg border border-[#dce3dd] bg-white p-4 lg:sticky lg:top-20"><h2 className="text-sm font-bold">Add another college course</h2><p className="mt-0.5 text-[11px] text-[#758178]">Chaffey HSPFlex or another college.</p>
-          <div className="mt-4 grid gap-3"><TextField label="College" value={manual.college} onChange={(value) => setManual((m) => ({ ...m, college: value }))} placeholder="Mt. SAC" /><div className="grid grid-cols-2 gap-2"><TextField label="Course code" value={manual.code} onChange={(value) => setManual((m) => ({ ...m, code: value }))} placeholder="PSYC 1A" /><TextField label="Units" value={manual.units} onChange={(value) => setManual((m) => ({ ...m, units: value }))} placeholder="3" /></div><TextField label="Course title" value={manual.title} onChange={(value) => setManual((m) => ({ ...m, title: value }))} placeholder="Intro to Psychology" /><div className="grid grid-cols-2 gap-2"><div><label className="text-[10px] font-bold uppercase tracking-wide text-[#718077]">Grade</label><FilterSelect value={manual.grade} onChange={(value) => setManual((m) => ({ ...m, grade: value }))} options={grades.map(String)} /></div><div><label className="text-[10px] font-bold uppercase tracking-wide text-[#718077]">Term</label><FilterSelect value={manual.term} onChange={(value) => setManual((m) => ({ ...m, term: value as Term }))} options={["Semester 1", "Semester 2", "Summer"]} /></div></div><TextField label="Notes" value={manual.notes} onChange={(value) => setManual((m) => ({ ...m, notes: value }))} placeholder="Ask about transferability" /><button onClick={addManual} className="mt-1 rounded-xl bg-[#214f3d] py-3 text-sm font-bold text-white">Add college course</button></div>
-        </aside>
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <button onClick={() => setSection(section === "browse" ? null : "browse")} className={`min-h-20 border p-4 text-left ${section === "browse" ? "border-[#214f3d] bg-[#214f3d] text-white" : "border-[#d8ded9] bg-white"}`}><span className="block text-sm font-bold">Browse Chaffey courses</span><span className={`mt-1 block text-xs ${section === "browse" ? "text-white/70" : "text-[#718077]"}`}>{courses.length} examples</span></button>
+        <button onClick={() => setSection(section === "manual" ? null : "manual")} className={`min-h-20 border p-4 text-left ${section === "manual" ? "border-[#214f3d] bg-[#214f3d] text-white" : "border-[#d8ded9] bg-white"}`}><span className="block text-sm font-bold">Add another college course</span><span className={`mt-1 block text-xs ${section === "manual" ? "text-white/70" : "text-[#718077]"}`}>{items.filter((i) => i.provider !== "Ayala").length} in plan</span></button>
       </div>
+      {section === "browse" && <section className="mt-4"><div className="space-y-2">{courses.map((course) => <CourseResultCard key={course.id} course={course} onAdd={onAdd} />)}</div></section>}
+      {section === "manual" && <section className="mt-4 border border-[#dce3dd] bg-white p-4"><h2 className="text-sm font-bold">Course information</h2><div className="mt-4 grid gap-3"><TextField label="College" value={manual.college} onChange={(value) => setManual((m) => ({ ...m, college: value }))} placeholder="Mt. SAC" /><div className="grid grid-cols-2 gap-2"><TextField label="Course code" value={manual.code} onChange={(value) => setManual((m) => ({ ...m, code: value }))} placeholder="PSYC 1A" /><TextField label="Units" value={manual.units} onChange={(value) => setManual((m) => ({ ...m, units: value }))} placeholder="3" /></div><TextField label="Course title" value={manual.title} onChange={(value) => setManual((m) => ({ ...m, title: value }))} placeholder="Intro to Psychology" /><div className="grid grid-cols-2 gap-2"><div><label className="text-[10px] font-bold uppercase tracking-wide text-[#718077]">Grade</label><FilterSelect value={manual.grade} onChange={(value) => setManual((m) => ({ ...m, grade: value }))} options={grades.map(String)} /></div><div><label className="text-[10px] font-bold uppercase tracking-wide text-[#718077]">Term</label><FilterSelect value={manual.term} onChange={(value) => setManual((m) => ({ ...m, term: value as Term }))} options={["Semester 1", "Semester 2", "Summer"]} /></div></div><TextField label="Notes" value={manual.notes} onChange={(value) => setManual((m) => ({ ...m, notes: value }))} placeholder="Ask about transferability" /><button onClick={addManual} className="mt-1 bg-[#214f3d] py-3 text-sm font-bold text-white">Add college course</button></div><p className="mt-4 text-[10px] leading-relaxed text-[#718077]">Confirm graduation, prerequisite, and A–G use with Ayala Counseling and the college.</p></section>}
     </main>
   );
 }
 
 function ProfilePage({ profile, setProfile, onBack }: { profile: GoalProfile; setProfile: React.Dispatch<React.SetStateAction<GoalProfile>>; onBack: () => void }) {
   return (
-    <main className="mx-auto max-w-2xl px-5 py-7"><div className="rounded-lg border border-[#dce3dd] bg-white p-5"><h1 className="text-xl font-bold">Student information</h1><p className="mt-1 text-xs text-[#6d796f]">Used only to organize this plan. Saved on this device.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><div><label className="text-xs font-semibold text-[#536159]">Current grade</label><FilterSelect value={profile.currentGrade} onChange={(value) => setProfile((p) => ({ ...p, currentGrade: value }))} options={["8", "9", "10", "11", "12"]} /></div><TextField label="Expected graduation year" value={profile.graduationYear} onChange={(value) => setProfile((p) => ({ ...p, graduationYear: value }))} placeholder="2029" /><div className="sm:col-span-2"><label className="text-xs font-semibold text-[#536159]">Post-high-school direction</label><FilterSelect value={profile.direction} onChange={(value) => setProfile((p) => ({ ...p, direction: value }))} options={["4-year university", "community college", "career / CTE", "undecided"]} /></div><div className="sm:col-span-2"><label className="text-xs font-semibold text-[#536159]">Interests (optional)</label><textarea value={profile.interests} onChange={(e) => setProfile((p) => ({ ...p, interests: e.target.value }))} className="mt-1.5 min-h-20 w-full rounded-md border border-[#dce3dd] p-2.5 text-sm" placeholder="Engineering, health sciences, arts…" /></div></div><button onClick={onBack} className="mt-5 rounded-md bg-[#214f3d] px-4 py-2 text-xs font-semibold text-white">Back to plan</button></div></main>
+    <main className="mx-auto max-w-2xl px-5 py-8"><div className="border border-[#dce3dd] bg-white p-5"><h1 className="text-xl font-bold">Student information</h1><p className="mt-1 text-xs text-[#6d796f]">Saved on this device.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><div><label className="text-xs font-semibold text-[#536159]">Current grade</label><FilterSelect value={profile.currentGrade} onChange={(value) => setProfile((p) => ({ ...p, currentGrade: value }))} options={["8", "9", "10", "11", "12"]} /></div><TextField label="Expected graduation year" value={profile.graduationYear} onChange={(value) => setProfile((p) => ({ ...p, graduationYear: value }))} placeholder="2029" /></div><details className="mt-5 border-t border-[#e5e9e5] pt-4"><summary className="cursor-pointer text-sm font-semibold">Optional planning preferences</summary><div className="mt-4 grid gap-4"><div><label className="text-xs font-semibold text-[#536159]">Post-high-school direction</label><FilterSelect value={profile.direction} onChange={(value) => setProfile((p) => ({ ...p, direction: value }))} options={["4-year university", "community college", "career / CTE", "undecided"]} /></div><div><label className="text-xs font-semibold text-[#536159]">Interests</label><textarea value={profile.interests} onChange={(e) => setProfile((p) => ({ ...p, interests: e.target.value }))} className="mt-1.5 min-h-20 w-full border border-[#dce3dd] p-2.5 text-sm" placeholder="Engineering, health sciences, arts…" /></div></div></details><button onClick={onBack} className="mt-5 bg-[#214f3d] px-4 py-2 text-xs font-semibold text-white">Back to plan</button></div></main>
   );
 }
 
 function CourseDrawer(props: { courses: Course[]; grade: number; setGrade: (value: number) => void; term: Term; setTerm: (value: Term) => void; search: string; setSearch: (value: string) => void; subjectFilter: string; setSubjectFilter: (value: string) => void; levelFilter: string; setLevelFilter: (value: string) => void; providerFilter: string; setProviderFilter: (value: string) => void; onAdd: (course: Course, grade: number, term: Term) => void; onClose: () => void }) {
-  return <div className="no-print fixed inset-0 z-40 flex justify-end bg-[#0d1e16]/30" role="dialog" aria-modal="true" aria-label="Add a course"><button className="absolute inset-0" onClick={props.onClose} aria-label="Close course explorer" /><section className="relative z-10 flex h-full w-full max-w-[540px] flex-col bg-[#f7f9f7] shadow-2xl"><header className="border-b border-[#dce3dd] bg-white p-4"><div className="flex items-start justify-between"><h2 className="text-lg font-bold">Add course</h2><button onClick={props.onClose} className="grid h-8 w-8 place-items-center text-[#66736b]" aria-label="Close"><X size={17} /></button></div><div className="mt-3"><SearchBox value={props.search} onChange={props.setSearch} placeholder="Search name, code, or subject" /></div><div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"><FilterSelect value={String(props.grade)} onChange={(v) => props.setGrade(Number(v))} options={grades.map(String)} /><FilterSelect value={props.term} onChange={(v) => props.setTerm(v as Term)} options={["Year-long", "Semester 1", "Semester 2", "Summer"]} /><FilterSelect value={props.providerFilter} onChange={props.setProviderFilter} options={["All providers", "Ayala", "Chaffey"]} /><FilterSelect value={props.levelFilter} onChange={props.setLevelFilter} options={["All levels", "CP", "Honors", "AP", "College", "Standard"]} /></div><div className="mt-1"><FilterSelect value={props.subjectFilter} onChange={props.setSubjectFilter} options={["All subjects", ...Array.from(new Set(allCourses.map((c) => c.subject)))]} /></div></header><div className="flex-1 overflow-y-auto p-3"><p className="mb-2 text-[11px] text-[#718077]">{props.courses.length} courses</p><div className="space-y-2">{props.courses.map((course) => <CourseResultCard key={course.id} course={course} onAdd={props.onAdd} fixedGrade={props.grade} fixedTerm={props.term} />)}</div></div></section></div>;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  return <div className="no-print fixed inset-0 z-40 flex justify-end bg-[#0d1e16]/30" role="dialog" aria-modal="true" aria-label="Add a course"><button className="absolute inset-0" onClick={props.onClose} aria-label="Close course explorer" /><section className="relative z-10 flex h-full w-full max-w-[540px] flex-col bg-[#f7f9f7] shadow-2xl"><header className="border-b border-[#dce3dd] bg-white p-4"><div className="flex items-start justify-between"><h2 className="text-lg font-bold">Add course</h2><button onClick={props.onClose} className="grid h-8 w-8 place-items-center text-[#66736b]" aria-label="Close"><X size={17} /></button></div><div className="mt-3 flex items-end gap-2"><div className="min-w-0 flex-1"><SearchBox value={props.search} onChange={props.setSearch} placeholder="Search courses" /></div><button onClick={() => setFiltersOpen((value) => !value)} className="h-10 border border-[#dce3dd] px-3 text-xs font-semibold">{filtersOpen ? "Hide" : "Filters"}</button></div>{filtersOpen && <div className="mt-2 grid grid-cols-2 gap-2"><FilterSelect value={String(props.grade)} onChange={(v) => props.setGrade(Number(v))} options={grades.map(String)} /><FilterSelect value={props.term} onChange={(v) => props.setTerm(v as Term)} options={["Year-long", "Semester 1", "Semester 2", "Summer"]} /><FilterSelect value={props.providerFilter} onChange={props.setProviderFilter} options={["All providers", "Ayala", "Chaffey"]} /><FilterSelect value={props.levelFilter} onChange={props.setLevelFilter} options={["All levels", "CP", "Honors", "AP", "College", "Standard"]} /><div className="col-span-2"><FilterSelect value={props.subjectFilter} onChange={props.setSubjectFilter} options={["All subjects", ...Array.from(new Set(allCourses.map((c) => c.subject)))]} /></div></div>}</header><div className="flex-1 overflow-y-auto p-3"><p className="mb-2 text-[11px] text-[#718077]">{props.courses.length} courses</p><div className="space-y-2">{props.courses.map((course) => <CourseResultCard key={course.id} course={course} onAdd={props.onAdd} fixedGrade={props.grade} fixedTerm={props.term} />)}</div></div></section></div>;
 }
 
 function CourseResultCard({ course, onAdd, fixedGrade, fixedTerm }: { course: Course; onAdd: (course: Course, grade: number, term: Term) => void; fixedGrade?: number; fixedTerm?: Term }) {
@@ -487,7 +501,7 @@ function CourseResultCard({ course, onAdd, fixedGrade, fixedTerm }: { course: Co
   const [term, setTerm] = useState<Term>(fixedTerm ?? (course.duration === "Year-long" ? "Year-long" : "Semester 1"));
   useEffect(() => { if (fixedGrade) setGrade(fixedGrade); }, [fixedGrade]);
   useEffect(() => { if (fixedTerm) setTerm(fixedTerm); }, [fixedTerm]);
-  return <article className="border border-[#dce3dd] bg-white p-3"><div className="flex items-start gap-2.5"><span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: subjectColors[course.subject] }} /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><h3 className="text-sm font-bold leading-tight">{course.name}</h3>{course.level !== "Standard" && <span className="text-[9px] font-bold text-[#617068]">{course.level}</span>}</div><p className="mt-1 text-[10px] text-[#6f7c73]">{course.code} · {course.subject} · {course.duration}{course.ag ? ` · A–G ${course.ag}` : ""}</p>{course.prerequisite && <p className="mt-1.5 text-[10px] leading-relaxed text-[#7a6852]"><strong>Prerequisite:</strong> {course.prerequisite}</p>}<div className="mt-1.5 text-[9px] text-[#7c877f]">{course.verification}</div></div></div><div className="mt-2 flex items-center gap-1.5 border-t border-[#edf0ed] pt-2"><select value={grade} onChange={(e) => setGrade(Number(e.target.value))} className="h-8 rounded-md border border-[#dce3dd] bg-white px-2 text-[11px] font-semibold"><option value={9}>9th</option><option value={10}>10th</option><option value={11}>11th</option><option value={12}>12th</option></select><select value={term} onChange={(e) => setTerm(e.target.value as Term)} className="h-8 min-w-0 flex-1 rounded-md border border-[#dce3dd] bg-white px-2 text-[11px] font-semibold"><option value="Year-long">Year-long</option><option value="Semester 1">Semester 1</option><option value="Semester 2">Semester 2</option><option value="Summer">Summer</option></select><button onClick={() => onAdd(course, grade, term)} className={`h-8 rounded-md px-3 text-[11px] font-semibold text-white ${course.provider === "Chaffey" ? "bg-[#28598b]" : "bg-[#214f3d]"}`}>Add</button></div></article>;
+  return <details className="group border border-[#dce3dd] bg-white"><summary className="flex cursor-pointer list-none items-center gap-2.5 p-3"><span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: subjectColors[course.subject] }} /><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-bold leading-tight">{course.name}</h3><p className="mt-1 truncate text-[10px] text-[#6f7c73]">{course.code} · {course.subject}{course.level !== "Standard" ? ` · ${course.level}` : ""}</p></div><span className="text-[10px] font-semibold text-[#718077] group-open:hidden">View</span><span className="hidden text-[10px] font-semibold text-[#718077] group-open:inline">Hide</span></summary><div className="border-t border-[#edf0ed] px-3 pb-3 pt-2">{course.prerequisite && <p className="text-[10px] leading-relaxed text-[#7a6852]"><strong>Prerequisite:</strong> {course.prerequisite}</p>}<p className="mt-1 text-[9px] text-[#7c877f]">{course.duration}{course.ag ? ` · A–G ${course.ag}` : ""} · {course.verification}</p><div className="mt-2 flex items-center gap-1.5"><select value={grade} onChange={(e) => setGrade(Number(e.target.value))} className="h-8 border border-[#dce3dd] bg-white px-2 text-[11px] font-semibold"><option value={9}>9th</option><option value={10}>10th</option><option value={11}>11th</option><option value={12}>12th</option></select><select value={term} onChange={(e) => setTerm(e.target.value as Term)} className="h-8 min-w-0 flex-1 border border-[#dce3dd] bg-white px-2 text-[11px] font-semibold"><option value="Year-long">Year-long</option><option value="Semester 1">Semester 1</option><option value="Semester 2">Semester 2</option><option value="Summer">Summer</option></select><button onClick={() => onAdd(course, grade, term)} className={`h-8 px-3 text-[11px] font-semibold text-white ${course.provider === "Chaffey" ? "bg-[#28598b]" : "bg-[#214f3d]"}`}>Add</button></div></div></details>;
 }
 
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) { return <div className="relative mt-1.5"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#839087]" /><input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-10 w-full rounded-xl border border-[#dce3dd] bg-white pl-9 pr-3 text-sm placeholder:text-[#9da7a0]" /></div>; }
