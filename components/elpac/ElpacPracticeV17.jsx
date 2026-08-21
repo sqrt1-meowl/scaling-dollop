@@ -36,6 +36,30 @@ const SCENE_PHOTOS = {
   "energy-sources-chart": "/elpac/media/energy-sources-chart.webp",
   "g1112-engineering-lab": "/elpac/media/g1112-engineering-lab.webp",
   "g1112-community-presentation": "/elpac/media/g1112-community-presentation.webp",
+  "speaking-learning-guitar": "/elpac/media/speaking-learning-guitar.webp",
+  "speaking-sound-waves": "/elpac/media/speaking-sound-waves.webp",
+  "speaking-women-gold-rush": "/elpac/media/speaking-women-gold-rush.webp",
+  "speaking-conductivity": "/elpac/media/speaking-conductivity.webp",
+  "speaking-branches-government": "/elpac/media/speaking-branches-government.webp",
+  "speaking-regelation": "/elpac/media/speaking-regelation.webp",
+  "speaking-bill-law": "/elpac/media/speaking-bill-law.webp",
+  "speaking-carbon-capture": "/elpac/media/speaking-carbon-capture.webp",
+  "speaking-public-key-encryption": "/elpac/media/speaking-public-key-encryption.webp",
+  "speaking-broken-swing": "/elpac/media/speaking-broken-swing.webp",
+  "speaking-honeybee-hives": "/elpac/media/speaking-honeybee-hives.webp",
+  "speaking-water-cycle": "/elpac/media/speaking-water-cycle.webp",
+  "speaking-vaccines": "/elpac/media/speaking-vaccines.webp",
+  "speaking-urban-heat-islands": "/elpac/media/speaking-urban-heat-islands.webp",
+  "speaking-supply-demand": "/elpac/media/speaking-supply-demand.webp",
+  "speaking-urban-water-reuse": "/elpac/media/speaking-urban-water-reuse.webp",
+  "speaking-gene-editing": "/elpac/media/speaking-gene-editing.webp",
+  "speaking-rainy-parade": "/elpac/media/speaking-rainy-parade.webp",
+  "speaking-volcanoes": "/elpac/media/speaking-volcanoes.webp",
+  "speaking-why-we-sleep": "/elpac/media/speaking-why-we-sleep.webp",
+  "speaking-antibiotic-resistance": "/elpac/media/speaking-antibiotic-resistance.webp",
+  "speaking-silk-road": "/elpac/media/speaking-silk-road.webp",
+  "speaking-geothermal-microgrids": "/elpac/media/speaking-geothermal-microgrids.webp",
+  "speaking-digital-preservation": "/elpac/media/speaking-digital-preservation.webp",
 };
 
 const SCENE_ALTS = {
@@ -68,6 +92,30 @@ const SCENE_ALTS = {
   "energy-sources-chart": "Two line charts showing solar power cost and local solar electricity share",
   "g1112-engineering-lab": "High school students testing a model bridge in an engineering laboratory",
   "g1112-community-presentation": "High school students presenting a community transportation proposal",
+  "speaking-learning-guitar": "Four scenes showing Nina learning to play one song on an old guitar",
+  "speaking-sound-waves": "A vibrating tuning fork and three jars containing different amounts of water",
+  "speaking-women-gold-rush": "Women operating essential businesses in a California Gold Rush mining town",
+  "speaking-conductivity": "Electricity moving through copper inside a rubber-coated wire",
+  "speaking-branches-government": "The legislative, executive, and judicial branches connected by two-way arrows",
+  "speaking-regelation": "A weighted wire moving through a block of ice while the ice remains joined",
+  "speaking-bill-law": "A bill moving from an idea through voting and the governor to become a law",
+  "speaking-carbon-capture": "Carbon dioxide moving from a factory through capture equipment and a pipeline into underground storage",
+  "speaking-public-key-encryption": "A public key locking a message and a private key unlocking it",
+  "speaking-broken-swing": "Four scenes showing Priya finding a damaged swing and a custodian repairing it",
+  "speaking-honeybee-hives": "A beehive showing honeycomb, bees, stored honey, and developing young bees",
+  "speaking-water-cycle": "The sun, evaporation, clouds, rain, rivers, and lakes forming the water cycle",
+  "speaking-vaccines": "Three stages showing a vaccine creating memory cells that later respond to a germ",
+  "speaking-urban-heat-islands": "A hot city and a cooler green rural area shown with thermometers",
+  "speaking-supply-demand": "A scarce product on nearly empty shelves compared with plentiful products on full shelves",
+  "speaking-urban-water-reuse": "Used city water moving through a treatment plant and returning as reused water",
+  "speaking-gene-editing": "A DNA target being cut and repaired during gene editing",
+  "speaking-rainy-parade": "Four scenes showing students protecting a paper dragon and carrying it in a rainy parade",
+  "speaking-volcanoes": "A volcano cross section showing magma rising and erupting as lava",
+  "speaking-why-we-sleep": "A sleeping child whose brain organizes memories while the body repairs itself",
+  "speaking-antibiotic-resistance": "Three stages showing resistant bacteria surviving antibiotics and multiplying",
+  "speaking-silk-road": "A map of Silk Road routes with merchants exchanging horses, glass, paper, and silk",
+  "speaking-geothermal-microgrids": "Multiple buildings sharing underground heating and cooling pipes in winter and summer",
+  "speaking-digital-preservation": "A digital file preserved through separate copies, format migration, and metadata",
 };
 
 function sceneAlt(name) {
@@ -2689,6 +2737,33 @@ const ACADEMIC_PRESENTATIONS = {
   "Public-Key Encryption": "Public-key encryption uses two related digital keys with different jobs. A public key may be shared openly and can be used to lock, or encrypt, information for its owner. A private key is kept secret and is used to unlock that information. The keys are mathematically connected, but calculating the private key from the public key is designed to be extremely difficult. If the private key is exposed, someone else could read protected messages or pretend to be the key's owner.",
 };
 
+const SPEAKING_VISUALS = {
+  "Learning Guitar": "speaking-learning-guitar",
+  "Sound Waves": "speaking-sound-waves",
+  "Women in the Gold Rush": "speaking-women-gold-rush",
+  Conductivity: "speaking-conductivity",
+  "Branches of Government": "speaking-branches-government",
+  Regelation: "speaking-regelation",
+  "How a Bill Becomes Law": "speaking-bill-law",
+  "Carbon Capture": "speaking-carbon-capture",
+  "Public-Key Encryption": "speaking-public-key-encryption",
+  "The Broken Swing": "speaking-broken-swing",
+  "Honeybee Hives": "speaking-honeybee-hives",
+  "The Water Cycle": "speaking-water-cycle",
+  "How Vaccines Work": "speaking-vaccines",
+  "Urban Heat Islands": "speaking-urban-heat-islands",
+  "Supply and Demand": "speaking-supply-demand",
+  "Urban Water Reuse": "speaking-urban-water-reuse",
+  "Gene Editing": "speaking-gene-editing",
+  "The Rainy Parade": "speaking-rainy-parade",
+  Volcanoes: "speaking-volcanoes",
+  "Why We Sleep": "speaking-why-we-sleep",
+  "Antibiotic Resistance": "speaking-antibiotic-resistance",
+  "The Silk Road": "speaking-silk-road",
+  "Geothermal Microgrids": "speaking-geothermal-microgrids",
+  "Digital Preservation": "speaking-digital-preservation",
+};
+
 const isAcademicSummary = (item) => item?.task === "Summarize an Academic Presentation";
 
 function summaryPrompt(item) {
@@ -2714,6 +2789,7 @@ function completeBlueprint(bank, span, setNum) {
     })),
     speaking: (bank.speaking || []).map((item) => ({
       ...item,
+      ...(!item.scene && SPEAKING_VISUALS[item.topic] ? { scene: SPEAKING_VISUALS[item.topic] } : {}),
       prompt: summaryPrompt(item),
       ...(isAcademicSummary(item) ? {
         presentation: item.presentation || oralPresentations.get(item.topic)
