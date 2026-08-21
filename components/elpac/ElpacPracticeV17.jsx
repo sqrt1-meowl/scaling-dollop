@@ -3365,6 +3365,14 @@ async function storeRemove(key) {
   try { window.localStorage.removeItem(key); } catch {}
 }
 
+function draftRecordingKey(userId, span, setNum, blockIndex) {
+  return `recording:draft:${userId}:${span}:${setNum}:${blockIndex}`;
+}
+
+function historyRecordingKey(userId, timestamp, blockIndex) {
+  return `recording:history:${userId}:${timestamp}:${blockIndex}`;
+}
+
 async function storeList(prefix) {
   if (typeof window === "undefined") return [];
   const keys = new Set();
@@ -3753,13 +3761,36 @@ export default function App() {
   async function saveAttempt(dom, payload) {
     if (!user) return false;
     const ts = Date.now();
+    let items = payload.items || null;
+    const copiedDraftKeys = [];
+
+    // Keep audio as Blob data in IndexedDB. The history record stores only a
+    // local key, so recordings never leave this browser or bloat its JSON.
+    if (dom === "speaking" && Array.isArray(items)) {
+      items = await Promise.all(items.map(async (item, index) => {
+        const response = item?.response;
+        if (!response?.audioKey) return item;
+        try {
+          const blob = await idbRead(response.audioKey);
+          if (!(blob instanceof Blob)) return item;
+          const audioKey = historyRecordingKey(user.id, ts, index);
+          await idbWrite(audioKey, blob);
+          copiedDraftKeys.push(response.audioKey);
+          return { ...item, response: { ...response, audioKey, audio: undefined } };
+        } catch {
+          return item;
+        }
+      }));
+    }
+
     const record = {
       ts, user: user.id, span, spanLabel: spanObj?.label, setNum, domain: dom,
       correct: payload.correct ?? null, total: payload.total ?? null,
-      items: payload.items || null,          // per-question detail for reading/listening
+      items,
     };
     const saved = await storeSet(attemptKey(user.id, ts), JSON.stringify(record));
     if (!saved) return false;
+    await Promise.all(copiedDraftKeys.map((key) => idbRemove(key).catch(() => {})));
     await storeRemove(progressKey(user.id, span, setNum, dom));
     return true;
   }
@@ -5168,6 +5199,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
       {domain === "speaking"
         ? <SpeakBlock key={bIdx} block={block} onDone={prodAdvance} setNav={setNav}
             setNum={setNum} span={span}
+            recordingKey={draftRecordingKey(user.id, span, setNum, bIdx)}
             initialResponse={responses[bIdx]}
             onResponse={(response) => setResponses((prev) => ({ ...prev, [bIdx]: response }))} />
         : domain === "writing"
@@ -5420,18 +5452,37 @@ function blobToDataUrl(blob) {
   });
 }
 
-function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span }) {
+function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum, span, recordingKey }) {
   const isSummary = block.task === "Summarize an Academic Presentation";
-  const [recState, setRecState] = useState(() => initialResponse?.audio ? "done" : "idle");
+  const [recState, setRecState] = useState(() =>
+    initialResponse?.audio || initialResponse?.audioKey ? "done" : "idle"
+  );
   const [audioURL, setAudioURL] = useState(() => initialResponse?.audio || null);
   const [errMsg, setErrMsg] = useState("");
   const [presentationState, setPresentationState] = useState(() =>
     !isSummary ? "not-needed"
-      : (initialResponse?.presentationPlayed || initialResponse?.audio ? "played" : "ready")
+      : (initialResponse?.presentationPlayed || initialResponse?.audio || initialResponse?.audioKey
+        ? "played" : "ready")
   );
   const recRef = useRef(null);
   const chunksRef = useRef([]);
   const stopPresentationRef = useRef(null);
+
+  useEffect(() => {
+    if (!initialResponse?.audioKey || initialResponse?.audio) return;
+    let active = true;
+    let localURL = null;
+    idbRead(initialResponse.audioKey).then((blob) => {
+      if (!active || !(blob instanceof Blob)) return;
+      localURL = URL.createObjectURL(blob);
+      setAudioURL(localURL);
+      setRecState("done");
+    }).catch(() => {});
+    return () => {
+      active = false;
+      if (localURL) URL.revokeObjectURL(localURL);
+    };
+  }, [initialResponse?.audioKey, initialResponse?.audio]);
 
   function playPresentationOnce() {
     if (!isSummary || presentationState !== "ready" || !block.presentation) return;
@@ -5474,8 +5525,15 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       rec.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
         setAudioURL(URL.createObjectURL(blob));
-        const audioData = await blobToDataUrl(blob);
-        onResponse && onResponse({ type: "speaking", audio: audioData, mimeType: blob.type,
+        let savedResponse;
+        try {
+          await idbWrite(recordingKey, blob);
+          savedResponse = { type: "speaking", audioKey: recordingKey, mimeType: blob.type };
+        } catch {
+          const audioData = await blobToDataUrl(blob);
+          savedResponse = { type: "speaking", audio: audioData, mimeType: blob.type };
+        }
+        onResponse && onResponse({ ...savedResponse,
           ...(isSummary ? { presentationPlayed: true } : {}) });
         stream.getTracks().forEach((t) => t.stop());
         setRecState("done");
@@ -5569,9 +5627,10 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
           <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
             <a href={audioURL} download={`speaking-${block.topic}.webm`}
               style={{ ...ghostBtn, textDecoration:"none", padding:"9px 14px", display:"inline-block" }}>⤓ Save</a>
-            <button onClick={() => {
+            <button onClick={async () => {
               setAudioURL(null);
               setRecState("idle");
+              try { await idbRemove(recordingKey); } catch {}
               onResponse && onResponse({ type: "speaking",
                 ...(isSummary ? { presentationPlayed: true } : {}) });
             }}
@@ -5741,13 +5800,13 @@ function ProductionReview({ attempt, blocks }) {
               Your response
             </div>
             {isSpeaking ? (
-              audio ? (
+              (response?.audioKey || audio) ? (
                 <div>
-                  <audio controls src={audio} style={{ width: "100%" }} />
-                  <a href={audio} download={"speaking-" + topic + ".webm"}
+                  <LocalRecordingPlayer response={response} topic={topic} />
+                  {audio && <a href={audio} download={"speaking-" + topic + ".webm"}
                     style={{ ...ghostBtn, display: "inline-block", marginTop: 8, textDecoration: "none" }}>
                     ⤓ Save recording
-                  </a>
+                  </a>}
                 </div>
               ) : (
                 <div style={{ color: C.mute, fontStyle: "italic" }}>
@@ -5766,6 +5825,58 @@ function ProductionReview({ attempt, blocks }) {
     </div>
   );
 }
+function LocalRecordingPlayer({ response, topic }) {
+  const legacyAudio = response && typeof response === "object" ? response.audio : null;
+  const audioKey = response && typeof response === "object" ? response.audioKey : null;
+  const [src, setSrc] = useState(legacyAudio || null);
+  const [loading, setLoading] = useState(Boolean(audioKey && !legacyAudio));
+
+  useEffect(() => {
+    if (!audioKey || legacyAudio) return;
+    let active = true;
+    let localURL = null;
+    setLoading(true);
+    idbRead(audioKey).then((blob) => {
+      if (!active || !(blob instanceof Blob)) return;
+      localURL = URL.createObjectURL(blob);
+      setSrc(localURL);
+    }).catch(() => {}).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => {
+      active = false;
+      if (localURL) URL.revokeObjectURL(localURL);
+    };
+  }, [audioKey, legacyAudio]);
+
+  if (loading) {
+    return <div style={{ color: C.mute, fontStyle: "italic" }}>Loading local recording...</div>;
+  }
+  if (!src) {
+    return (
+      <div style={{ color: C.mute, fontStyle: "italic" }}>
+        No recording was saved for this task.
+      </div>
+    );
+  }
+  return (
+    <div>
+      <audio controls src={src} style={{ width: "100%" }} />
+      {audioKey && (
+        <a href={src} download={"speaking-" + topic + ".webm"}
+          style={{ ...ghostBtn, display: "inline-block", marginTop: 8, textDecoration: "none" }}>
+          Save recording
+        </a>
+      )}
+      {audioKey && (
+        <div style={{ fontSize: 12, color: C.mute, marginTop: 8 }}>
+          Stored only in this browser on this device.
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // Line chart of scored-section accuracy over time (reading + listening).
 function PerformanceChart({ attempts }) {
