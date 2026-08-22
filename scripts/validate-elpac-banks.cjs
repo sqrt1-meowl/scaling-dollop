@@ -11,7 +11,7 @@ require("node:module").Module._initPaths();
 
 function compile(name, exposeBanks = false) {
   let source = fs.readFileSync(path.join(sourceDir, name), "utf8");
-  if (exposeBanks) source += "\nexport { BANKS };\n";
+  if (exposeBanks) source += "\nexport { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, AUDIO };\n";
   const output = ts.transpileModule(source, {
     compilerOptions: {
       target: ts.ScriptTarget.ES2020,
@@ -36,6 +36,66 @@ const countTasks = (items) => items.reduce((counts, item) => {
   counts[task] = (counts[task] || 0) + 1;
   return counts;
 }, {});
+const productionPromptOwners = new Map();
+const sceneOwners = new Map();
+const normalizedPrompt = (text) => String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+const wordCount = (text) => String(text || "").trim().split(/\s+/).filter(Boolean).length;
+const STIMULUS_MINIMUMS = {
+  g35: {
+    reading: {
+      "Read a Short Informational Passage": 60,
+      "Read a Student Essay": 80,
+      "Read a Literary Passage": 80,
+      "Read an Informational Passage": 80,
+    },
+  },
+  g68: {
+    listening: { "Listen to a Speaker Support an Opinion": 60 },
+    reading: {
+      "Read a Short Informational Passage": 75,
+      "Read a Student Essay": 95,
+      "Read a Literary Passage": 95,
+      "Read an Informational Passage": 95,
+    },
+  },
+  g910: {
+    listening: {
+      "Listen to an Oral Presentation": 70,
+      "Listen to a Speaker Support an Opinion": 70,
+    },
+    reading: {
+      "Read a Short Informational Passage": 70,
+      "Read a Student Essay": 90,
+      "Read a Literary Passage": 90,
+      "Read an Informational Passage": 90,
+    },
+  },
+  g1112: {
+    listening: { "Listen to an Oral Presentation": 80 },
+    reading: {
+      "Read a Short Informational Passage": 75,
+      "Read a Student Essay": 110,
+      "Read a Literary Passage": 115,
+      "Read an Informational Passage": 95,
+    },
+  },
+};
+const stimulusMinimum = (span, domain, task) => STIMULUS_MINIMUMS[span]?.[domain]?.[task];
+const rememberPrompt = (span, domain, setNum, index, text) => {
+  const key = `${span}:${domain}:${normalizedPrompt(text)}`;
+  const owners = productionPromptOwners.get(key) || [];
+  owners.push({ setNum, index, text });
+  productionPromptOwners.set(key, owners);
+};
+const rememberScene = (scene, owner) => {
+  if (!scene) return;
+  const owners = sceneOwners.get(scene) || [];
+  owners.push(owner);
+  sceneOwners.set(scene, owners);
+};
+const publicAssetPath = (asset) =>
+  path.join(root, "public", String(asset || "").replace(/^\/+/, "").split("/").join(path.sep));
+
 const expectCounts = (actual, expected, label) => {
   for (const [task, count] of Object.entries(expected)) {
     if (actual[task] !== count) fail(`${label}: expected ${count} ${task}, found ${actual[task] || 0}`);
@@ -46,7 +106,16 @@ try {
   compile("g1112AdditionalBanks.js");
   compile("g1112Banks.js");
   compile("ElpacPracticeV17.jsx", true);
-  const { BANKS } = require(path.join(tempDir, "ElpacPracticeV17.jsx"));
+  const { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, AUDIO } =
+    require(path.join(tempDir, "ElpacPracticeV17.jsx"));
+
+  for (const [scene, asset] of Object.entries(SCENE_PHOTOS)) {
+    if (!fs.existsSync(publicAssetPath(asset))) fail("Scene " + scene + ": missing media file " + asset);
+    if (!String(SCENE_ALTS[scene] || "").trim()) fail("Scene " + scene + ": missing meaningful alt text");
+  }
+  for (const [audioId, asset] of Object.entries(AUDIO)) {
+    if (!fs.existsSync(publicAssetPath(asset))) fail("Listening audio " + audioId + ": missing media file " + asset);
+  }
 
   for (const [setNum, spans] of Object.entries(BANKS)) {
     for (const [span, bank] of Object.entries(spans).filter(([key, value]) => ["g35", "g68", "g910", "g1112"].includes(key) && value)) {
@@ -59,6 +128,25 @@ try {
       };
       for (const [domain, expected] of Object.entries({ listening: 22, speaking: 12, reading: 26, writing: 6 })) {
         if (totals[domain] !== expected) fail(`${label}: ${domain} expected ${expected}, found ${totals[domain]}`);
+      }
+      for (const [domain, field] of [["listening", "transcript"], ["reading", "passage"]]) {
+        for (const item of bank[domain]) {
+          const minimum = stimulusMinimum(span, domain, item.task);
+          const words = wordCount(item[field]);
+          if (minimum && words < minimum) {
+            fail(label + " " + domain + "/" + item.topic + ": " + words + " stimulus words, minimum " + minimum + " for " + item.task);
+          }
+        }
+      }
+      if (process.env.ELPAC_REPORT) {
+        for (const item of bank.listening) {
+          console.log(["STIMULUS", setNum, span, "listening", item.task, item.topic,
+            String(item.transcript || "").trim().split(/\s+/).filter(Boolean).length].join("\t"));
+        }
+        for (const item of bank.reading) {
+          console.log(["STIMULUS", setNum, span, "reading", item.task, item.topic,
+            String(item.passage || "").trim().split(/\s+/).filter(Boolean).length].join("\t"));
+        }
       }
 
       const listening = countTasks(bank.listening);
@@ -78,6 +166,18 @@ try {
 
       const writing = countTasks(bank.writing);
       expectCounts(writing, { "Describe a Picture": 2, "Write About an Experience": 1, "Write About Academic Information": 2, "Justify an Opinion": 1 }, label);
+
+      for (const domain of ["speaking", "reading", "writing"]) {
+        bank[domain].forEach((item, index) =>
+          rememberScene(item.scene, label + " " + domain + " item " + (index + 1))
+        );
+      }
+      bank.speaking.forEach((item, index) =>
+        rememberPrompt(span, "speaking", Number(setNum), index, item.prompt)
+      );
+      bank.writing.forEach((item, index) =>
+        rememberPrompt(span, "writing", Number(setNum), index, item.stem)
+      );
 
       for (const block of bank.listening) {
         for (const question of block.qs || []) {
@@ -108,6 +208,18 @@ try {
     const repeated = seniorText.filter((text) => youngerText.includes(text));
     if (repeated.length) fail(`Set ${setNum} g1112: ${repeated.length} stimulus/stimuli duplicate a younger-grade bank`);
   }
+
+  for (const [key, owners] of productionPromptOwners) {
+    const distinctSets = new Set(owners.map((owner) => owner.setNum));
+    if (distinctSets.size > 1) {
+      fail(`Repeated production prompt ${key.split(":").slice(0, 2).join("/")} in ${owners.map((owner) => `Set ${owner.setNum} item ${owner.index + 1}`).join(", ")}: "${owners[0].text}"`);
+    }
+  }
+  for (const [scene, owners] of sceneOwners) {
+    if (SCENE_PROMPTS[scene] && !SCENE_PHOTOS[scene]) {
+      fail("Scene " + scene + " still uses a picture-needed placeholder in " + owners.join(", "));
+    }
+  }
 } finally {
   fs.rmSync(tempDir, { recursive: true, force: true });
 }
@@ -117,4 +229,4 @@ if (failures.length) {
   failures.forEach((message) => console.error(`- ${message}`));
   process.exit(1);
 }
-console.log("ELPAC validation passed: all 12 grade/set banks match domain totals, task distributions, option formats, graph-task sequence, and cross-band uniqueness checks.");
+console.log("ELPAC validation passed: all 12 grade/set banks match domain totals, task distributions, option formats, stimulus-depth floors, media files, picture placeholders, alt text, graph-task sequence, cross-band uniqueness, and production-prompt uniqueness checks.");

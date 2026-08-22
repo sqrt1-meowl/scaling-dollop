@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+/* eslint-disable @next/next/no-img-element -- The scene viewer preserves varied native aspect ratios and supports a scrollable full-size mode. */
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { G1112_BANKS } from "./g1112Banks";
 
 // ── Real scene photos (website asset URLs). Add another by pasting a new
@@ -211,7 +213,7 @@ const BANK = {
           { stem: "Why does a feather drift while a skydiver drops fast?", options: ["Feathers are magic", "The feather's terminal velocity is much lower", "Gravity ignores feathers", "The skydiver pushes down"], answer: 1 },
         ] },
       { task: "Read a Student Essay", topic: "Art Education For Everyone",
-        passage: "(Read a classmate's draft and answer the questions.) “Our school should require an art class for every student. First, art teaches creative problem-solving, a skill that helps in science and business too. Second, many students has never had the chance to try painting or design. Some argue that art takes time away from core subjects, however studies show students who take art often do better in those subjects, not worse. For these reason, art should be part of every student's education.”",
+        passage: "(Read a classmate's draft and answer the questions.) “Our school should require an art class for every student. First, art teaches creative problem-solving, a skill that helps in science and business too. Second, many students has never had the chance to try painting or design. Some argue that art takes time away from core subjects, however studies show students who take art often do better in those subjects, not worse. Art also gives students a way to communicate ideas that are difficult to express in words. For these reason, art should be part of every student's education.”",
         qs: [
           { stem: "What is the writer's main claim?", options: ["Art is fun", "Every student should take an art class", "Science is hard", "Schools need more time"], answer: 1 },
           { stem: "Which sentence contains a grammar error?", options: ["“Art teaches creative problem-solving…”", "“Many students has never had the chance…”", "“Studies show students who take art…”", "“Our school should require…”"], answer: 1 },
@@ -704,20 +706,20 @@ const BANK2 = {
     ],
     reading: [
       { task: "Read a Short Informational Passage", topic: "Parking Permits",
-        passage: "Student parking permits for next semester go on sale Monday in the front office. Bring your license, proof of insurance, and fifteen dollars. Permits are assigned by lot: seniors may choose any lot, while juniors are limited to Lot C. Cars without a visible permit after the first week will be ticketed.",
+        passage: "Student parking permits for next semester go on sale Monday in the front office. Bring your license, proof of insurance, and fifteen dollars. Permits are assigned by lot: seniors may choose any lot, while juniors are limited to Lot C. Cars without a visible permit after the first week will be ticketed. Students whose documents are incomplete must return before a permit can be issued. Temporary passes are not available.",
         qs: [
           { stem: "Which lot may juniors use?", options: ["Any lot", "Lot C", "The teachers' lot", "The gym lot"], answer: 1 },
           { stem: "What happens to cars without visible permits after week one?", options: ["They are towed instantly", "They are ticketed", "Nothing", "They are washed"], answer: 1 },
         ] },
       { task: "Read a Short Informational Passage", topic: "Photosynthesis",
-        passage: "Photosynthesis is how plants make their own food. Inside leaf cells, chlorophyll captures sunlight and uses that energy to combine water from the roots with carbon dioxide from the air. The products are glucose — sugar the plant uses for energy and growth — and oxygen, which the plant releases. Nearly every food chain on Earth begins with this quiet chemistry inside a leaf.",
+        passage: "Photosynthesis is how plants make their own food. Inside leaf cells, chlorophyll captures sunlight and uses that energy to combine water from the roots with carbon dioxide from the air. The products are glucose — sugar the plant uses for energy and growth — and oxygen, which the plant releases. Because the process requires light, its rate usually slows after sunset. Nearly every food chain on Earth begins with this quiet chemistry inside a leaf.",
         qs: [
           { stem: "What captures the sunlight?", options: ["Roots", "Chlorophyll", "Glucose", "Oxygen"], answer: 1 },
           { stem: "Which two ingredients are combined?", options: ["Water and carbon dioxide", "Sugar and oxygen", "Soil and rain", "Light and heat"], answer: 0 },
           { stem: "The last sentence suggests photosynthesis is…", options: ["the foundation of most food chains", "rare", "only in trees", "loud"], answer: 0 },
         ] },
       { task: "Read a Student Essay", topic: "Peer Tutoring",
-        passage: "(Read a classmate's draft and answer the questions.) “Our school should launch a peer tutoring program. First, students often explains ideas in ways other students understand, because they just learned the material themselves. Second, tutoring looks strong on college applications, so tutors benefit too. Some argue that peer tutors make mistakes, however teachers could review the tutors' plans once a week. The library sits half-empty every day after school, so the space already exists. For this reasons, peer tutoring deserves a chance.”",
+        passage: "(Read a classmate's draft and answer the questions.) “Our school should launch a peer tutoring program. First, students often explains ideas in ways other students understand, because they just learned the material themselves. Second, tutoring looks strong on college applications, so tutors benefit too. Some argue that peer tutors make mistakes, however teachers could review the tutors' plans once a week. The library sits half-empty every day after school, so the space already exists. A short training session could teach tutors when to ask a teacher for help. For this reasons, peer tutoring deserves a chance.”",
         qs: [
           { stem: "What is the writer proposing?", options: ["A peer tutoring program", "A new library", "Fewer applications", "More teachers"], answer: 0 },
           { stem: "Which phrase has a subject-verb error?", options: ["“students often explains ideas”", "“the space already exists”", "“tutors benefit too”", "“teachers could review”"], answer: 0 },
@@ -739,7 +741,7 @@ const BANK2 = {
           { stem: "A theme of the passage is…", options: ["deep familiarity comes from listening over time", "debate is unfair", "never trust a partner", "second place is failure"], answer: 0 },
         ] },
       { task: "Read an Informational Passage", topic: "The Printing Press",
-        passage: "Before the printing press, every book in Europe was copied by hand, so books were rare and owned mostly by the wealthy. Around 1440, Johannes Gutenberg combined movable metal type with a modified press, and a single shop could suddenly produce hundreds of identical pages a day. Prices fell, literacy spread, and ideas began moving faster than any ruler could control. Printing also standardized spelling and grammar: when thousands of readers see the same printed page, the language on that page starts to become the rule.",
+        passage: "Before the printing press, every book in Europe was copied by hand, so books were rare and owned mostly by the wealthy. Around 1440, Johannes Gutenberg combined movable metal type with a modified press, and a single shop could suddenly produce hundreds of identical pages a day. Prices fell, literacy spread, and ideas began moving faster than any ruler could control. Religious, scientific, and political arguments could reach audiences far beyond the cities where they began. Printing also standardized spelling and grammar: when thousands of readers see the same printed page, the language on that page starts to become the rule.",
         qs: [
           { stem: "Before the press, books were…", options: ["copied by hand and rare", "printed cheaply", "free in libraries", "banned"], answer: 0 },
           { stem: "Gutenberg's key combination was movable type and…", options: ["a modified press", "a steam engine", "a loom", "a mill"], answer: 0 },
@@ -1185,7 +1187,7 @@ const BANK3 = {
     ],
     reading: [
       { task: "Read a Short Informational Passage", topic: "Final Exam Schedule",
-        passage: "Final exams run Tuesday through Thursday on a minimum-day schedule: two exams each morning, dismissal at 12:15. Students take only the exams for their enrolled periods and may leave campus after their last exam with a signed release form on file. Buses run at 12:30 all three days. Make-up exams require a note from the attendance office and will be given the following Monday.",
+        passage: "Final exams run Tuesday through Thursday on a minimum-day schedule: two exams each morning, dismissal at 12:15. Students take only the exams for their enrolled periods and may leave campus after their last exam with a signed release form on file. Buses run at 12:30 all three days. The library remains open until 3:00 for students who need a place to study or wait for a ride. Make-up exams require a note from the attendance office and will be given the following Monday.",
         qs: [
           { stem: "When are make-up exams given?", options: ["The following Monday", "Friday", "During lunch", "Never"], answer: 0 },
           { stem: "What lets a student leave after their last exam?", options: ["A signed release form on file", "A parent phone call", "A teacher's wave", "Nothing"], answer: 0 },
@@ -1198,7 +1200,7 @@ const BANK3 = {
           { stem: "The brightest reds come from…", options: ["sugars trapped in the leaf", "old chlorophyll", "morning frost", "tree bark"], answer: 0 },
         ] },
       { task: "Read a Student Essay", topic: "Water Bottle Stations",
-        passage: "(Read a classmate's draft and answer the questions.) “Our school should install water bottle filling stations. First, the old fountains barely trickle, so students buys plastic bottles instead, and the recycling bins overflow by Friday. Second, filling stations count each bottle saved, which turn a habit into a visible goal. Some say the stations cost too much, however the PTA has already offered to fund the first two. Clean water should not be the hardest thing to find at school.”",
+        passage: "(Read a classmate's draft and answer the questions.) “Our school should install water bottle filling stations. First, the old fountains barely trickle, so students buys plastic bottles instead, and the recycling bins overflow by Friday. Second, filling stations count each bottle saved, which turn a habit into a visible goal. Some say the stations cost too much, however the PTA has already offered to fund the first two. The stations would also help athletes refill quickly without missing much class time. Clean water should not be the hardest thing to find at school.”",
         qs: [
           { stem: "What is the writer proposing?", options: ["Water bottle filling stations", "New recycling bins", "Banning bottles", "Longer passing periods"], answer: 0 },
           { stem: "Which phrase has a subject-verb error?", options: ["“students buys plastic bottles”", "“the old fountains barely trickle”", "“the recycling bins overflow”", "“the PTA has already offered”"], answer: 0 },
@@ -1925,7 +1927,7 @@ const S2_G35 = {
       accept: ["girl", "watering", "planting", "digging", "holding", "plants", "garden", "soil"], minWords: 4,
       hint: "One complete sentence, for example: “A girl is watering the small plants.”", points: 2 },
     { task: "Describe a Picture (Question 2)", topic: "School Garden", scene: "s2-35-sp-garden", kind: "frame",
-      stem: "Look at the same picture. Write one sentence about something that might happen next.",
+      stem: "What will the students probably do after the garden plants grow? Write one complete sentence with a clear detail.",
       accept: ["will", "next", "grow", "plants", "students", "water", "pick", "then", "later"], minWords: 4,
       hint: "Use “will”, for example: “The plants will grow tall.”", points: 2 },
     { task: "Write About an Experience", topic: "A Time You Were Surprised", kind: "frame",
@@ -2091,7 +2093,7 @@ const S3_G35 = {
       accept: ["woman", "selling", "holding", "weighing", "vegetables", "fruit", "table", "market", "giving"], minWords: 4,
       hint: "One complete sentence, for example: “The woman is selling fresh vegetables.”", points: 2 },
     { task: "Describe a Picture (Question 2)", topic: "Farmers Market", scene: "s3-35-sp-market", kind: "frame",
-      stem: "Look at the same picture. Write one sentence about something that might happen next.",
+      stem: "What will a customer probably do after choosing produce at the farmers market? Write one complete sentence with a clear detail.",
       accept: ["will", "next", "buy", "pay", "take", "home", "family", "then", "cook", "eat"], minWords: 4,
       hint: "Use “will”, for example: “The family will buy apples.”", points: 2 },
     { task: "Write About an Experience", topic: "Something You Learned to Do", kind: "frame",
@@ -2173,7 +2175,7 @@ const S1_G68 = {
       ] },
     { task: "Listen to an Oral Presentation", topic: "The Do-It-Yourself Movement",
       intro: "Listen to a student presentation. You will hear it only once.",
-      transcript: "The do-it-yourself movement is the idea that ordinary people can build, fix, and make things themselves instead of buying them or hiring someone. It grew quickly once video sharing made it possible to watch a stranger repair a bicycle or sew a jacket, step by step, for free. Supporters say it saves money and reduces waste, since a repaired item does not become trash. Critics warn that some repairs, especially electrical ones, are genuinely dangerous for beginners. Most makers agree on a simple rule: learn the limits of what you should attempt.",
+      transcript: "The do-it-yourself movement is the idea that ordinary people can build, fix, and make things themselves instead of buying them or hiring someone. It grew quickly once video sharing made it possible to watch a stranger repair a bicycle or sew a jacket, step by step, for free. Supporters say it saves money and reduces waste, since a repaired item does not become trash. Critics warn that some repairs, especially electrical ones, are genuinely dangerous for beginners. Most makers agree on a simple rule: learn the limits of what you should attempt. That caution preserves the movement's practical benefits without treating every project as equally safe.",
       qs: [
         { stem: "What is the do-it-yourself movement?", options: ["People building and fixing things themselves", "A type of store", "A school subject"], answer: 0 },
         { stem: "What helped the movement grow quickly?", options: ["Video sharing of step-by-step repairs", "Cheaper tools", "New laws"], answer: 0 },
@@ -2231,7 +2233,7 @@ const S1_G68 = {
   ],
   speaking: [
     { task: "Talk about a Scene (1 of 4)", topic: "Photography", scene: "s1-68-sp-photography",
-      prompt: "Look at the picture. Describe what is happening in this scene.", points: 1, checks: ["A full-sentence description"] },
+      prompt: "Describe how the photographer and the other student are participating in the activity. Use details from the picture.", points: 1, checks: ["Both roles", "Visual details"] },
     { task: "Talk about a Scene (2 of 4)", topic: "Photography", scene: "s1-68-sp-photography",
       prompt: "Describe two people in the picture and what each one is doing.", points: 1, checks: ["Two people described", "Action words used"] },
     { task: "Talk about a Scene (3 of 4)", topic: "Photography", scene: "s1-68-sp-photography",
@@ -2323,7 +2325,7 @@ const S2_G68 = {
       ] },
     { task: "Listen to an Oral Presentation", topic: "Sleep and Memory",
       intro: "Listen to a student presentation. You will hear it only once.",
-      transcript: "Scientists used to think sleep was simply rest. We now know the brain is intensely busy at night. During deep sleep, the brain replays the day's experiences and moves the important ones into long-term storage, a process called consolidation. Sleep also flushes waste products out of brain tissue, something that happens far more slowly when we are awake. This explains a frustrating fact many students discover: studying all night usually produces worse results than studying less and sleeping, because without sleep the material is never properly filed away.",
+      transcript: "Scientists used to think sleep was simply rest. We now know the brain is intensely busy at night. During deep sleep, the brain replays the day's experiences and moves the important ones into long-term storage, a process called consolidation. Sleep also flushes waste products out of brain tissue, something that happens far more slowly when we are awake. This explains a frustrating fact many students discover: studying all night usually produces worse results than studying less and sleeping, because without sleep the material is never properly filed away. In other words, sleep is not lost study time; it is part of learning.",
       qs: [
         { stem: "What is consolidation?", options: ["Moving experiences into long-term storage", "Cleaning the ears", "Slowing the heart"], answer: 0 },
         { stem: "What else does sleep do?", options: ["Flushes waste out of brain tissue", "Raises body temperature", "Stops the brain entirely"], answer: 0 },
@@ -2390,7 +2392,7 @@ const S2_G68 = {
   ],
   speaking: [
     { task: "Talk about a Scene (1 of 4)", topic: "Robotics Lab", scene: "s2-68-sp-robotics",
-      prompt: "Look at the picture. Describe what is happening in this scene.", points: 1, checks: ["A full-sentence description"] },
+      prompt: "Describe how the students are working together on the robot. Mention at least two visible actions.", points: 1, checks: ["Two actions", "Clear relationship"] },
     { task: "Talk about a Scene (2 of 4)", topic: "Robotics Lab", scene: "s2-68-sp-robotics",
       prompt: "Describe two students in the picture and what each one is doing.", points: 1, checks: ["Two students described"] },
     { task: "Talk about a Scene (3 of 4)", topic: "Robotics Lab", scene: "s2-68-sp-robotics",
@@ -2549,9 +2551,9 @@ const S3_G68 = {
   ],
   speaking: [
     { task: "Talk about a Scene (1 of 4)", topic: "Community Garden", scene: "s3-68-sp-garden",
-      prompt: "Look at the picture. Describe what is happening in this scene.", points: 1, checks: ["A full-sentence description"] },
+      prompt: "Describe the work taking place in the community garden. Explain how two visible actions help the garden.", points: 1, checks: ["Two actions", "Connection to the garden"] },
     { task: "Talk about a Scene (2 of 4)", topic: "Community Garden", scene: "s3-68-sp-garden",
-      prompt: "Describe two people in the picture and what each one is doing.", points: 1, checks: ["Two people described"] },
+      prompt: "Compare the jobs of two volunteers in the garden. Describe what each person is doing and how the tasks are connected.", points: 1, checks: ["Two volunteers", "Connected actions"] },
     { task: "Talk about a Scene (3 of 4)", topic: "Community Garden", scene: "s3-68-sp-garden",
       prompt: "Why do you think these people are working together, and what will they probably do next? Explain your thinking.", points: 2, checks: ["An inference", "A prediction with a reason"] },
     { task: "Talk about a Scene (4 of 4)", topic: "Community Garden", scene: "s3-68-sp-garden",
@@ -2577,7 +2579,7 @@ const S3_G68 = {
       accept: ["plant", "has", "volunteers", "vegetables", "garden", "beds", "many", "in", "that", "with"], minWords: 6,
       hint: "Fix both verbs, then join the ideas. Example: “The volunteers plant vegetables in a garden that has many beds.”", points: 2 },
     { task: "Describe a Picture (Question 2)", topic: "Community Garden", scene: "s3-68-sp-garden", kind: "frame",
-      stem: "Look at the same picture. Write one complete sentence about what will probably happen next. Add a detail that makes your prediction clear.",
+      stem: "Predict what the garden volunteers will do after the vegetables are ready. Write one complete sentence that explains who benefits.",
       accept: ["will", "next", "water", "grow", "harvest", "vegetables", "volunteers", "then", "share", "neighbors"], minWords: 6,
       hint: "Use “will” plus a detail. Example: “The volunteers will water the beds before they leave.”", points: 2 },
     { task: "Write About an Experience", topic: "A Responsibility You Were Given", kind: "frame",
@@ -2628,11 +2630,11 @@ const PRESENT_TASK_PAIRS = {
   g910: {
     1: ["Geometry Enrollment", "linegraph", "Summarize the geometry-enrollment graph. Describe the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that statement."],
     2: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that statement."],
-    3: ["Geometry Enrollment", "linegraph", "Summarize the geometry-enrollment graph. Describe the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that statement."],
+    3: ["Solar Power Trends", "energy-sources-chart", "Summarize both solar-power graphs. Explain how cost and the share of local electricity changed from 2018 to 2024, using relevant values.", "A student claims that solar power became more expensive as its share of local electricity increased. Evaluate the claim using evidence from both graphs."],
   },
   g1112: {
     1: ["Program Enrollment", "linegraph", "Summarize the enrollment graph, including the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim."],
-    2: ["Program Enrollment", "linegraph", "Summarize the enrollment graph, including the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim."],
+    2: ["Club Funding Requests", "club-budget-chart", "Summarize the funding requests, identifying the largest and smallest requests and the relationship between the total requested and available budget.", "A student claims that fully funding the two smallest requests would keep spending within the available budget. Evaluate the claim using values from the chart."],
     3: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that claim."],
   },
 };
@@ -2686,7 +2688,7 @@ const G68_OPINION_BLOCKS = {
       addedQuestion("What concern does the student acknowledge?", "Higher cost and possible waste", "A shortage of tables", "A lack of student interest in lunch"),
       addedQuestion("Why does the student propose a pilot?", "To collect evidence before expanding", "To avoid tracking sales", "To remove fresh food after one day"),
     ]],
-    ["The Do-It-Yourself Movement", "A student argues that schools should offer a supervised repair workshop. Learning to mend clothing or fix a bicycle can save money, reduce waste, and build confidence. Critics reasonably worry that some tools and electrical repairs are unsafe for beginners. The student therefore proposes limiting projects to low-risk repairs, requiring safety instruction, and having an adult approve every project.", [
+    ["The Do-It-Yourself Movement", "A student argues that schools should offer a supervised repair workshop. Learning to mend clothing or fix a bicycle can save money, reduce waste, and build confidence. Critics reasonably worry that some tools and electrical repairs are unsafe for beginners. The student therefore proposes limiting projects to low-risk repairs, requiring safety instruction, and having an adult approve every project. This approach keeps useful practice while treating safety as a condition, not an afterthought.", [
       addedQuestion("What program does the student support?", "A supervised repair workshop", "A ban on student projects", "A required electrical job"),
       addedQuestion("Which benefit is offered?", "Repair skills can reduce waste", "Repairs make products wear out faster", "Tools remove the need for instruction"),
       addedQuestion("What counterargument is acknowledged?", "Some repairs may be unsafe", "Students already know every repair", "Schools have no broken items"),
@@ -2694,7 +2696,7 @@ const G68_OPINION_BLOCKS = {
     ]],
   ],
   2: [
-    ["Sleep and Memory", "A student argues that middle schools should begin slightly later. Research discussed in class shows that sleep supports attention and memory, while many adolescents do not get enough rest. A later start could complicate bus schedules and sports. The student proposes a one-semester pilot at two schools, with attendance, grades, and transportation problems measured before any districtwide decision.", [
+    ["Sleep and Memory", "A student argues that middle schools should begin slightly later. Research discussed in class shows that sleep supports attention and memory, while many adolescents do not get enough rest. A later start could complicate bus schedules and sports. The student proposes a one-semester pilot at two schools, with attendance, grades, and transportation problems measured before any districtwide decision. The evidence would show whether better rest produces meaningful academic gains.", [
       addedQuestion("What change does the student support?", "A slightly later school start", "A shorter school year", "Eliminating after-school sports"),
       addedQuestion("What evidence supports the proposal?", "Sleep supports attention and memory", "Students never feel tired", "Bus schedules are simple"),
       addedQuestion("What difficulty is acknowledged?", "Transportation and activity schedules", "A lack of classrooms", "The absence of teachers"),
@@ -3212,8 +3214,8 @@ function Scene({ name, displayHeight }) {
 
 const C = {
   ink:"#14201c", paper:"#f3f0e7", card:"#fbfaf5", moss:"#3a6b4f",
-  mossSoft:"#dfe9df", clay:"#c2603f", claySoft:"#f0ddd2", line:"#d9d4c4",
-  mute:"#6f7a6f", gold:"#a98b2d", goldSoft:"#ece3c8",
+  mossSoft:"#dfe9df", clay:"#a6432d", claySoft:"#f0ddd2", line:"#d9d4c4",
+  mute:"#536158", gold:"#765f18", goldSoft:"#ece3c8",
 };
 
 const SPANS = [
@@ -3226,12 +3228,6 @@ const SPANS = [
   { id:"g1112", label:"Grades 11–12" },
 ];
 
-const DOMAINS = [
-  { id:"listening", label:"Listening" },
-  { id:"speaking", label:"Speaking" },
-  { id:"reading", label:"Reading" },
-  { id:"writing", label:"Writing" },
-];
 
 const SETS = [ {id:1, live:true}, {id:2, live:true}, {id:3, live:true} ];
 
@@ -3385,6 +3381,24 @@ async function storeList(prefix) {
   return Array.from(keys).filter((key) => key.startsWith(prefix));
 }
 
+async function storeRemovePrefix(prefix) {
+  const keys = await storeList(prefix);
+  await Promise.all(keys.map((key) => storeRemove(key)));
+}
+
+function audioExtension(mimeType = "") {
+  const normalized = String(mimeType).toLowerCase();
+  if (normalized.includes("mp4") || normalized.includes("m4a")) return "m4a";
+  if (normalized.includes("ogg")) return "ogg";
+  if (normalized.includes("wav")) return "wav";
+  return "webm";
+}
+
+function safeDownloadName(value) {
+  return String(value || "response").trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "response";
+}
+
 const progressKey = (id, span, setNum, domain) =>
   "progress:" + id + ":" + span + ":" + setNum + ":" + domain;
 const slug = (name) => name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -3413,7 +3427,7 @@ function pickVoice() {
 }
 
 function speak(text, { onEnd, onStart } = {}) {
-  if (!ttsAvailable) { onEnd && onEnd(); return null; }
+  if (!ttsAvailable) { if (onEnd) onEnd(); return null; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\n+/g, ". "));
   u.rate = 0.92; u.pitch = 1;
@@ -3542,7 +3556,7 @@ function SignIn({ onSignedIn }) {
     <div style={{ maxWidth: 460, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 22 }}>
         <div style={{ fontSize: 12, letterSpacing: 3, textTransform: "uppercase", color: C.moss,
-          fontFamily: "ui-monospace, monospace" }}>ELPAC-aligned practice</div>
+          fontFamily: "ui-monospace, monospace" }}>ELPAC task-type practice</div>
         <div style={{ fontSize: 27, fontWeight: 700, marginTop: 4 }}>The Practice Hub</div>
       </div>
       <div style={{ ...examPane, padding: "22px 20px" }}>
@@ -3763,24 +3777,33 @@ export default function App() {
     const ts = Date.now();
     let items = payload.items || null;
     const copiedDraftKeys = [];
+    const copiedHistoryKeys = [];
 
     // Keep audio as Blob data in IndexedDB. The history record stores only a
-    // local key, so recordings never leave this browser or bloat its JSON.
+    // stable local key, so recordings never leave this browser or bloat its JSON.
     if (dom === "speaking" && Array.isArray(items)) {
-      items = await Promise.all(items.map(async (item, index) => {
-        const response = item?.response;
-        if (!response?.audioKey) return item;
-        try {
+      try {
+        const historyItems = [];
+        for (let index = 0; index < items.length; index += 1) {
+          const item = items[index];
+          const response = item?.response;
+          if (!response?.audioKey) {
+            historyItems.push(item);
+            continue;
+          }
           const blob = await idbRead(response.audioKey);
-          if (!(blob instanceof Blob)) return item;
+          if (!(blob instanceof Blob)) throw new Error("Recording data is unavailable");
           const audioKey = historyRecordingKey(user.id, ts, index);
           await idbWrite(audioKey, blob);
           copiedDraftKeys.push(response.audioKey);
-          return { ...item, response: { ...response, audioKey, audio: undefined } };
-        } catch {
-          return item;
+          copiedHistoryKeys.push(audioKey);
+          historyItems.push({ ...item, response: { ...response, audioKey, audio: undefined } });
         }
-      }));
+        items = historyItems;
+      } catch {
+        await Promise.all(copiedHistoryKeys.map((key) => idbRemove(key).catch(() => {})));
+        return false;
+      }
     }
 
     const record = {
@@ -3789,7 +3812,10 @@ export default function App() {
       items,
     };
     const saved = await storeSet(attemptKey(user.id, ts), JSON.stringify(record));
-    if (!saved) return false;
+    if (!saved) {
+      await Promise.all(copiedHistoryKeys.map((key) => idbRemove(key).catch(() => {})));
+      return false;
+    }
     await Promise.all(copiedDraftKeys.map((key) => idbRemove(key).catch(() => {})));
     await storeRemove(progressKey(user.id, span, setNum, dom));
     return true;
@@ -3864,7 +3890,7 @@ function TopBar({ user, onHome, activePanel, onProgress, onSignOut }) {
       <button onClick={onHome} style={{ background:"none", border:"none", cursor:"pointer",
         textAlign:"left", padding:0, fontFamily:"inherit" }}>
         <div style={{ fontSize:12, letterSpacing:3, textTransform:"uppercase", color:C.moss,
-          fontFamily:"ui-monospace, monospace" }}>ELPAC-aligned practice</div>
+          fontFamily:"ui-monospace, monospace" }}>ELPAC task-type practice</div>
         <div style={{ fontSize:24, fontWeight:700, marginTop:2, color:C.ink }}>The Practice Hub</div>
       </button>
       <nav aria-label="Student tools" style={{ display:"flex", alignItems:"center", gap:8,
@@ -3890,765 +3916,6 @@ function TopBar({ user, onHome, activePanel, onProgress, onSignOut }) {
   );
 }
 
-const READING_SET_2_ADVANCED_VOCAB = [
-  ["photosynthesis", "The process plants use to make food from light, water, and carbon dioxide."],
-  ["chlorophyll", "The green pigment in plants that absorbs light."],
-  ["glucose", "A simple sugar that plants make and use for energy."],
-  ["carbon dioxide", "A gas used by plants during photosynthesis."],
-  ["literacy", "The ability to read and write."],
-  ["permit", "An official document that gives permission."],
-  ["application", "A formal request for something, often made in writing."],
-  ["tutoring", "Extra instruction given to help someone learn."],
-  ["margin", "The blank space around the edge of a page."],
-  ["intensely", "With great focus, strength, or effort."],
-  ["argument", "A claim supported by reasons and evidence."],
-  ["benefit", "A helpful result or advantage."],
-];
-
-const READING_SET_3_ADVANCED_VOCAB = [
-  ["globalization", "The growing connection of people, trade, and ideas around the world."],
-  ["merchant", "A person who buys and sells goods."],
-  ["gunpowder", "An explosive powder historically used in weapons and fireworks."],
-  ["pigment", "A substance that gives color to something."],
-  ["recycling", "Processing used materials so they can be used again."],
-  ["fountain", "A device or structure that supplies or sprays water."],
-  ["physics", "The study of matter, energy, motion, and forces."],
-  ["disease", "An illness that affects a person, animal, or plant."],
-  ["route", "A path used to travel from one place to another."],
-  ["assigned", "Given as a task or responsibility."],
-  ["overflow", "To spill over the edge because something is too full."],
-  ["visible", "Able to be seen."],
-];
-
-const READING_VOCAB = {
-  g35: {
-    1: [
-      ["astronaut", "A person trained to travel and work in space."],
-      ["engineering", "Using science and math to design or build things."],
-      ["bacteria", "Very small living organisms; some can cause illness."],
-      ["shelter", "A place that protects people or animals."],
-      ["adopted", "Took an animal or child into a new home or family."],
-      ["optional", "Available by choice; not required."],
-      ["overlap", "To partly cover or happen at the same time as something else."],
-      ["country", "A nation with its own land and government."],
-      ["medicine", "A substance or treatment used to prevent or treat illness."],
-      ["floating", "Staying on or near the surface without sinking."],
-      ["chapter", "One main section of a book."],
-      ["pinecone", "The seed-bearing cone of a pine tree."],
-    ],
-    2: [
-      ["recycling", "Processing used materials so they can be used again."],
-      ["satellite", "An object that moves around a planet or other body in space."],
-      ["coastline", "The land along the edge of an ocean or sea."],
-      ["mapmaker", "A person who creates maps."],
-      ["traveler", "A person who goes from one place to another."],
-      ["impossible", "Not able to happen or be done."],
-      ["photograph", "A picture made with a camera."],
-      ["bridge", "A structure built over a road, river, or other obstacle."],
-      ["cafeteria", "A place where people choose and eat prepared food."],
-      ["offer", "To say that you are willing to give or do something."],
-      ["seaweed", "A plant-like organism that grows in the sea."],
-      ["favorite", "Liked more than the others."],
-    ],
-    3: [
-      ["graphite", "A soft, dark form of carbon used in pencils."],
-      ["chocolate", "A food made from cacao beans."],
-      ["freezing", "At or below the temperature where water becomes ice."],
-      ["stained", "Marked or colored by something difficult to remove."],
-      ["announce", "To make information publicly known."],
-      ["balance", "To keep steady without falling."],
-      ["ancient", "Belonging to a time long ago."],
-      ["accident", "An unexpected event that causes damage or injury."],
-      ["return", "To go or come back."],
-      ["practice", "Repeated work done to improve a skill."],
-      ["period", "A length or section of time."],
-      ["fastest", "Moving or happening more quickly than all others."],
-    ],
-  },
-  g68: {
-    1: [
-      ["cochlea", "The spiral-shaped part of the inner ear that helps people hear."],
-      ["orbital", "Related to the curved path of an object around another object."],
-      ["astronomer", "A scientist who studies space, stars, and planets."],
-      ["applied", "Put into use for a practical purpose."],
-      ["elective", "A class that a student chooses rather than being required to take."],
-      ["definition", "A statement explaining the meaning of a word or idea."],
-      ["discovery", "Something learned or found for the first time."],
-      ["expensive", "Costing a lot of money."],
-      ["signal", "A sound, action, or sign that communicates information."],
-      ["object", "A thing that can be seen or touched."],
-      ["consider", "To think carefully about something."],
-      ["relationship", "The way two or more people or things are connected."],
-    ],
-    2: [
-      ["Gutenberg", "Johannes Gutenberg, who developed a movable-type printing system in Europe."],
-      ["literacy", "The ability to read and write."],
-      ["interpretation", "An explanation of the meaning of something."],
-      ["authority", "The power or right to control, decide, or command."],
-      ["sequoia", "A type of extremely large and long-lived tree."],
-      ["engineer", "A person who designs or builds machines and structures."],
-      ["damper", "A device that reduces movement or vibration."],
-      ["frequency", "The number of times something happens in a certain period."],
-      ["flammable", "Able to catch fire easily."],
-      ["emergency", "A dangerous situation requiring immediate action."],
-      ["modify", "To change something, usually to improve it."],
-      ["evidence", "Facts or details that support an idea or conclusion."],
-    ],
-    3: [
-      ["aqueduct", "A structure or channel built to carry water."],
-      ["chlorophyll", "The green pigment in plants that absorbs light."],
-      ["pigment", "A substance that gives color to something."],
-      ["exhausted", "Extremely tired."],
-      ["researcher", "A person who studies a subject to discover information."],
-      ["schedule", "A plan showing when activities will happen."],
-      ["gravity", "The force that pulls objects toward Earth or another body."],
-      ["navigation", "The process of finding and following a route."],
-      ["lighthouse", "A tower with a bright light that guides ships."],
-      ["keeper", "A person responsible for caring for or protecting something."],
-      ["biology", "The study of living things."],
-      ["channel", "A passage through which water or information can move."],
-    ],
-  },
-  g910: {
-    1: [
-      ["glacier", "A large, slow-moving mass of ice."],
-      ["gravity", "The force that pulls objects toward Earth or another body."],
-      ["velocity", "Speed in a particular direction."],
-      ["mandatory", "Required by a rule or law."],
-      ["charity", "Help or resources given to people in need."],
-      ["dependence", "The state of needing someone or something for support."],
-      ["fortune", "A very large amount of wealth."],
-      ["abandoned", "Left behind or given up."],
-      ["terminal", "A station where a journey begins or ends."],
-      ["creative", "Able to produce original ideas or work."],
-      ["balance", "A state in which different forces or needs are equal."],
-      ["downhill", "Toward the bottom of a slope."],
-    ],
-    2: READING_SET_2_ADVANCED_VOCAB,
-    3: READING_SET_3_ADVANCED_VOCAB,
-  },
-  g1112: {
-    1: [
-      ["zero-trust", "A security approach that verifies every user and device before allowing access."],
-      ["security", "Protection against danger, damage, or unauthorized access."],
-      ["restoration", "The process of returning something damaged to a better condition."],
-      ["current", "A continuous movement of water or air in one direction."],
-      ["nursery", "A protected place where young plants or animals grow."],
-      ["barrier", "Something that blocks movement, access, or progress."],
-      ["adapt", "To change in order to fit new conditions."],
-      ["eliminate", "To remove or get rid of something."],
-      ["telescope", "An instrument used to view distant objects."],
-      ["fragment", "A small broken or separated piece."],
-      ["password", "A secret set of characters used to enter an account."],
-      ["account", "A record or identity that allows someone to use a service."],
-    ],
-    2: READING_SET_2_ADVANCED_VOCAB,
-    3: READING_SET_3_ADVANCED_VOCAB,
-  },
-};
-
-// California's ELD standards formally distinguish general academic and
-// domain-specific vocabulary. "Everyday" is included here only as a study
-// support category; the familiar Tier 1/2/3 labels are not ELPAC score bands.
-const EVERYDAY_SUPPORT_WORDS = new Set([
-  "shelter", "country", "medicine", "floating", "chapter", "traveler",
-  "impossible", "photograph", "bridge", "cafeteria", "offer", "favorite",
-  "chocolate", "freezing", "stained", "announce", "balance", "ancient",
-  "accident", "return", "practice", "period", "fastest", "expensive",
-  "signal", "object", "consider", "relationship", "exhausted", "schedule",
-  "keeper", "channel", "downhill", "password", "account", "merchant",
-  "disease", "route", "assigned", "overflow", "visible", "fountain",
-]);
-
-const DOMAIN_SPECIFIC_WORDS = new Set([
-  "astronaut", "engineering", "bacteria", "pinecone", "recycling",
-  "satellite", "coastline", "mapmaker", "seaweed", "graphite", "cochlea",
-  "orbital", "astronomer", "Gutenberg", "sequoia", "engineer", "damper",
-  "flammable", "aqueduct", "chlorophyll", "pigment", "gravity", "navigation",
-  "lighthouse", "biology", "glacier", "velocity", "zero-trust", "telescope",
-  "photosynthesis", "glucose", "carbon dioxide", "globalization", "gunpowder",
-  "physics",
-]);
-
-const VOCAB_TYPES = {
-  all: { label: "All words", short: "All" },
-  everyday: { label: "Everyday support", short: "Everyday", tier: "Tier 1 study support" },
-  academic: { label: "General academic", short: "Academic", tier: "Tier 2 study term" },
-  domain: { label: "Domain-specific", short: "Subject", tier: "Tier 3 study term" },
-};
-
-const ELD_STUDY_LEVELS = {
-  emerging: {
-    label: "Emerging",
-    goal: "Learn a focused set of familiar academic and subject words.",
-    practice: "Say the word, then explain it in your own words.",
-  },
-  expanding: {
-    label: "Expanding",
-    goal: "Build a growing range and use words to add detail and precision.",
-    practice: "Use the word in a complete sentence that adds a clear detail.",
-  },
-  bridging: {
-    label: "Bridging",
-    goal: "Use a wide range accurately, including precise meanings and word forms.",
-    practice: "Use the word precisely, then give a synonym or related word form.",
-  },
-};
-
-function vocabularyType(word) {
-  if (DOMAIN_SPECIFIC_WORDS.has(word)) return "domain";
-  if (EVERYDAY_SUPPORT_WORDS.has(word)) return "everyday";
-  return "academic";
-}
-
-const VOCAB_BANDS = [
-  ["g35", "Grades 3–5"],
-  ["g68", "Grades 6–8"],
-  ["g910", "Grades 9–10"],
-  ["g1112", "Grades 11–12"],
-];
-
-// Classroom-ready selections adapted from openly reusable vocabulary resources:
-// New Dolch List / NGSL (foundational), NAWL (academic), and CEFR-J (leveling).
-// These groupings are instructional recommendations, not official ELPAC lists.
-const OPEN_VOCABULARY = {
-  g35: {
-    emerging: [
-      "answer", "begin", "carry", "choose", "complete", "different",
-      "example", "follow", "happen", "important", "learn", "listen",
-      "notice", "picture", "question", "remember", "sentence", "understand",
-    ],
-    expanding: [
-      "compare", "describe", "detail", "explain", "idea", "include",
-      "information", "main", "meaning", "organize", "paragraph", "predict",
-      "reason", "result", "sequence", "similar", "subject", "support",
-    ],
-    bridging: [
-      "analyze", "category", "conclude", "context", "contrast", "determine",
-      "evidence", "identify", "infer", "influence", "method", "process",
-      "purpose", "relationship", "respond", "structure", "summarize", "topic",
-    ],
-  },
-  g68: {
-    emerging: [
-      "achieve", "allow", "cause", "change", "common", "create",
-      "decide", "develop", "effect", "energy", "environment", "increase",
-      "measure", "reduce", "require", "resource", "solution", "system",
-    ],
-    expanding: [
-      "adapt", "approach", "assess", "benefit", "challenge", "classify",
-      "concept", "consequence", "contribute", "data", "establish", "factor",
-      "function", "interpret", "pattern", "principle", "significant", "vary",
-    ],
-    bridging: [
-      "alternative", "assume", "complex", "demonstrate", "derive", "distribute",
-      "evaluate", "formulate", "indicate", "maintain", "occur", "perspective",
-      "relevant", "role", "specific", "theory", "transfer", "variable",
-    ],
-  },
-  g910: {
-    emerging: [
-      "accurate", "analyze", "argument", "available", "communicate", "compare",
-      "consider", "define", "evidence", "focus", "identify", "interpret",
-      "issue", "method", "occur", "process", "research", "source",
-    ],
-    expanding: [
-      "assess", "assume", "category", "concept", "consist", "context",
-      "contrast", "derive", "establish", "factor", "indicate", "principle",
-      "require", "respond", "significant", "structure", "valid", "vary",
-    ],
-    bridging: [
-      "abstract", "advocate", "coherent", "comprehensive", "criterion", "empirical",
-      "framework", "implication", "inherent", "justify", "methodology", "objective",
-      "perspective", "precise", "synthesize", "theoretical", "validate", "variable",
-    ],
-  },
-  g1112: {
-    emerging: [
-      "analyze", "approach", "assess", "concept", "context", "data",
-      "define", "establish", "evidence", "factor", "identify", "indicate",
-      "interpret", "method", "principle", "process", "significant", "structure",
-    ],
-    expanding: [
-      "abstract", "coherent", "comprehensive", "derive", "distribute", "evaluate",
-      "formulate", "framework", "implication", "infer", "justify", "maintain",
-      "objective", "perspective", "relevant", "require", "synthesize", "variable",
-    ],
-    bridging: [
-      "advocate", "ambiguous", "correlate", "criterion", "empirical", "explicit",
-      "facilitate", "hypothesis", "inherent", "integrate", "methodology", "nuance",
-      "phenomenon", "predominant", "refine", "theoretical", "validate", "viable",
-    ],
-  },
-};
-
-function VocabularyPanel({ onBack }) {
-  const [band, setBand] = useState("g35");
-  const [level, setLevel] = useState("emerging");
-
-  const words = OPEN_VOCABULARY[band]?.[level] || [];
-
-  const bandLabel = VOCAB_BANDS.find(([id]) => id === band)?.[1] || "";
-  const levelLabel = ELD_STUDY_LEVELS[level]?.label || "";
-  const selectStyle = {
-    width:"100%", minHeight:42, padding:"9px 38px 9px 12px", borderRadius:4,
-    border:`1px solid ${C.line}`, background:C.card, color:C.ink,
-    fontFamily:"inherit", fontSize:13.5,
-  };
-
-  return (
-    <div>
-      <Back onClick={onBack} label="practice" />
-      <div style={{ marginBottom:16 }}>
-        <h2 style={{ fontSize:24, margin:"0 0 3px" }}>Vocabulary</h2>
-        <div style={{ fontSize:13.5, color:C.mute }}>Choose a grade and ELD level.</div>
-      </div>
-
-      <section aria-label="Vocabulary filters" style={{ ...examPane, padding:14, marginBottom:20 }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))",
-          gap:12, maxWidth:620 }}>
-          <label style={{ display:"grid", gap:6 }}>
-            <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-              letterSpacing:1.1, color:C.mute }}>GRADE</span>
-            <select value={band} onChange={(event) => setBand(event.target.value)} style={selectStyle}>
-              {VOCAB_BANDS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-            </select>
-          </label>
-          <label style={{ display:"grid", gap:6 }}>
-            <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-              letterSpacing:1.1, color:C.mute }}>ELD LEVEL</span>
-            <select value={level} onChange={(event) => setLevel(event.target.value)} style={selectStyle}>
-              {Object.entries(ELD_STUDY_LEVELS).map(([id, item]) => (
-                <option key={id} value={id}>{item.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <section aria-labelledby="vocab-words-heading">
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline",
-          gap:10, marginBottom:9, paddingBottom:7, borderBottom:"1px solid " + C.line }}>
-          <h3 id="vocab-words-heading" style={{ margin:0, fontSize:17 }}>
-            {bandLabel} · {levelLabel}
-          </h3>
-          <span style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
-            {words.length} words
-          </span>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(145px, 1fr))",
-          gap:8 }}>
-          {words.map((word) => (
-            <div key={word} style={{ ...examPane, padding:"13px 14px", fontSize:16,
-              fontWeight:700, background:C.card }}>{word}</div>
-          ))}
-        </div>
-      </section>
-
-      <p style={{ margin:"15px 0 0", fontSize:11.5, lineHeight:1.5, color:C.mute }}>
-        Adapted from the{" "}
-        <a href="https://www.newgeneralservicelist.com/" target="_blank" rel="noreferrer">NGSL, New Dolch, and NAWL</a>
-        {" "}open word lists and{" "}
-        <a href="https://github.com/openlanguageprofiles/olp-en-cefrj" target="_blank" rel="noreferrer">CEFR-J</a>.
-        {" "}These study groupings are not official ELPAC word lists.
-      </p>
-    </div>
-  );
-}
-
-function VocabularyPanelLegacy({ user, onBack }) {
-  const [band, setBand] = useState("g35");
-  const [studySet, setStudySet] = useState(1);
-  const [wordType, setWordType] = useState("all");
-  const [studyLevel, setStudyLevel] = useState("emerging");
-  const [studyMode, setStudyMode] = useState("cards");
-  const [cardIndex, setCardIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [recallAnswer, setRecallAnswer] = useState("");
-  const [recallChecked, setRecallChecked] = useState(false);
-  const [shuffledWords, setShuffledWords] = useState(null);
-  const [mastered, setMastered] = useState(null);
-  const [reviews, setReviews] = useState(null);
-  const storageKey = "reading-vocabulary:" + user.id;
-  const reviewStorageKey = "reading-vocabulary-reviews:" + user.id;
-
-  useEffect(() => {
-    (async () => {
-      const raw = await storeGet(storageKey);
-      if (!raw) return setMastered([]);
-      try { setMastered(JSON.parse(raw)); } catch { setMastered([]); }
-    })();
-  }, [storageKey]);
-
-  useEffect(() => {
-    (async () => {
-      const raw = await storeGet(reviewStorageKey);
-      if (!raw) return setReviews({});
-      try { setReviews(JSON.parse(raw)); } catch { setReviews({}); }
-    })();
-  }, [reviewStorageKey]);
-
-  useEffect(() => {
-    setCardIndex(0);
-    setRevealed(false);
-    setRecallAnswer("");
-    setRecallChecked(false);
-    setShuffledWords(null);
-  }, [band, studySet, wordType]);
-
-  useEffect(() => {
-    setWordType("all");
-  }, [band, studySet]);
-
-  const allWords = READING_VOCAB[band]?.[studySet] || [];
-  const availableTypes = new Set(allWords.map(([word]) => vocabularyType(word)));
-  const baseWords = wordType === "all"
-    ? allWords
-    : allWords.filter(([word]) => vocabularyType(word) === wordType);
-  const words = shuffledWords || baseWords;
-  const current = words[cardIndex] || ["", ""];
-  const currentType = vocabularyType(current[0]);
-  const masteredSet = new Set(mastered || []);
-  const currentId = band + ":" + studySet + ":" + current[0];
-  const learnedCount = allWords.filter(([word]) => masteredSet.has(band + ":" + studySet + ":" + word)).length;
-  const currentReview = reviews?.[currentId] || { intervalDays:0, reviews:0 };
-  const dueCount = allWords.filter(([word]) => {
-    const review = reviews?.[band + ":" + studySet + ":" + word];
-    return !review || !review.nextReview || review.nextReview <= Date.now();
-  }).length;
-  const visibleDueCount = baseWords.filter(([word]) => {
-    const review = reviews?.[band + ":" + studySet + ":" + word];
-    return !review || !review.nextReview || review.nextReview <= Date.now();
-  }).length;
-  const normalizedRecall = recallAnswer.trim().toLocaleLowerCase();
-  const recallCorrect = normalizedRecall === current[0].trim().toLocaleLowerCase();
-  const canRate = studyMode === "cards" ? revealed : recallChecked;
-
-  function moveCard(amount) {
-    setCardIndex((index) => (index + amount + words.length) % words.length);
-    setRevealed(false);
-    setRecallAnswer("");
-    setRecallChecked(false);
-  }
-
-  function shuffleCards() {
-    const next = [...baseWords];
-    for (let index = next.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-    }
-    setShuffledWords(next);
-    setCardIndex(0);
-    setRevealed(false);
-    setRecallAnswer("");
-    setRecallChecked(false);
-  }
-
-  function startDueReview() {
-    const now = Date.now();
-    const due = baseWords.filter(([word]) => {
-      const review = reviews?.[band + ":" + studySet + ":" + word];
-      return !review || !review.nextReview || review.nextReview <= now;
-    });
-    setShuffledWords(due.length ? due : baseWords);
-    setCardIndex(0);
-    setRevealed(false);
-    setRecallAnswer("");
-    setRecallChecked(false);
-  }
-
-  function speakCurrent() {
-    if (typeof window === "undefined" || !window.speechSynthesis || !current[0]) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(current[0]);
-    utterance.lang = "en-US";
-    utterance.rate = 0.82;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function reviewIntervals() {
-    const prior = currentReview.intervalDays || 0;
-    return {
-      again: 0,
-      hard: Math.max(1, Math.round(prior * 1.2)),
-      good: Math.max(3, Math.round(prior * 2.5)),
-      easy: Math.max(7, Math.round(prior * 4)),
-    };
-  }
-
-  async function rateCurrent(rating) {
-    if (!reviews || !mastered || !current[0]) return;
-    const intervals = reviewIntervals();
-    const intervalDays = intervals[rating];
-    const nextReviews = {
-      ...reviews,
-      [currentId]: {
-        rating,
-        intervalDays,
-        reviews:(currentReview.reviews || 0) + 1,
-        lastReviewed:Date.now(),
-        nextReview:Date.now() + intervalDays * 86400000,
-      },
-    };
-    let nextMastered = mastered;
-    if (rating === "good" || rating === "easy") {
-      if (!masteredSet.has(currentId)) nextMastered = [...mastered, currentId];
-    } else if (rating === "again" && masteredSet.has(currentId)) {
-      nextMastered = mastered.filter((item) => item !== currentId);
-    }
-    setReviews(nextReviews);
-    setMastered(nextMastered);
-    await Promise.all([
-      storeSet(reviewStorageKey, JSON.stringify(nextReviews)),
-      storeSet(storageKey, JSON.stringify(nextMastered)),
-    ]);
-    moveCard(1);
-  }
-
-  useEffect(() => {
-    function onStudyKeyDown(event) {
-      const tag = event.target?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select") return;
-      if (event.code === "Space" && studyMode === "cards") {
-        event.preventDefault();
-        if (revealed) rateCurrent("good");
-        else setRevealed(true);
-        return;
-      }
-      if (!canRate) return;
-      const rating = { "1":"again", "2":"hard", "3":"good", "4":"easy" }[event.key];
-      if (rating) rateCurrent(rating);
-    }
-    window.addEventListener("keydown", onStudyKeyDown);
-    return () => window.removeEventListener("keydown", onStudyKeyDown);
-  }, [studyMode, revealed, canRate, currentId, reviews, mastered, cardIndex, words.length]);
-
-  return (
-    <div>
-      <Back onClick={onBack} label="practice" />
-      <div style={{ display:"flex", justifyContent:"space-between", gap:14,
-        alignItems:"center", flexWrap:"wrap", marginBottom:12 }}>
-        <div>
-          <h2 style={{ fontSize:24, margin:"0 0 2px" }}>Vocabulary</h2>
-          <div style={{ fontSize:13, color:C.mute }}>Reading-set words organized for California ELD</div>
-        </div>
-        <div style={{ width:230 }}>
-          <div style={{ display:"flex", justifyContent:"space-between",
-            fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute, marginBottom:5 }}>
-            <span>set progress</span><span>{learnedCount}/{allWords.length} learned · {dueCount} due</span>
-          </div>
-          <div role="progressbar" aria-label="Vocabulary set progress" aria-valuemin="0"
-            aria-valuemax={allWords.length} aria-valuenow={learnedCount}
-            style={{ height:6, borderRadius:99, background:C.line, overflow:"hidden" }}>
-            <div style={{ width:(allWords.length ? learnedCount / allWords.length * 100 : 0) + "%",
-              height:"100%", background:C.moss, transition:"width .2s ease" }} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display:"flex", justifyContent:"space-between", gap:10,
-        flexWrap:"wrap", marginBottom:12 }}>
-        <div role="tablist" aria-label="Vocabulary grade bands" style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-          {VOCAB_BANDS.map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={band === id} onClick={() => setBand(id)}
-              style={{ ...ghostBtn, fontSize:11.5, color:band === id ? "#fff" : C.mute,
-                background:band === id ? C.moss : "transparent",
-                borderColor:band === id ? C.moss : C.line }}>{label}</button>
-          ))}
-        </div>
-        <div role="tablist" aria-label="Reading practice sets" style={{ display:"flex", gap:6 }}>
-          {[1, 2, 3].map((number) => (
-            <button key={number} role="tab" aria-selected={studySet === number}
-              onClick={() => setStudySet(number)}
-              style={{ ...ghostBtn, fontSize:11.5, color:studySet === number ? "#fff" : C.mute,
-                background:studySet === number ? C.ink : "transparent",
-                borderColor:studySet === number ? C.ink : C.line }}>Set {number}</button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ ...examPane, padding:"10px 12px", marginBottom:12,
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        gap:12, flexWrap:"wrap" }}>
-        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-          <label style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
-            ELD LEVEL{" "}
-            <select value={studyLevel} onChange={(event) => setStudyLevel(event.target.value)}
-              style={{ ...ghostBtn, padding:"5px 8px", marginLeft:4, background:C.card, color:C.ink }}>
-              {Object.entries(ELD_STUDY_LEVELS).map(([id, level]) => (
-                <option key={id} value={id}>{level.label}</option>
-              ))}
-            </select>
-          </label>
-          <label style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5, color:C.mute }}>
-            WORD TYPE{" "}
-            <select value={wordType} onChange={(event) => setWordType(event.target.value)}
-              style={{ ...ghostBtn, padding:"5px 8px", marginLeft:4, background:C.card, color:C.ink }}>
-              {Object.entries(VOCAB_TYPES).map(([id, type]) => (
-                <option key={id} value={id} disabled={id !== "all" && !availableTypes.has(id)}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div style={{ maxWidth:420, fontSize:12.5, lineHeight:1.4, color:C.mute }}>
-          {ELD_STUDY_LEVELS[studyLevel].goal}
-        </div>
-      </div>
-
-      {mastered == null || reviews == null ? (
-        <div style={{ ...examPane, color:C.mute }}>Loading vocabulary progress…</div>
-      ) : (
-        <div style={{ maxWidth:680, margin:"0 auto" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-            gap:8, flexWrap:"wrap", marginBottom:8 }}>
-            <div role="tablist" aria-label="Vocabulary study mode" style={{ display:"flex", gap:6 }}>
-              <button type="button" role="tab" aria-selected={studyMode === "cards"}
-                onClick={() => { setStudyMode("cards"); setRevealed(false); setRecallChecked(false); }}
-                style={{ ...ghostBtn, fontSize:11.5, color:studyMode === "cards" ? "#fff" : C.mute,
-                  background:studyMode === "cards" ? C.ink : "transparent",
-                  borderColor:studyMode === "cards" ? C.ink : C.line }}>Flashcards</button>
-              <button type="button" role="tab" aria-selected={studyMode === "recall"}
-                onClick={() => { setStudyMode("recall"); setRevealed(false); setRecallAnswer(""); setRecallChecked(false); }}
-                style={{ ...ghostBtn, fontSize:11.5, color:studyMode === "recall" ? "#fff" : C.mute,
-                  background:studyMode === "recall" ? C.ink : "transparent",
-                  borderColor:studyMode === "recall" ? C.ink : C.line }}>Write answer</button>
-            </div>
-            <div style={{ display:"flex", gap:6 }}>
-              <button type="button" onClick={startDueReview} style={{ ...ghostBtn, fontSize:11.5,
-                color:visibleDueCount ? C.moss : C.mute }}>Review due ({visibleDueCount})</button>
-              <button type="button" onClick={shuffleCards} style={{ ...ghostBtn, fontSize:11.5 }}>Shuffle</button>
-              <button type="button" onClick={speakCurrent} style={{ ...ghostBtn, fontSize:11.5 }}
-                aria-label={"Hear " + current[0]}>Hear word</button>
-            </div>
-          </div>
-          <button type="button" onClick={() => setRevealed((value) => !value)}
-            aria-label={revealed ? "Hide definition" : "Reveal definition"}
-            aria-hidden={studyMode !== "cards"} tabIndex={studyMode === "cards" ? 0 : -1}
-            style={{ ...examPane, width:"100%", minHeight:260, cursor:"pointer", fontFamily:"inherit",
-              display:studyMode === "cards" ? "grid" : "none", placeItems:"center", textAlign:"center", padding:"32px 24px",
-              borderColor:masteredSet.has(currentId) ? C.moss : C.line,
-              background:masteredSet.has(currentId) ? C.mossSoft : C.card }}>
-            <div>
-              <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-                letterSpacing:1.4, textTransform:"uppercase", color:C.mute, marginBottom:18 }}>
-                Reading Set {studySet} · {cardIndex + 1} of {words.length}
-              </div>
-              <div style={{ display:"inline-flex", gap:7, alignItems:"center", marginBottom:12,
-                padding:"4px 8px", border:"1px solid " + C.line, borderRadius:99,
-                fontFamily:"ui-monospace, monospace", fontSize:10, color:C.moss,
-                textTransform:"uppercase", letterSpacing:.7 }}>
-                <span>{VOCAB_TYPES[currentType].label}</span>
-                <span style={{ color:C.mute }}>· {VOCAB_TYPES[currentType].tier}</span>
-              </div>
-              <div style={{ fontSize:34, fontWeight:700, lineHeight:1.15 }}>{current[0]}</div>
-              <div style={{ marginTop:20, fontSize:revealed ? 17 : 12.5,
-                lineHeight:1.55, color:revealed ? C.ink : C.mute,
-                fontStyle:revealed ? "normal" : "italic" }}>
-                {revealed ? current[1] : "Click to reveal the definition"}
-              </div>
-              {revealed && (
-                <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid " + C.line,
-                  fontSize:12.5, lineHeight:1.45, color:C.mute }}>
-                  {ELD_STUDY_LEVELS[studyLevel].practice}
-                </div>
-              )}
-            </div>
-          </button>
-
-          {studyMode === "recall" && (
-            <form onSubmit={(event) => { event.preventDefault(); setRecallChecked(true); }}
-              style={{ ...examPane, minHeight:260, display:"grid", placeItems:"center",
-                textAlign:"center", padding:"28px 24px",
-                borderColor:recallChecked && recallCorrect ? C.moss : C.line,
-                background:recallChecked && recallCorrect ? C.mossSoft : C.card }}>
-              <div style={{ width:"100%", maxWidth:520 }}>
-                <div style={{ fontFamily:"ui-monospace, monospace", fontSize:10.5,
-                  letterSpacing:1.2, textTransform:"uppercase", color:C.mute, marginBottom:14 }}>
-                  Active recall · Reading Set {studySet} · {cardIndex + 1} of {words.length}
-                </div>
-                <div style={{ fontSize:18, lineHeight:1.55, marginBottom:18 }}>{current[1]}</div>
-                <label style={{ display:"block", fontFamily:"ui-monospace, monospace",
-                  fontSize:10.5, color:C.mute, textAlign:"left", marginBottom:6 }}>
-                  TYPE THE WORD
-                </label>
-                <div style={{ display:"flex", gap:8 }}>
-                  <input value={recallAnswer}
-                    onChange={(event) => { setRecallAnswer(event.target.value); setRecallChecked(false); }}
-                    autoCapitalize="none" autoComplete="off" spellCheck="false"
-                    aria-label="Type the vocabulary word"
-                    style={{ flex:1, minWidth:0, border:"1px solid " + C.line, borderRadius:4,
-                      background:C.paper, color:C.ink, padding:"10px 12px", fontFamily:"inherit",
-                      fontSize:16, outline:"none" }} />
-                  <button type="submit" disabled={!recallAnswer.trim()} style={{ ...smallPrimary,
-                    opacity:recallAnswer.trim() ? 1 : .45 }}>Check</button>
-                </div>
-                {recallChecked && (
-                  <div role="status" style={{ marginTop:14, fontSize:14,
-                    color:recallCorrect ? C.moss : C.rust }}>
-                    {recallCorrect ? "Correct." : <>Not quite. The word is <strong>{current[0]}</strong>.</>}
-                  </div>
-                )}
-              </div>
-            </form>
-          )}
-
-          {canRate ? (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, minmax(0, 1fr))",
-              gap:6, marginTop:10 }}>
-              {Object.entries({ again:"Again", hard:"Hard", good:"Good", easy:"Easy" }).map(([id, label]) => {
-                const interval = reviewIntervals()[id];
-                return (
-                  <button key={id} type="button" onClick={() => rateCurrent(id)}
-                    style={{ ...ghostBtn, padding:"8px 5px", color:id === "again" ? C.rust : C.moss,
-                      borderColor:id === "again" ? C.rust : C.line }}>
-                    <span style={{ display:"block", fontWeight:700 }}>{label}</span>
-                    <span style={{ display:"block", marginTop:2, fontFamily:"ui-monospace, monospace",
-                      fontSize:9.5, color:C.mute }}>{interval === 0 ? "later today" : interval + "d"}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ display:"flex", gap:8, marginTop:10, alignItems:"center" }}>
-              <button type="button" onClick={() => moveCard(-1)} style={{ ...ghostBtn, flex:1 }}>Previous</button>
-              <button type="button" onClick={() => studyMode === "cards" ? setRevealed(true) : setRecallChecked(true)}
-                disabled={studyMode === "recall" && !recallAnswer.trim()}
-                style={{ ...smallPrimary, flex:1.15,
-                  opacity:studyMode === "recall" && !recallAnswer.trim() ? .45 : 1 }}>
-                {studyMode === "cards" ? "Show answer" : "Check answer"}
-              </button>
-              <button type="button" onClick={() => moveCard(1)} style={{ ...ghostBtn, flex:1 }}>Next</button>
-            </div>
-          )}
-
-          <div aria-label="Vocabulary cards" style={{ display:"flex", justifyContent:"center",
-            gap:6, flexWrap:"wrap", marginTop:14 }}>
-            {words.map(([word], index) => {
-              const learned = masteredSet.has(band + ":" + studySet + ":" + word);
-              return (
-                <button key={word} type="button" onClick={() => {
-                    setCardIndex(index); setRevealed(false); setRecallAnswer(""); setRecallChecked(false);
-                  }}
-                  aria-label={"Open " + word} title={word}
-                  style={{ width:10, height:10, padding:0, borderRadius:99, cursor:"pointer",
-                    border:"1px solid " + (index === cardIndex ? C.ink : learned ? C.moss : C.line),
-                    background:index === cardIndex ? C.ink : learned ? C.moss : "transparent" }} />
-              );
-            })}
-          </div>
-        </div>
-      )}
-      <p style={{ textAlign:"center", fontFamily:"ui-monospace, monospace",
-        fontSize:10.5, color:C.mute, margin:"12px 0 0" }}>
-        Learned words are saved for {user.name} on this device. ELD levels describe growing
-        range and precision, not fixed word lists.
-      </p>
-    </div>
-  );
-}
-
 function SpanPick({ onPick }) {
   return (
     <div>
@@ -4670,6 +3937,9 @@ function SpanPick({ onPick }) {
           );
         })}
       </div>
+      <p style={{ fontSize:12.5, lineHeight:1.5, color:C.mute, margin:"14px 0 0" }}>
+        Independent practice resource. Not an official ELPAC test and not affiliated with or endorsed by CDE or ETS.
+      </p>
     </div>
   );
 }
@@ -4745,11 +4015,15 @@ function SetPick({ spanLabel, domain, onBack, onPick, user, span }) {
   }, [user.id, span, domain]);
 
   async function restart(st) {
+    const alsoDeletesRecordings = domain === "speaking";
     const confirmed = window.confirm(
-      `Restart Practice Set ${st.id}? Your saved progress for this ${dLabel.toLowerCase()} section will be deleted.`
+      `Restart Practice Set ${st.id}? Your saved progress${alsoDeletesRecordings ? " and draft recordings" : ""} for this ${dLabel.toLowerCase()} section will be deleted from this browser.`
     );
     if (!confirmed) return;
     await storeRemove(progressKey(user.id, span, st.id, domain));
+    if (alsoDeletesRecordings) {
+      await storeRemovePrefix(`recording:draft:${user.id}:${span}:${st.id}:`);
+    }
     setDrafts((prev) => {
       const next = { ...prev };
       delete next[st.id];
@@ -4765,8 +4039,8 @@ function SetPick({ spanLabel, domain, onBack, onPick, user, span }) {
       <Back onClick={onBack} label="skill areas" />
       <h2 style={{ fontSize:22, margin:"0 0 6px" }}>{spanLabel} · {dLabel}</h2>
       <p style={{ fontSize:14.5, color:C.mute, marginTop:0, marginBottom:16 }}>
-        Three full-length {dLabel.toLowerCase()} sections. Set 1 mirrors the official practice
-        test; Sets 2 and 3 are new content in the same format.
+        Three original {dLabel.toLowerCase()} practice sections modeled on official ELPAC task types.
+        This independent resource is not affiliated with or endorsed by CDE or ETS.
       </p>
       {draftSets.length > 0 && (
         <div style={{ ...examPane, marginBottom: 14 }}>
@@ -4832,7 +4106,7 @@ function useIsWide(breakpoint = 720) {
 }
 
 function ExamBar({ domainLabel, position, total, elapsed, showTime, onToggleTime,
-  onBack, onNext, canBack, canNext, nextLabel, onExit }) {
+  onBack, onNext, canBack, canNext, nextLabel, onExit, canExit = true }) {
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
   return (
@@ -4841,7 +4115,10 @@ function ExamBar({ domainLabel, position, total, elapsed, showTime, onToggleTime
       {/* row 1 — controls */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "8px 12px", background: C.paper, borderBottom: `1px solid ${C.line}` }}>
-        <button onClick={onExit} style={examBtn}>Suspend</button>
+        <button onClick={onExit} disabled={!canExit}
+          title={canExit ? "Save progress and leave" : "Stop the recording before leaving"}
+          style={{ ...examBtn, opacity: canExit ? 1 : 0.4,
+            cursor: canExit ? "pointer" : "not-allowed" }}>Suspend</button>
         <div style={{ display: "flex", gap: 6 }}>
           <button onClick={onBack} disabled={!canBack}
             style={{ ...examBtn, opacity: canBack ? 1 : 0.35,
@@ -4873,66 +4150,6 @@ function ExamBar({ domainLabel, position, total, elapsed, showTime, onToggleTime
     </div>
   );
 }
-
-// Small, deliberately scoped pilot for Grades 6-8, Practice Set 1, task 1.
-// Every word in the Pluto passage has a short, student-friendly meaning.
-const PILOT_PLUTO_DEFINITIONS = {
-  for: "During a length of time.",
-  "seventy-six": "The number 76.",
-  years: "Periods of twelve months.",
-  pluto: "A small world that travels around the sun beyond Neptune.",
-  was: "A past-tense form of be.",
-  called: "Given a name or description.",
-  the: "Points to a particular person, place, or thing.",
-  ninth: "Number nine in an order.",
-  planet: "A large, round object that travels around a star.",
-  then: "After that; at the next time.",
-  astronomers: "Scientists who study space, stars, and planets.",
-  began: "Started.", finding: "Discovering or noticing something.",
-  other: "Different or additional.", icy: "Covered with or made mostly of ice.",
-  bodies: "Objects in space, such as planets or moons.",
-  of: "Shows that things are connected or belong together.",
-  similar: "Almost the same, but not exactly the same.",
-  size: "How large or small something is.", in: "Inside a place, area, or group.",
-  same: "Not different.", distant: "Far away.",
-  region: "A particular area or part of a larger place.",
-  and: "Joins words or ideas together.",
-  they: "Refers to more than one person or thing.",
-  faced: "Had to deal with a situation or problem.",
-  a: "Refers to one person or thing that is not yet specific.",
-  choice: "A decision between two or more possibilities.",
-  call: "Give something a name or description.", all: "Every one of a group.",
-  them: "Refers to people or things already mentioned.",
-  planets: "More than one planet.", or: "Shows a choice between possibilities.",
-  write: "Create words or a statement.", clearer: "Easier to understand.",
-  definition: "A statement that explains what a word or idea means.",
-  agreed: "Had the same opinion or made the same decision.",
-  on: "Here, it means about or concerning something.",
-  has: "Owns, contains, or includes.", three: "The number 3.",
-  parts: "Pieces or sections of a whole.", must: "Is required to.",
-  orbit: "Travel around another object in space.",
-  sun: "The star at the center of our solar system.", be: "To exist or have a quality.",
-  round: "Shaped like a circle or ball.", have: "Own, contain, or include.",
-  cleared: "Removed other objects from an area.",
-  objects: "Things that can be seen or studied.",
-  out: "Away from the inside of a place or area.", its: "Belonging to it.",
-  orbital: "Related to an orbit around another object.",
-  path: "The route something follows as it moves.",
-  meets: "Satisfies or reaches a requirement.", first: "Number one in an order.",
-  two: "The number 2.", conditions: "Requirements that must be true.",
-  but: "Connects two ideas that contrast.", not: "Makes a statement negative.",
-  third: "Number three in an order.", since: "Here, it means because.",
-  it: "Refers to a thing already mentioned.",
-  shares: "Uses or has something together with others.",
-  neighborhood: "The area around a place; here, the nearby area in space.",
-  with: "Together or connected to.", many: "A large number of.",
-  reclassified: "Placed into a different official group or category.",
-  as: "In the role or category of.",
-  dwarf: "Smaller than the usual kind; a dwarf planet is a specific space category.",
-  which: "Refers back to an idea or thing just mentioned.", changed: "Became different.",
-  label: "A name used to identify or classify something.",
-  object: "A thing that can be seen or studied.",
-};
 
 function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, onExit }) {
   const isMC = domain === "listening" || domain === "reading";
@@ -4979,23 +4196,32 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
     }
   }
 
-  async function saveProgress() {
-    if (!user || stage !== "run") return;
-    const snapshot = {
+  const latestProgressRef = useRef(null);
+  useEffect(() => {
+    latestProgressRef.current = {
       bIdx, qIdx, answers, phase, responses, elapsed,
       heardBlocks: Array.from(heardBlocks),
       updatedAt: Date.now(),
     };
-    await storeSet(progressKey(user.id, span, setNum, domain), JSON.stringify(snapshot));
-  }
+  }, [bIdx, qIdx, answers, phase, responses, elapsed, heardBlocks]);
+
+  const saveProgress = useCallback(async () => {
+    if (!user || stage !== "run" || !latestProgressRef.current) return;
+    await storeSet(
+      progressKey(user.id, span, setNum, domain),
+      JSON.stringify(latestProgressRef.current)
+    );
+  }, [user, stage, span, setNum, domain]);
 
   useEffect(() => {
     saveProgress();
-  }, [bIdx, qIdx, answers, phase, responses, heardBlocks]);
+  }, [bIdx, qIdx, answers, phase, responses, heardBlocks, saveProgress]);
 
   useEffect(() => {
     if (elapsed % 10 === 0) saveProgress();
-  }, [elapsed]);
+  }, [elapsed, saveProgress]);
+
+  const stopAudioRef = useRef(null);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -5008,7 +4234,6 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
   const block = blocks[bIdx];
 
   // ---- listening audio control (real clip if available, else browser voice) ----
-  const stopAudioRef = useRef(null);
   function playAudio() {
     const playedBlock = bIdx;
     setPhase("playing");
@@ -5190,6 +4415,7 @@ function DomainRunner({ blocks, domain, user, setNum, span, resume, onFinish, on
         canBack={isMC ? (!listening || phase !== "playing") && (qIdx > 0 || bIdx > 0) : !!nav.canBack}
         canNext={isMC ? mcCanNext : !!nav.canNext}
         nextLabel={isMC ? mcNextLabel : nav.nextLabel}
+        canExit={isMC ? true : nav.canExit !== false}
         onExit={() => { stopSpeaking(); if (stopAudioRef.current) stopAudioRef.current(); onExit(); }}
       />
       <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, letterSpacing: 1.4,
@@ -5324,7 +4550,6 @@ function MCBlock({ block, listening, bIdx, qIdx, answers, onSelect, phase, wide 
 // with all options — the correct one marked, the student's wrong pick flagged.
 // Used both after submitting a section and when reopening a test from history.
 function MCReview({ blocks, answers, listening }) {
-  let n = 0;
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {blocks.map((block, bIdx) => (
@@ -5350,7 +4575,8 @@ function MCReview({ blocks, answers, listening }) {
           )}
 
           {block.qs.map((q, qIdx) => {
-            n += 1;
+            const questionNumber = blocks.slice(0, bIdx)
+              .reduce((total, item) => total + (item.qs?.length || 0), 0) + qIdx + 1;
             const picked = answers[`${bIdx}:${qIdx}`];
             const correct = picked === q.answer;
             const unanswered = picked === undefined;
@@ -5361,7 +4587,7 @@ function MCReview({ blocks, answers, listening }) {
                   <span style={{ fontFamily: "ui-monospace, monospace", fontSize: 12,
                     color: unanswered ? C.mute : correct ? C.moss : C.clay, fontWeight: 700,
                     minWidth: 30 }}>
-                    {unanswered ? "–" : correct ? "✓" : "✕"} {String(n).padStart(2, " ")}
+                    {unanswered ? "–" : correct ? "✓" : "✕"} {String(questionNumber).padStart(2, " ")}
                   </span>
                   <span style={{ fontSize: 14.5, fontWeight: 600, flex: 1 }}>{q.stem}</span>
                 </div>
@@ -5404,9 +4630,11 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
   const [val, setVal] = useState(() => initialResponse?.text || "");
   const wide = useIsWide();
   useEffect(() => {
-    setNav && setNav({ back: onBack, next: onDone,
-      canBack, canNext: !!val.trim(), nextLabel: "Next" });
-  }, [val, canBack]);
+    if (setNav) {
+      setNav({ back: onBack, next: onDone,
+        canBack, canNext: !!val.trim(), nextLabel: "Next" });
+    }
+  }, [val, canBack, onBack, onDone, setNav]);
 
   const answerPane = (
     <div style={{ ...examPane, flex: "1 1 320px", minWidth: 0,
@@ -5416,7 +4644,7 @@ function WriteBlock({ block, onDone, onBack, canBack, setNav, onResponse, initia
       <textarea value={val} onChange={(e) => {
         const next = e.target.value;
         setVal(next);
-        onResponse && onResponse({ type: "writing", text: next });
+        if (onResponse) onResponse({ type: "writing", text: next });
       }}
         placeholder="Type your response here." rows={block.minWords > 12 ? 8 : 4}
         style={{ ...textInput, resize: "vertical", flex: wide ? "1 1 auto" : undefined,
@@ -5458,6 +4686,8 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
     initialResponse?.audio || initialResponse?.audioKey ? "done" : "idle"
   );
   const [audioURL, setAudioURL] = useState(() => initialResponse?.audio || null);
+  const [recordingMeta, setRecordingMeta] = useState(() => initialResponse || null);
+  const [savedInitialResponse] = useState(() => initialResponse || null);
   const [errMsg, setErrMsg] = useState("");
   const [presentationState, setPresentationState] = useState(() =>
     !isSummary ? "not-needed"
@@ -5465,24 +4695,41 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
         ? "played" : "ready")
   );
   const recRef = useRef(null);
+  const streamRef = useRef(null);
   const chunksRef = useRef([]);
+  const ownedAudioURLRef = useRef(null);
   const stopPresentationRef = useRef(null);
 
+  function releaseOwnedAudioURL() {
+    if (ownedAudioURLRef.current) {
+      URL.revokeObjectURL(ownedAudioURLRef.current);
+      ownedAudioURLRef.current = null;
+    }
+  }
+
+  function stopMicrophoneTracks() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }
+
   useEffect(() => {
-    if (!initialResponse?.audioKey || initialResponse?.audio) return;
+    if (!savedInitialResponse?.audioKey || savedInitialResponse?.audio) return;
     let active = true;
     let localURL = null;
-    idbRead(initialResponse.audioKey).then((blob) => {
+    idbRead(savedInitialResponse.audioKey).then((blob) => {
       if (!active || !(blob instanceof Blob)) return;
       localURL = URL.createObjectURL(blob);
       setAudioURL(localURL);
+      setRecordingMeta(savedInitialResponse);
       setRecState("done");
     }).catch(() => {});
     return () => {
       active = false;
       if (localURL) URL.revokeObjectURL(localURL);
     };
-  }, [initialResponse?.audioKey, initialResponse?.audio]);
+  }, [savedInitialResponse]);
 
   function playPresentationOnce() {
     if (!isSummary || presentationState !== "ready" || !block.presentation) return;
@@ -5492,13 +4739,22 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       { onEnd: () => {
         stopPresentationRef.current = null;
         setPresentationState("played");
-        onResponse && onResponse({ type: "speaking", presentationPlayed: true });
+        if (onResponse) onResponse({ type: "speaking", presentationPlayed: true });
       } }
     );
   }
 
   useEffect(() => () => {
     if (stopPresentationRef.current) stopPresentationRef.current();
+    const recorder = recRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.ondataavailable = null;
+      recorder.onstop = null;
+      try { recorder.stop(); } catch {}
+    }
+    recRef.current = null;
+    stopMicrophoneTracks();
+    releaseOwnedAudioURL();
   }, []);
 
   async function start() {
@@ -5507,24 +4763,31 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       stopPresentationRef.current();
       stopPresentationRef.current = null;
     }
-    // Capability checks first — gives a precise reason instead of a generic failure.
     if (typeof navigator === "undefined" || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setErrMsg("This preview frame blocks microphone access. Open the app in its own browser tab (or the published version) to record. You can still practice aloud and continue.");
+      setErrMsg("This browser blocks microphone access here. Open the published app in its own tab to record. You can still practice aloud and continue.");
       setRecState("error"); return;
     }
     if (typeof MediaRecorder === "undefined") {
-      setErrMsg("Audio recording isn't supported in this browser. Practice aloud and continue.");
+      setErrMsg("Audio recording is not supported in this browser. Practice aloud and continue.");
       setRecState("error"); return;
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const rec = new MediaRecorder(stream);
       recRef.current = rec;
       chunksRef.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
       rec.onstop = async () => {
+        recRef.current = null;
+        stopMicrophoneTracks();
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
-        setAudioURL(URL.createObjectURL(blob));
+        releaseOwnedAudioURL();
+        const nextAudioURL = URL.createObjectURL(blob);
+        ownedAudioURLRef.current = nextAudioURL;
+        setAudioURL(nextAudioURL);
         let savedResponse;
         try {
           await idbWrite(recordingKey, blob);
@@ -5533,33 +4796,49 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
           const audioData = await blobToDataUrl(blob);
           savedResponse = { type: "speaking", audio: audioData, mimeType: blob.type };
         }
-        onResponse && onResponse({ ...savedResponse,
-          ...(isSummary ? { presentationPlayed: true } : {}) });
-        stream.getTracks().forEach((t) => t.stop());
+        const completeResponse = {
+          ...savedResponse,
+          ...(isSummary ? { presentationPlayed: true } : {}),
+        };
+        setRecordingMeta(completeResponse);
+        if (onResponse) onResponse(completeResponse);
         setRecState("done");
+      };
+      rec.onerror = () => {
+        recRef.current = null;
+        stopMicrophoneTracks();
+        setErrMsg("The recording stopped unexpectedly. Try the microphone again.");
+        setRecState("error");
       };
       rec.start();
       setRecState("recording");
     } catch (err) {
+      stopMicrophoneTracks();
       const name = err && err.name;
       if (name === "NotAllowedError" || name === "SecurityError") {
-        setErrMsg("Microphone permission was denied. Allow microphone access in your browser's address bar, then press Record again. (In this chat preview the mic is often blocked — open the app in its own tab to record.)");
+        setErrMsg("Microphone permission was denied. Allow microphone access in the browser address bar, then try again.");
       } else if (name === "NotFoundError") {
         setErrMsg("No microphone was found on this device. Practice aloud and continue.");
       } else {
-        setErrMsg("Microphone unavailable in this frame. Open the app in its own browser tab to record. You can still practice aloud and continue.");
+        setErrMsg("The microphone is unavailable here. Open the published app in its own browser tab to record.");
       }
       setRecState("error");
     }
   }
-  function stop() { if (recRef.current && recRef.current.state !== "inactive") recRef.current.stop(); }
+
+  function stop() {
+    if (recRef.current && recRef.current.state !== "inactive") recRef.current.stop();
+  }
 
   const wide = useIsWide();
   useEffect(() => {
-    setNav && setNav({ back: null, next: onDone,
-      canBack: false, canNext: recState !== "recording"
-        && (!isSummary || presentationState === "played"), nextLabel: "Next" });
-  }, [recState, isSummary, presentationState]);
+    if (setNav) {
+      setNav({ back: null, next: onDone,
+        canBack: false, canNext: recState !== "recording"
+          && (!isSummary || presentationState === "played"),
+        canExit: recState !== "recording", nextLabel: "Next" });
+    }
+  }, [recState, isSummary, presentationState, onDone, setNav]);
 
   const taskPane = (
     <div style={{ ...examPane, flex: "1 1 320px", minWidth: 0 }}>
@@ -5570,7 +4849,7 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       </div>
       <p style={{ fontSize:16.5, lineHeight:1.55, margin:"0 0 14px", fontWeight:600 }}>{block.prompt}</p>
       <div style={{ fontSize:13, color:C.mute, marginBottom:14 }}>
-        To score well: {block.checks.join(" · ")}
+        Include: {block.checks.join(" · ")}
       </div>
 
       {isSummary && (
@@ -5617,7 +4896,9 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
       {recState === "recording" && (
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <span style={{ width:12, height:12, borderRadius:99, background:C.clay, display:"inline-block" }} />
-          <span style={{ fontFamily:"ui-monospace, monospace", fontSize:13, color:C.clay }}>Recording…</span>
+          <span role="status" style={{ fontFamily:"ui-monospace, monospace", fontSize:13, color:C.clay }}>
+            Recording… stop before leaving this page.
+          </span>
           <button onClick={stop} style={smallPrimary}>■ Stop</button>
         </div>
       )}
@@ -5625,20 +4906,23 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
         <div>
           <audio controls src={audioURL} style={{ width:"100%", marginBottom:10 }} />
           <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-            <a href={audioURL} download={`speaking-${block.topic}.webm`}
+            <a href={audioURL}
+              download={`speaking-${safeDownloadName(block.topic)}.${audioExtension(recordingMeta?.mimeType)}`}
               style={{ ...ghostBtn, textDecoration:"none", padding:"9px 14px", display:"inline-block" }}>⤓ Save</a>
             <button onClick={async () => {
+              releaseOwnedAudioURL();
               setAudioURL(null);
+              setRecordingMeta(null);
               setRecState("idle");
               try { await idbRemove(recordingKey); } catch {}
-              onResponse && onResponse({ type: "speaking",
+              if (onResponse) onResponse({ type: "speaking",
                 ...(isSummary ? { presentationPlayed: true } : {}) });
             }}
               style={{ ...ghostBtn, padding:"9px 14px" }}>↺ Re-record</button>
           </div>
           <div style={{ fontSize:12.5, color:C.mute, marginTop:10 }}>
-            This recording is saved only in this browser on this device and is never uploaded.
-            You can also download a copy to keep or share with your teacher.
+            Saved only in this browser on this device; never uploaded by this app.
+            Download a copy before clearing browser data if you want to keep it.
           </div>
         </div>
       )}
@@ -5668,7 +4952,6 @@ function SpeakBlock({ block, onDone, setNav, onResponse, initialResponse, setNum
     </div>
   );
 }
-
 // Opens a saved attempt as a full test-review page. The questions live in the
 // app's banks; the attempt supplies the student's answers — so we rebuild the
 // whole test view and mark every question.
@@ -5729,7 +5012,7 @@ function AttemptReview({ attempt, onBack }) {
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ ...examPane, fontSize: 12.5, color: C.mute, fontStyle: "italic" }}>
             This attempt was taken on an older version of the test content, so the full
-            question view isn't available — showing the saved summary instead.
+            question view isn&apos;t available — showing the saved summary instead.
           </div>
           {items.map((it, i) => (
             <div key={i} style={{ ...examPane, padding: "10px 14px" }}>
@@ -5803,7 +5086,8 @@ function ProductionReview({ attempt, blocks }) {
               (response?.audioKey || audio) ? (
                 <div>
                   <LocalRecordingPlayer response={response} topic={topic} />
-                  {audio && <a href={audio} download={"speaking-" + topic + ".webm"}
+                  {audio && <a href={audio}
+                    download={`speaking-${safeDownloadName(topic)}.${audioExtension(response?.mimeType)}`}
                     style={{ ...ghostBtn, display: "inline-block", marginTop: 8, textDecoration: "none" }}>
                     ⤓ Save recording
                   </a>}
@@ -5828,20 +5112,30 @@ function ProductionReview({ attempt, blocks }) {
 function LocalRecordingPlayer({ response, topic }) {
   const legacyAudio = response && typeof response === "object" ? response.audio : null;
   const audioKey = response && typeof response === "object" ? response.audioKey : null;
-  const [src, setSrc] = useState(legacyAudio || null);
-  const [loading, setLoading] = useState(Boolean(audioKey && !legacyAudio));
+  const sourceId = audioKey || legacyAudio || null;
+  const [localRecording, setLocalRecording] = useState(() => ({
+    sourceId,
+    src: legacyAudio || null,
+    loading: Boolean(audioKey && !legacyAudio),
+  }));
+  const currentRecording = localRecording.sourceId === sourceId
+    ? localRecording
+    : { sourceId, src: legacyAudio || null, loading: Boolean(audioKey && !legacyAudio) };
+  const { src, loading } = currentRecording;
 
   useEffect(() => {
     if (!audioKey || legacyAudio) return;
     let active = true;
     let localURL = null;
-    setLoading(true);
     idbRead(audioKey).then((blob) => {
-      if (!active || !(blob instanceof Blob)) return;
+      if (!active || !(blob instanceof Blob)) {
+        if (active) setLocalRecording({ sourceId: audioKey, src: null, loading: false });
+        return;
+      }
       localURL = URL.createObjectURL(blob);
-      setSrc(localURL);
-    }).catch(() => {}).finally(() => {
-      if (active) setLoading(false);
+      setLocalRecording({ sourceId: audioKey, src: localURL, loading: false });
+    }).catch(() => {
+      if (active) setLocalRecording({ sourceId: audioKey, src: null, loading: false });
     });
     return () => {
       active = false;
@@ -5863,7 +5157,8 @@ function LocalRecordingPlayer({ response, topic }) {
     <div>
       <audio controls src={src} style={{ width: "100%" }} />
       {audioKey && (
-        <a href={src} download={"speaking-" + topic + ".webm"}
+        <a href={src}
+          download={`speaking-${safeDownloadName(topic)}.${audioExtension(response?.mimeType)}`}
           style={{ ...ghostBtn, display: "inline-block", marginTop: 8, textDecoration: "none" }}>
           Save recording
         </a>
@@ -5980,6 +5275,32 @@ function MePanel({ user, onBack }) {
   }, [user.id]);
 
   const DOM_LABEL = { listening: "Listening", reading: "Reading", speaking: "Speaking", writing: "Writing" };
+
+  async function deleteAttempt(attempt) {
+    const confirmed = window.confirm(
+      `Delete this ${DOM_LABEL[attempt.domain] || "practice"} section from local history? Any saved recordings in it will also be deleted. This cannot be undone.`
+    );
+    if (!confirmed) return;
+    const audioKeys = (attempt.items || []).map((item) => item?.response?.audioKey).filter(Boolean);
+    await Promise.all(audioKeys.map((key) => storeRemove(key)));
+    await storeRemove(attemptKey(user.id, attempt.ts));
+    setAttempts((current) => (current || []).filter((item) => item.ts !== attempt.ts));
+  }
+
+  async function clearHistory() {
+    if (!attempts?.length) return;
+    const confirmed = window.confirm(
+      `Delete all ${attempts.length} completed sections and their saved recordings for ${user.name} from this browser? This cannot be undone.`
+    );
+    if (!confirmed) return;
+    const audioKeys = attempts.flatMap((attempt) =>
+      (attempt.items || []).map((item) => item?.response?.audioKey).filter(Boolean)
+    );
+    await Promise.all(audioKeys.map((key) => storeRemove(key)));
+    await Promise.all(attempts.map((attempt) => storeRemove(attemptKey(user.id, attempt.ts))));
+    setAttempts([]);
+  }
+
   const fmtDate = (ts) => new Date(ts).toLocaleDateString(undefined,
     { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -6034,7 +5355,16 @@ function MePanel({ user, onBack }) {
         </div>
       )}
 
-      <div style={paneLabel}>Test history</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 10, marginBottom: 7 }}>
+        <div style={{ ...paneLabel, flex: 1, marginBottom: 0 }}>Test history</div>
+        {!!attempts?.length && (
+          <button type="button" onClick={clearHistory}
+            style={{ ...ghostBtn, color: C.clay, borderColor: C.clay, padding: "5px 9px" }}>
+            Clear history
+          </button>
+        )}
+      </div>
       {attempts == null ? (
         <div style={{ ...examPane, color: C.mute, fontStyle: "italic" }}>Loading your history…</div>
       ) : attempts.length === 0 ? (
@@ -6047,11 +5377,14 @@ function MePanel({ user, onBack }) {
             const hasItems = Array.isArray(a.items) && a.items.length > 0;
             const canReview = hasItems || a.domain === "writing" || a.domain === "speaking";
             return (
-              <div key={a.ts} style={examPane}>
+              <div key={a.ts} style={{ ...examPane, display: "flex", alignItems: "center",
+                gap: 10, padding: "13px 16px" }}>
                 <button onClick={() => canReview && setReview(a)}
+                  aria-label={`Review ${a.spanLabel} Set ${a.setNum} ${DOM_LABEL[a.domain]}`}
                   style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-                    width: "100%", background: "none", border: "none", cursor: canReview ? "pointer" : "default",
-                    padding: 0, fontFamily: "inherit", textAlign: "left" }}>
+                    flex: 1, minWidth: 0, background: "none", border: "none",
+                    cursor: canReview ? "pointer" : "default", padding: 0,
+                    fontFamily: "inherit", textAlign: "left" }}>
                   <span>
                     <span style={{ fontSize: 15, fontWeight: 600 }}>
                       {a.spanLabel} · Set {a.setNum} · {DOM_LABEL[a.domain]}
@@ -6063,6 +5396,12 @@ function MePanel({ user, onBack }) {
                     {a.correct != null ? `${a.correct}/${a.total}` : "done"}
                     {canReview && <span style={{ color: C.mute, marginLeft: 8 }}>view →</span>}
                   </span>
+                </button>
+                <button type="button" onClick={() => deleteAttempt(a)}
+                  aria-label={`Delete ${a.spanLabel} Set ${a.setNum} ${DOM_LABEL[a.domain]}`}
+                  title="Delete this local history item"
+                  style={{ ...ghostBtn, color: C.clay, borderColor: C.clay, padding: "5px 8px" }}>
+                  Delete
                 </button>
               </div>
             );
@@ -6115,9 +5454,6 @@ const ghostBtn = { background:"transparent", border:`1px solid ${C.line}`, color
   fontSize:12 };
 const meBtn = { background:"transparent", border:`1.5px solid ${C.line}`, borderRadius:99,
   padding:5, cursor:"pointer", display:"grid", placeItems:"center" };
-const optBtn = { textAlign:"left", padding:"12px 14px", borderRadius:9, border:"1.5px solid",
-  borderColor:C.line, fontSize:15, cursor:"pointer", fontFamily:"inherit", width:"100%",
-  color:C.ink, background:C.card };
 const textInput = { width:"100%", padding:"11px 13px", borderRadius:3,
   border:`1.5px solid ${C.line}`, fontSize:15, fontFamily:"inherit", background:C.card,
   color:C.ink, boxSizing:"border-box" };

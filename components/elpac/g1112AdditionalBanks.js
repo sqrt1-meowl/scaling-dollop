@@ -151,7 +151,7 @@ const set3 = {
       q("What is the purpose of a blank sample?", "To detect contamination from the process", "To increase the number of ocean locations", "To replace the study's real samples"),
       q("What does the final sentence emphasize?", "Methods must be considered when comparing results", "The largest count is always most credible", "Season and depth never affect a sample"),
     ]),
-    read("Read a Short Informational Passage", "Open-Source Licenses", "Open-source software makes its source code available, but that does not mean the code has no conditions. A license explains whether users may modify, redistribute, or combine the code with another project. Some licenses require modified versions to remain under the same open terms; others permit inclusion in proprietary products if attribution is provided. Developers must examine compatibility before combining components because two individually open licenses may impose conflicting requirements.", [
+    read("Read a Short Informational Passage", "Open-Source Licenses", "Open-source software makes its source code available, but that does not mean the code has no conditions. A license explains whether users may modify, redistribute, or combine the code with another project. Some licenses require modified versions to remain under the same open terms; others permit inclusion in proprietary products if attribution is provided. Developers must examine compatibility before combining components because two individually open licenses may impose conflicting requirements. A project may therefore be legally open yet still be unusable within a product whose distribution terms differ.", [
       q("What does an open-source license explain?", "Conditions for using and redistributing code", "How to hide all source code", "The price of every software product"),
       q("How can open-source licenses differ?", "They can impose different conditions on modified work", "Some prohibit users from reading code", "All require proprietary distribution"),
       q("Why should developers check compatibility?", "Open licenses can contain conflicting requirements", "Compatible code never needs attribution", "A single project cannot use components"),
@@ -184,7 +184,7 @@ const set3 = {
     ]),
   ],
   speaking: [
-    speak("Talk about a Scene (1 of 4)", "Community Proposal", "Look at the scene. Describe what is happening.", 1, ["Relevant description"], "g1112-community-presentation"),
+    speak("Talk about a Scene (1 of 4)", "Community Proposal", "Describe the proposal presentation and explain how the visual information supports the speaker.", 1, ["Presentation purpose", "Visual evidence"], "g1112-community-presentation"),
     speak("Talk about a Scene (2 of 4)", "Community Proposal", "Describe how the presenter and audience appear to be participating.", 1, ["Two roles", "Connected description"], "g1112-community-presentation"),
     speak("Talk about a Scene (3 of 4)", "Community Proposal", "What is one reasonable inference about the purpose of the presentation? Support it with visual evidence.", 2, ["Inference", "Evidence"], "g1112-community-presentation"),
     speak("Talk about a Scene (4 of 4)", "Community Proposal", "Describe a time you presented an idea and responded to a question or criticism.", 2, ["Relevant experience", "Response to feedback"], "g1112-community-presentation"),
