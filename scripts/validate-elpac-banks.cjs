@@ -102,6 +102,24 @@ const expectCounts = (actual, expected, label) => {
   }
 };
 
+const expectBalancedAnswers = (blocks, label) => {
+  const groups = new Map();
+  for (const block of blocks) {
+    for (const question of block.qs || []) {
+      const optionCount = question.options.length;
+      const counts = groups.get(optionCount) || Array(optionCount).fill(0);
+      counts[question.answer] += 1;
+      groups.set(optionCount, counts);
+    }
+  }
+  for (const [optionCount, counts] of groups) {
+    const spread = Math.max(...counts) - Math.min(...counts);
+    if (spread > 1) {
+      fail(`${label}: ${optionCount}-choice correct-answer positions are unbalanced (${counts.join("/")})`);
+    }
+  }
+};
+
 try {
   compile("g1112AdditionalBanks.js");
   compile("g1112Banks.js");
@@ -196,6 +214,8 @@ try {
           if (question.answer < 0 || question.answer >= question.options.length) fail(`${label} reading/${block.topic}: invalid answer index`);
         }
       }
+      expectBalancedAnswers(bank.listening, `${label} listening`);
+      expectBalancedAnswers(bank.reading, `${label} reading`);
       if (span !== "g35") {
         const pair = bank.speaking.filter((item) => item.task === "Present and Discuss Information");
         if (pair.map((item) => item.presentRole).join(",") !== "summary,claim") {
@@ -230,7 +250,7 @@ try {
   }
 
   if (!failures.length) {
-    console.log(`ELPAC validation passed: all ${validatedBankCount} grade/set banks match domain totals, task distributions, option formats, stimulus-depth floors, media files, alt text, graph-task sequence, cross-band uniqueness, and production-prompt uniqueness checks; ${pendingImageCount} new image scenes are explicitly pending.`);
+    console.log(`ELPAC validation passed: all ${validatedBankCount} grade/set banks match domain totals, task distributions, option formats, balanced answer positions, stimulus-depth floors, media files, alt text, graph-task sequence, cross-band uniqueness, and production-prompt uniqueness checks; ${pendingImageCount} new image scenes are explicitly pending.`);
   }
 } finally {
   fs.rmSync(tempDir, { recursive: true, force: true });

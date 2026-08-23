@@ -3031,13 +3031,16 @@ function completeBlueprint(bank, span, setNum) {
 // Keep answer positions balanced and deterministic. This prevents students from
 // learning a repeated A/B pattern while keeping saved answers stable on reload.
 function distributeAnswerPositions(blocks, offset = 0) {
-  let ordinal = 0;
+  const ordinalsByOptionCount = new Map();
   return (blocks || []).map((block) => ({
     ...block,
     qs: block.qs?.map((question) => {
+      const optionCount = question.options.length;
+      const ordinal = ordinalsByOptionCount.get(optionCount) || 0;
+      ordinalsByOptionCount.set(optionCount, ordinal + 1);
       const options = [...question.options];
       const correct = options.splice(question.answer, 1)[0];
-      const answer = (ordinal++ + offset) % (options.length + 1);
+      const answer = (ordinal + offset) % optionCount;
       options.splice(answer, 0, correct);
       return { ...question, options, answer };
     }),
