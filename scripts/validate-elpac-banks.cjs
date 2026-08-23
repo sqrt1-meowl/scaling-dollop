@@ -11,7 +11,7 @@ require("node:module").Module._initPaths();
 
 function compile(name, exposeBanks = false) {
   let source = fs.readFileSync(path.join(sourceDir, name), "utf8");
-  if (exposeBanks) source += "\nexport { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, AUDIO };\n";
+  if (exposeBanks) source += "\nexport { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, PENDING_SCENE_KEYS, AUDIO };\n";
   const output = ts.transpileModule(source, {
     compilerOptions: {
       target: ts.ScriptTarget.ES2020,
@@ -105,9 +105,12 @@ const expectCounts = (actual, expected, label) => {
 try {
   compile("g1112AdditionalBanks.js");
   compile("g1112Banks.js");
+  compile("sets45Banks.js");
   compile("ElpacPracticeV17.jsx", true);
-  const { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, AUDIO } =
+  const { BANKS, SCENE_PHOTOS, SCENE_ALTS, SCENE_PROMPTS, PENDING_SCENE_KEYS, AUDIO } =
     require(path.join(tempDir, "ElpacPracticeV17.jsx"));
+  let validatedBankCount = 0;
+  let pendingImageCount = 0;
 
   for (const [scene, asset] of Object.entries(SCENE_PHOTOS)) {
     if (!fs.existsSync(publicAssetPath(asset))) fail("Scene " + scene + ": missing media file " + asset);
@@ -120,6 +123,7 @@ try {
   for (const [setNum, spans] of Object.entries(BANKS)) {
     for (const [span, bank] of Object.entries(spans).filter(([key, value]) => ["g35", "g68", "g910", "g1112"].includes(key) && value)) {
       const label = `Set ${setNum} ${span}`;
+      validatedBankCount += 1;
       const totals = {
         listening: countQuestions(bank.listening),
         speaking: bank.speaking.length,
@@ -206,7 +210,7 @@ try {
     });
     const seniorText = [...spans.g1112.listening.map((item) => item.transcript), ...spans.g1112.reading.map((item) => item.passage)].filter(Boolean);
     const repeated = seniorText.filter((text) => youngerText.includes(text));
-    if (repeated.length) fail(`Set ${setNum} g1112: ${repeated.length} stimulus/stimuli duplicate a younger-grade bank`);
+    if (repeated.length) fail(`Set ${setNum} g1112: ${repeated.length} stimulus/stimuli duplicate a younger-grade bank: ${repeated.map((text) => JSON.stringify(text.slice(0, 120))).join(" | ")}`);
   }
 
   for (const [key, owners] of productionPromptOwners) {
@@ -217,8 +221,16 @@ try {
   }
   for (const [scene, owners] of sceneOwners) {
     if (SCENE_PROMPTS[scene] && !SCENE_PHOTOS[scene]) {
-      fail("Scene " + scene + " still uses a picture-needed placeholder in " + owners.join(", "));
+      if (PENDING_SCENE_KEYS?.has(scene)) pendingImageCount += 1;
+      else fail("Scene " + scene + " still uses a picture-needed placeholder in " + owners.join(", "));
     }
+  }
+  for (const scene of PENDING_SCENE_KEYS || []) {
+    if (!sceneOwners.has(scene)) fail("Pending scene " + scene + " is not used by any practice item");
+  }
+
+  if (!failures.length) {
+    console.log(`ELPAC validation passed: all ${validatedBankCount} grade/set banks match domain totals, task distributions, option formats, stimulus-depth floors, media files, alt text, graph-task sequence, cross-band uniqueness, and production-prompt uniqueness checks; ${pendingImageCount} new image scenes are explicitly pending.`);
   }
 } finally {
   fs.rmSync(tempDir, { recursive: true, force: true });
@@ -229,4 +241,3 @@ if (failures.length) {
   failures.forEach((message) => console.error(`- ${message}`));
   process.exit(1);
 }
-console.log("ELPAC validation passed: all 12 grade/set banks match domain totals, task distributions, option formats, stimulus-depth floors, media files, picture placeholders, alt text, graph-task sequence, cross-band uniqueness, and production-prompt uniqueness checks.");

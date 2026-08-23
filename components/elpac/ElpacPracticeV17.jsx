@@ -4,6 +4,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { G1112_BANKS } from "./g1112Banks";
+import { SET45_BANKS } from "./sets45Banks";
 
 // ── Real scene photos (website asset URLs). Add another by pasting a new
 // entry keyed by the scene name used in BANK (e.g. mathclass, linegraph).
@@ -36,6 +37,8 @@ const SCENE_PHOTOS = {
   "mikhail-timeline": "/elpac/media/mikhail-timeline.webp",
   "club-budget-chart": "/elpac/media/club-budget-chart.webp",
   "energy-sources-chart": "/elpac/media/energy-sources-chart.webp",
+  "club-funding-chart": "/elpac/media/club-budget-chart.webp",
+  "solar-cost-share-chart": "/elpac/media/energy-sources-chart.webp",
   "g1112-engineering-lab": "/elpac/media/g1112-engineering-lab.webp",
   "g1112-community-presentation": "/elpac/media/g1112-community-presentation.webp",
   "speaking-learning-guitar": "/elpac/media/speaking-learning-guitar.webp",
@@ -62,6 +65,36 @@ const SCENE_PHOTOS = {
   "speaking-silk-road": "/elpac/media/speaking-silk-road.webp",
   "speaking-geothermal-microgrids": "/elpac/media/speaking-geothermal-microgrids.webp",
   "speaking-digital-preservation": "/elpac/media/speaking-digital-preservation.webp",
+  "s4-35-read-community-cleanup": "/elpac/media/s4-35-read-community-cleanup.webp",
+  "s4-35-read-lost-glove": "/elpac/media/s4-35-read-lost-glove.webp",
+  "s4-35-scene-library-makerspace": "/elpac/media/s4-35-scene-library-makerspace.webp",
+  "s4-35-retell-garden-sign": "/elpac/media/s4-35-retell-garden-sign.webp",
+  "s4-35-summary-frog-life-cycle": "/elpac/media/s4-35-summary-frog-life-cycle.webp",
+  "s4-35-summary-simple-machines": "/elpac/media/s4-35-summary-simple-machines.webp",
+  "s5-35-read-bird-feeder": "/elpac/media/s5-35-read-bird-feeder.webp",
+  "s5-35-read-rain-boots": "/elpac/media/s5-35-read-rain-boots.webp",
+  "s5-35-scene-garden-harvest": "/elpac/media/s5-35-scene-garden-harvest.webp",
+  "s5-35-retell-bird-feeder": "/elpac/media/s5-35-retell-bird-feeder.webp",
+  "s5-35-summary-seed-travel": "/elpac/media/s5-35-summary-seed-travel.webp",
+  "s5-35-summary-clouds-rain": "/elpac/media/s5-35-summary-clouds-rain.webp",
+  "s4-68-scene-stream-testing": "/elpac/media/s4-68-scene-stream-testing.webp",
+  "s4-68-summary-wetland-filters": "/elpac/media/s4-68-summary-wetland-filters.webp",
+  "s4-68-summary-tectonic-plates": "/elpac/media/s4-68-summary-tectonic-plates.webp",
+  "s5-68-scene-museum-exhibit": "/elpac/media/s5-68-scene-museum-exhibit.webp",
+  "s5-68-summary-artifact-preservation": "/elpac/media/s5-68-summary-artifact-preservation.webp",
+  "s5-68-summary-algorithm-recommendations": "/elpac/media/s5-68-summary-algorithm-recommendations.webp",
+  "s4-910-scene-student-newsroom": "/elpac/media/s4-910-scene-student-newsroom.webp",
+  "s4-910-summary-bioluminescence": "/elpac/media/s4-910-summary-bioluminescence.webp",
+  "s4-910-summary-prairie-restoration": "/elpac/media/s4-910-summary-prairie-restoration.webp",
+  "s5-910-scene-engineering-review": "/elpac/media/s5-910-scene-engineering-review.webp",
+  "s5-910-summary-battery-recycling": "/elpac/media/s5-910-summary-battery-recycling.webp",
+  "s5-910-summary-language-change": "/elpac/media/s5-910-summary-language-change.webp",
+  "s4-1112-scene-public-hearing": "/elpac/media/s4-1112-scene-public-hearing.webp",
+  "s4-1112-summary-desalination": "/elpac/media/s4-1112-summary-desalination.webp",
+  "s4-1112-summary-microgrids": "/elpac/media/s4-1112-summary-microgrids.webp",
+  "s5-1112-scene-internship-briefing": "/elpac/media/s5-1112-scene-internship-briefing.webp",
+  "s5-1112-summary-grid-storage": "/elpac/media/s5-1112-summary-grid-storage.webp",
+  "s5-1112-summary-epidemiological-risk": "/elpac/media/s5-1112-summary-epidemiological-risk.webp",
 };
 
 const SCENE_ALTS = {
@@ -92,6 +125,8 @@ const SCENE_ALTS = {
   "mikhail-timeline": "Timeline of five important events in Mikhail's life from 1903 to 1952",
   "club-budget-chart": "Table of club funding requests and the amount over budget",
   "energy-sources-chart": "Two line charts showing solar power cost and local solar electricity share",
+  "club-funding-chart": "Table of club funding requests and the amount over budget",
+  "solar-cost-share-chart": "Two line charts showing solar power cost and local solar electricity share",
   "g1112-engineering-lab": "High school students testing a model bridge in an engineering laboratory",
   "g1112-community-presentation": "High school students presenting a community transportation proposal",
   "speaking-learning-guitar": "Four scenes showing Nina learning to play one song on an old guitar",
@@ -118,6 +153,36 @@ const SCENE_ALTS = {
   "speaking-silk-road": "A map of Silk Road routes with merchants exchanging horses, glass, paper, and silk",
   "speaking-geothermal-microgrids": "Multiple buildings sharing underground heating and cooling pipes in winter and summer",
   "speaking-digital-preservation": "A digital file preserved through separate copies, format migration, and metadata",
+  "s4-35-read-community-cleanup": "Children picking up litter near a school playground",
+  "s4-35-read-lost-glove": "A student returning a blue glove at a school lost-and-found table",
+  "s4-35-scene-library-makerspace": "Students building a model bridge in a school makerspace",
+  "s4-35-retell-garden-sign": "Children making and posting a keep-off-the-garden sign",
+  "s4-35-summary-frog-life-cycle": "A diagram showing eggs, a tadpole, a froglet, and an adult frog",
+  "s4-35-summary-simple-machines": "Children using a ramp, lever, and wagon as simple machines",
+  "s5-35-read-bird-feeder": "Students filling a bird feeder near a school",
+  "s5-35-read-rain-boots": "A student placing yellow rain boots by the school entrance",
+  "s5-35-scene-garden-harvest": "Students and a teacher harvesting vegetables from a school garden",
+  "s5-35-retell-bird-feeder": "A sequence showing students repair and refill a bird feeder",
+  "s5-35-summary-seed-travel": "Examples of seeds traveling by wind, animals, birds, and water",
+  "s5-35-summary-clouds-rain": "A water-cycle diagram showing evaporation, clouds, rain, a stream, and a lake",
+  "s4-68-scene-stream-testing": "Students testing stream-water samples outdoors",
+  "s4-68-summary-wetland-filters": "A wetland diagram showing runoff slowed and filtered by plants",
+  "s4-68-summary-tectonic-plates": "A diagram comparing divergent, convergent, and transform plate boundaries",
+  "s5-68-scene-museum-exhibit": "Students and a curator examining artifacts in a museum",
+  "s5-68-summary-artifact-preservation": "Museum preservation methods including filtered light, stable humidity, gloves, and padding",
+  "s5-68-summary-algorithm-recommendations": "A diagram showing how recommendation systems rank and repeat choices",
+  "s4-910-scene-student-newsroom": "High school students working with an adviser in a newsroom",
+  "s4-910-summary-bioluminescence": "Deep-sea animals using bioluminescence for attraction, confusion, and signaling",
+  "s4-910-summary-prairie-restoration": "A sequence showing prairie restoration from damaged land to regrowth",
+  "s5-910-scene-engineering-review": "High school students testing and comparing model bridges",
+  "s5-910-summary-battery-recycling": "A diagram showing the battery-recycling process",
+  "s5-910-summary-language-change": "A diagram showing how language changes through communities and online networks",
+  "s4-1112-scene-public-hearing": "Students presenting a transit proposal at a public hearing",
+  "s4-1112-summary-desalination": "A desalination diagram showing freshwater benefits and energy and brine tradeoffs",
+  "s4-1112-summary-microgrids": "A community microgrid diagram showing normal operation and outage priorities",
+  "s5-1112-scene-internship-briefing": "Student interns presenting a city data model and its assumptions",
+  "s5-1112-summary-grid-storage": "A comparison chart for lithium batteries and pumped-hydro storage",
+  "s5-1112-summary-epidemiological-risk": "An epidemiological-risk chart comparing relative and absolute risk",
 };
 
 function sceneAlt(name) {
@@ -643,6 +708,41 @@ const SCENE_PROMPTS = {
   "s2-68-sp-robotics": "A middle school robotics lab. Three students work together on a small wheeled robot on a workbench. One holds a laptop, one holds a screwdriver, parts scattered nearby.",
   "s3-68-sp-garden": "A community garden. Several people of different ages work together among raised vegetable beds. One waters, one kneels planting, one carries a crate of produce.",
 };
+
+const PENDING_SCENE_PROMPTS = {
+  "s4-35-read-community-cleanup": "Clear realistic elementary-school scene: four children ages 8 to 10 wearing gloves collect paper cups and wrappers from a playground into two large trash bags; one child holds a litter grabber; sunny day; no text.",
+  "s4-35-read-lost-glove": "Clear realistic school hallway scene: a girl age 9 hands a blue winter glove to a female teacher beside a lost-and-found table; backpacks and coat hooks visible; one unmistakable action; no text.",
+  "s4-35-scene-library-makerspace": "Realistic elementary library makerspace: four diverse children ages 8 to 10 build a cardboard bridge at a table using rulers, tape, safety scissors, craft sticks, and paper; librarian assists in background; visible teamwork; no text.",
+  "s4-35-retell-garden-sign": "Four-panel chronological picture story with the same children: notice people stepping near seedlings; sketch a garden sign; paint the sign together; place the finished sign beside the protected garden bed; no captions or written words.",
+  "s4-35-summary-frog-life-cycle": "Simple accurate science diagram for ages 8 to 10 showing four clearly separated stages with arrows: eggs in pond, tadpole, froglet with legs and shrinking tail, adult frog; minimal or no text.",
+  "s4-35-summary-simple-machines": "Simple classroom science visual showing three labeled-by-shape examples without prose: child rolls box up a ramp, uses a lever to lift a rock, pushes a cart with wheels; uncluttered white background.",
+  "s5-35-read-bird-feeder": "Clear realistic schoolyard scene: two children ages 8 to 10 pour birdseed into a hanging feeder while three small birds wait on a nearby branch; no unrelated action; no text.",
+  "s5-35-read-rain-boots": "Clear realistic school entrance: a boy age 9 places wet yellow rain boots onto an absorbent mat beside the door; rain visible outside; backpack on hook; no text.",
+  "s5-35-scene-garden-harvest": "Realistic school garden harvest: five diverse children ages 8 to 10 pick tomatoes, carrots, lettuce, and beans into labeled-color baskets while a teacher weighs one basket; bright, detailed, age appropriate; no text.",
+  "s5-35-retell-bird-feeder": "Four-panel chronological story with the same children and feeder: windy weather knocks feeder down; children discover it; they tighten the hanger and refill seed; birds return to the repaired feeder; no captions.",
+  "s5-35-summary-seed-travel": "Accurate elementary science diagram with one central plant and four clear seed-dispersal examples: dandelion seeds in wind, burr on animal fur, berry eaten by bird, coconut floating on water; arrows; minimal text.",
+  "s5-35-summary-clouds-rain": "Accurate elementary water-cycle visual: sun warms lake, vapor rises, cloud forms from droplets, rain falls, water returns through a stream; large directional arrows; simple and uncluttered.",
+  "s4-68-scene-stream-testing": "Realistic middle-school field investigation beside a shallow stream: four students ages 11 to 13 in safety vests collect water in sample bottles, read a test strip, record results on a clipboard, and mark a map while a teacher supervises.",
+  "s4-68-summary-wetland-filters": "Accurate educational cutaway for middle school: runoff water enters a wetland, slows among reeds, sediment settles, roots and soil filter water, clearer water exits; arrows and only short labels.",
+  "s4-68-summary-tectonic-plates": "Accurate three-part middle-school diagram comparing divergent, convergent, and transform plate boundaries with directional arrows, magma or mountains where appropriate, and clean short labels.",
+  "s5-68-scene-museum-exhibit": "Realistic middle-school museum workshop: four students assemble a local-history display case, compare two source documents, position an artifact, revise a label card, and discuss evidence with a curator.",
+  "s5-68-summary-artifact-preservation": "Accurate middle-school museum-conservation visual comparing four protections: filtered low light over a paper document, a stable-humidity display case around a wooden object, clean gloved hands holding an artifact, and a padded support beneath a fragile bowl; short labels only; no brand logos.",
+  "s5-68-summary-algorithm-recommendations": "Neutral middle-school flow diagram: a student's prior clicks and searches feed a recommendation system, ranked book/video options appear, repeated choices narrow options, and a settings control increases variety; no brand logos.",
+  "s4-910-scene-student-newsroom": "Realistic high-school newsroom: students ages 14 to 16 verify a survey spreadsheet, trace a source on two laptops, revise a headline on a large monitor, and discuss a correction before publication; visible evidence-checking.",
+  "s4-910-summary-bioluminescence": "Accurate high-school marine-science infographic showing deep-ocean organisms using bioluminescence for prey attraction, predator confusion, and signaling; reaction icon and restrained labels; dark ocean background.",
+  "s4-910-summary-prairie-restoration": "Accurate high-school restoration sequence: degraded field with invasives; controlled burn and native seeding; diverse mature prairie with roots, insects, birds, and monitoring quadrat; arrows and concise labels.",
+  "s5-910-scene-engineering-review": "Realistic high-school engineering design review: students compare two bridge prototypes, examine a load-test graph, measure a changed support angle, annotate a technical drawing, and present findings to a teacher.",
+  "s5-910-summary-battery-recycling": "Accurate high-school process infographic: used lithium-ion battery collection, safe discharge and sorting, mechanical separation, material recovery, and recovered metals returning to new battery production; concise labels.",
+  "s5-910-summary-language-change": "High-school sociolinguistics visual: a new expression begins in one community, spreads through conversation and online networks, varies across age/region groups, and is documented later by dictionaries; neutral, no social-media logos.",
+  "s4-1112-scene-public-hearing": "Realistic high-school civic planning hearing: student presenters use a transportation map and two charts while residents, a council panel, and an accessibility advocate ask questions; visible notes, evidence, and competing priorities.",
+  "s4-1112-summary-desalination": "Senior high-school systems infographic: seawater intake, membrane filtration, fresh-water output, concentrated brine discharge, energy input, and comparison callouts for conservation and recycling; technical but readable.",
+  "s4-1112-summary-microgrids": "Senior high-school microgrid schematic: solar panels, battery, hospital, cooling center, homes, and main grid; island-mode switch during outage; priority loads and cost/equity decision points clearly indicated.",
+  "s5-1112-scene-internship-briefing": "Realistic senior high-school internship briefing: students present a data model to city staff, showing a sensitivity chart, assumption table, two map scenarios, and a revision log; professional setting, diverse participants.",
+  "s5-1112-summary-grid-storage": "Senior high-school comparison infographic of lithium batteries and pumped-hydro storage across response speed, discharge duration, geography, degradation, and grid service; axes and units clear, no unsupported claims.",
+  "s5-1112-summary-epidemiological-risk": "Senior high-school epidemiology visual comparing relative and absolute risk with the same hypothetical population icons, uncertainty intervals, confounding pathway, and a caution that association alone is not causation.",
+};
+Object.assign(SCENE_PROMPTS,PENDING_SCENE_PROMPTS);
+const PENDING_SCENE_KEYS = new Set(Object.keys(PENDING_SCENE_PROMPTS));
 
 // Graph/chart scenes drawn in code (no photo needed): linegraph, barclubs,
 // s1-68-graph-travel, s2-68-graph-clubs, s3-68-graph-reading
@@ -2607,6 +2707,8 @@ const RAW_BANKS = {
   1: { ...BANK,  g35: S1_G35, g68: S1_G68, g1112: G1112_BANKS[1] },
   2: { ...BANK2, g35: S2_G35, g68: S2_G68, g1112: G1112_BANKS[2] },
   3: { ...BANK3, g35: S3_G35, g68: S3_G68, g1112: G1112_BANKS[3] },
+  4: SET45_BANKS[4],
+  5: SET45_BANKS[5],
 };
 
 const addedQuestion = (stem, correct, ...distractors) => ({
@@ -2617,6 +2719,8 @@ const G35_SPEECH_FUNCTIONS = {
   1: ["Clarify Directions", "Your group is unsure which evidence belongs in a science report. What would you ask the teacher?"],
   2: ["Join a Game", "Some classmates are starting a game at recess. What would you say if you wanted to join appropriately?"],
   3: ["Explain a Mistake", "You accidentally took a classmate's notebook. What would you say when you return it?"],
+  4: ["Clarify Evidence", "A classmate gives an answer but does not explain the evidence. What would you ask?"],
+  5: ["Request Feedback", "You finished a garden report and want specific feedback. What would you ask a classmate?"],
 };
 
 // The official Present and Discuss Information task is a linked pair:
@@ -2626,16 +2730,22 @@ const PRESENT_TASK_PAIRS = {
     1: ["Travel to School", "s1-68-graph-travel", "Summarize how students travel to school. Include the most and least common methods and important details from the graph.", "A student says about the same number of students use each method. Explain whether the graph supports that statement."],
     2: ["Club Membership", "s2-68-graph-clubs", "Summarize the club-membership graph. Include the most and least popular clubs and relevant comparisons.", "A student says the two smallest clubs together have fewer members than the largest club. Explain whether the graph supports that statement."],
     3: ["Reading Minutes", "s3-68-graph-reading", "Summarize the pattern in average weekly reading time. Include the overall change and important month-to-month details.", "A student says reading time increased every month. Explain whether the graph supports that statement."],
+    4: ["Club Funding Requests", "club-budget-chart", "Summarize the three funding requests and compare the total with the available budget.", "A student says the school can fully fund every request. Explain whether the chart supports that statement."],
+    5: ["Solar Power Trends", "energy-sources-chart", "Summarize how solar cost and electricity share changed, using exact values.", "A student says the two trends moved in the same direction. Explain whether both graphs support that statement."],
   },
   g910: {
     1: ["Geometry Enrollment", "linegraph", "Summarize the geometry-enrollment graph. Describe the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that statement."],
     2: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that statement."],
     3: ["Solar Power Trends", "energy-sources-chart", "Summarize both solar-power graphs. Explain how cost and the share of local electricity changed from 2018 to 2024, using relevant values.", "A student claims that solar power became more expensive as its share of local electricity increased. Evaluate the claim using evidence from both graphs."],
+    4: ["Solar Power Trends", "energy-sources-chart", "Analyze the two solar trends and support the analysis with exact values.", "A student claims the graphs prove that falling cost alone caused the change in solar share. Evaluate the claim."],
+    5: ["Club Funding Requests", "club-budget-chart", "Analyze the requests, total, and budget using relevant numerical evidence.", "A student says fully funding the two smallest requests would leave enough for the largest request. Evaluate the claim."],
   },
   g1112: {
     1: ["Program Enrollment", "linegraph", "Summarize the enrollment graph, including the overall trend and important changes.", "A student says enrollment increased by the same amount every year. Explain whether the graph supports that claim."],
     2: ["Club Funding Requests", "club-budget-chart", "Summarize the funding requests, identifying the largest and smallest requests and the relationship between the total requested and available budget.", "A student claims that fully funding the two smallest requests would keep spending within the available budget. Evaluate the claim using values from the chart."],
     3: ["Club Membership", "barclubs", "Summarize the club-membership graph using relevant values and comparisons.", "A student says the two smallest clubs together have more members than the largest club. Explain whether the graph supports that claim."],
+    4: ["Solar Power Trends", "energy-sources-chart", "Synthesize both time series and distinguish the pattern from a causal conclusion.", "A speaker says the cost series by itself proves why solar share changed. Evaluate the claim and identify missing evidence."],
+    5: ["Comparing Summer Jobs", "two-jobs-comparison", "Compare the jobs across pay, travel time, and career relevance.", "A speaker says Job A is objectively better for every student. Evaluate the claim and explain how priorities affect the conclusion."],
   },
 };
 
@@ -2651,6 +2761,14 @@ const G68_ESSAY_QUESTIONS = {
   3: [
     addedQuestion("What is the purpose of the counterargument in the essay?", "To acknowledge a competing concern before responding", "To introduce a new topic", "To show that the writer has no position", "To summarize a fictional story"),
     addedQuestion("Which additional evidence would be most relevant?", "Research connecting start time with attendance or alertness", "A list of school mascot names", "The price of cafeteria lunches", "A description of the school building"),
+  ],
+  4: [
+    addedQuestion("How does the writer limit the cafeteria-tray proposal?", "By recommending a measured trial before a final decision", "By claiming reuse has no costs", "By removing every concern", "By changing to an unrelated topic"),
+    addedQuestion("Which evidence would best evaluate the proposal?", "Measured waste, washing time, and resource use during the trial", "The school mascot's color", "A list of unrelated clubs", "One student's favorite meal"),
+  ],
+  5: [
+    addedQuestion("Why does the writer recommend a common conference outline?", "To address uneven preparation while preserving student leadership", "To prevent students from speaking", "To replace evidence with opinions", "To eliminate teacher feedback"),
+    addedQuestion("Which evidence would best test the proposal?", "Comparisons of preparation, participation, and useful goal setting", "A list of classroom wall colors", "One unrelated sports score", "The price of a museum ticket"),
   ],
 };
 
@@ -2673,11 +2791,25 @@ const G910_EXTRA_LISTENING = {
     "Open Gym at Lunch": addedQuestion("What condition does the speaker include in the proposal?", "Clear supervision and participation rules", "Removing all safety procedures", "Closing the gym after lunch"),
     "Later Library Hours": addedQuestion("What evidence would best support the speaker?", "Usage data showing students need evening access", "A list of novels published last year", "The color of the library walls"),
   },
+  4: {
+    Bioluminescence: addedQuestion("Why does the speaker caution against inferring purpose from brightness alone?", "Similar light can serve different functions", "Every organism produces identical light", "Brightness measures an animal's age"),
+    "Prairie Restoration": addedQuestion("Why is one season of plant growth insufficient?", "Other parts of the ecosystem may recover more slowly", "Prairie plants never change", "Monitoring prevents recovery"),
+    "Later Activity Bus": addedQuestion("Which evidence would reveal an access limitation?", "A survey of students who cannot reach centralized stops", "The color of the buses", "A list of school mascots"),
+    "Media Literacy Course": addedQuestion("How does integration answer a counterargument?", "It teaches common skills without displacing a full elective", "It removes media analysis", "It limits the unit to one unrelated class"),
+  },
+  5: {
+    "Battery Recycling": addedQuestion("What limitation keeps recycling from eliminating new mining?", "Some material is lost while demand continues to grow", "Batteries contain no recoverable material", "Transport uses no energy"),
+    "Language Change": addedQuestion("Why is online visibility incomplete evidence?", "Visible use may not represent every community", "Digital language never changes", "Dictionaries create all speech"),
+    "Later Start Pilot": addedQuestion("Why should results be separated by student group?", "An average may hide unequal effects", "Every group must have identical schedules", "The pilot collects no outcomes"),
+    "Community Service Credit": addedQuestion("Why are on-campus options included?", "To reduce unequal access caused by outside obligations", "To prevent reflection", "To require one fixed placement"),
+  },
 };
 
 const G910_EXTRA_READING = {
   2: addedQuestion("What is the main purpose of the parking-permit information?", "To explain requirements and procedures", "To narrate a fictional trip", "To advertise a new vehicle", "To compare two sports"),
   3: addedQuestion("Why should students consult the final-exam schedule carefully?", "Different courses may meet at different assigned times", "Every exam begins at the same time", "The schedule applies only to teachers", "No room information is provided"),
+  4: addedQuestion("Which statement best describes the author's use of a trial?", "It gathers evidence while acknowledging possible costs and unequal effects", "It guarantees the proposal will work", "It avoids every measurable outcome", "It replaces the writer's claim"),
+  5: addedQuestion("Why does the author preserve an on-campus meal option?", "To protect access while testing the open-campus proposal", "To make the trial impossible", "To eliminate student choice", "To change the topic"),
 };
 
 const G68_OPINION_BLOCKS = {
@@ -2728,6 +2860,10 @@ const G68_OPINION_BLOCKS = {
 // Presentation scripts for speaking-summary tasks that do not already have a
 // matching oral presentation in the listening section. Other summary tasks
 // automatically reuse the same-set listening transcript by topic.
+[4,5].forEach((setNum)=>{
+  G68_OPINION_BLOCKS[setNum]=SET45_BANKS[setNum].g68.listening
+    .filter((block)=>block.task==="Listen to a Speaker Support an Opinion").map((block)=>[block.topic,block.transcript,block.qs]);
+});
 const ACADEMIC_PRESENTATIONS = {
   Regelation: "Regelation is a special property of ice. When strong pressure is placed on ice, the melting point drops slightly and a thin layer turns to water. When the pressure is removed, that water freezes again. In a classic experiment, a weighted wire slowly moves through a block of ice. Pressure beneath the wire melts a narrow path, while the water above the wire refreezes. The wire passes all the way through, but the block remains joined together.",
   "How a Bill Becomes Law": "A new law begins as an idea that is written as a bill. The bill is introduced in the legislature, studied, discussed, and sometimes changed. Both houses of the legislature must approve the same version. The bill then goes to the governor, who may sign it or veto it. A signed bill becomes law. If it is vetoed, the legislature may be able to vote again and override the veto if enough members agree.",
@@ -3230,6 +3366,7 @@ const SPANS = [
 
 
 const SETS = [ {id:1, live:true}, {id:2, live:true}, {id:3, live:true} ];
+SETS.push({id:4, live:true}, {id:5, live:true});
 
 // ══════════ PERSISTENT STORAGE LAYER ══════════
 // Website storage: progress is retained in this browser on this device. IndexedDB
