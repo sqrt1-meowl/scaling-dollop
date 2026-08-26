@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Bot, Check, Circle, Flame, Video, VideoOff } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, Check, Circle, Video, VideoOff } from "lucide-react";
 import { AppShell } from "./AppShell";
 import { useApp } from "./AppProvider";
 import { getProgramDomainForSkill, getProgramSkill, type ProgramStage } from "@/lib/programCurriculum";
@@ -22,13 +22,12 @@ export function SkillPacketOverview() {
   const percent = useMemo(() => skill ? packetMasteryPercent(progress, skill.units.map((unit) => unit.id)) : 0, [progress, skill]);
   if (!skill || !domain) return <AppShell role="student"><p>Skill packet not found.</p></AppShell>;
   const nonOfficial = domain.officialStatus !== "official";
-  const hardQuestionCount = skill.units.reduce((sum, unit) => sum + unit.questions.filter((question) => question.difficulty === "hard").length, 0);
 
   return (
     <AppShell role="student" title={`${skill.id} · ${skill.officialName}`}>
       <Link href={`/category/${domain.id}`} className="mb-8 inline-flex items-center gap-2 text-xs font-bold text-[var(--muted)]"><ArrowLeft size={14}/>{domain.title}</Link>
       <div className="mb-8 border-b-2 border-[var(--ink)] pb-7">
-        <p className="label text-[var(--muted)]">{skill.id === "A1" ? "Unlocked preview" : nonOfficial ? (domain.officialStatus === "optional_foundation" ? "Optional Foundation" : "Test Readiness") : "Official skill packet"}</p>
+        <p className="label text-[var(--muted)]">{nonOfficial ? (domain.officialStatus === "optional_foundation" ? "Optional Foundation" : "Test Readiness") : "Official skill packet"}</p>
         <h2 className="academic-heading mt-3 text-4xl">{skill.id}: {skill.officialName}</h2>
         <div className="mt-5 flex max-w-sm items-center gap-4"><div className="progress-track flex-1"><div className="progress-fill" style={{ width: `${percent}%` }}/></div><b className="text-xs">{percent}% mastered</b></div>
       </div>
@@ -55,12 +54,6 @@ export function SkillPacketOverview() {
             </section>
           );
         })}
-        <section className="overflow-hidden border-2 border-[#a1623c] bg-[#fffaf5]">
-          <div className="flex flex-col justify-between gap-5 p-6 md:flex-row md:items-center md:p-7">
-            <div className="flex max-w-3xl gap-4"><div className="grid size-10 shrink-0 place-items-center border border-[#d8b49c] bg-white text-[#a1623c]"><Flame size={18}/></div><div><p className="label text-[#a1623c]">Packet finale</p><h3 className="academic-heading mt-2 text-2xl">{skill.id} Hard Practice</h3><p className="mt-2 text-xs leading-5 text-[var(--muted)]">A mixed hard set covering the full skill packet. It always appears after the units.</p></div></div>
-            <div className="flex shrink-0 items-center gap-4"><p className="text-right text-xs font-bold text-[var(--muted)]">{hardQuestionCount ? `${hardQuestionCount} questions` : "Bank coming soon"}</p><Link className="btn-primary" href={`/packet/${skill.id.toLowerCase()}/hard-practice`}>{hardQuestionCount ? "Start hard practice" : "View finale"}<ArrowRight size={14}/></Link></div>
-          </div>
-        </section>
       </div>
     </AppShell>
   );
