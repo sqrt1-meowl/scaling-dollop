@@ -1,2 +1,2 @@
-import { ProgramCategoryOverview } from "@/components/ProgramCategoryOverview";
-export default function CategoryPage() { return <ProgramCategoryOverview/>; }
+import { CategoryOverview } from "@/components/CategoryOverview";
+export default function CategoryPage() { return <CategoryOverview/>; }
