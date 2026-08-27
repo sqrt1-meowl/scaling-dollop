@@ -130,6 +130,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .worksheet-band-map .complete { background: #edf4ef; color: #2f6a49; }
 .worksheet-problem { margin-top: 14px; border: 1px solid var(--line); border-top: 5px solid var(--navy); background: #fffdf8; }
 .worksheet-problem.band-applied { border-top-color: var(--data); }
+.worksheet-problem.band-medium { border-top-color: var(--data); }
 .worksheet-problem.band-sat { border-top-color: var(--geometry); }
 .worksheet-problem-meta { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 16px 24px; }
 .worksheet-problem-meta > div { display: flex; align-items: center; gap: 13px; }
