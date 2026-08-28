@@ -10,20 +10,20 @@ type PreviewProblem = { id: string; band: Band; stem: string; choices?: string[]
 type PreviewContent = { examplePrompt: string; exampleWork: string; problems: PreviewProblem[] };
 
 const content: Record<string, PreviewContent> = {
-  A1a: {
-    examplePrompt: "Solve 4x + 7 = 31.",
-    exampleWork: "Subtract 7 from both sides to get 4x = 24. Divide both sides by 4, so x = 6.",
+  A1U1: {
+    examplePrompt: "Solve 3(2x − 1) = 21.",
+    exampleWork: "Distribute to get 6x − 3 = 21. Add 3 to both sides, then divide by 6, so x = 4.",
     problems: [
       { id: "a1a-e1", band: "EASY", stem: "What value of x satisfies 3x + 5 = 20?", choices: ["3", "5", "8", "15"], answerFormat: "MC" },
       { id: "a1a-e2", band: "EASY", stem: "What value of x satisfies 7x − 9 = 26?", choices: ["3", "5", "7", "17"], answerFormat: "MC" },
       { id: "a1a-e3", band: "EASY", stem: "What value of x satisfies 4x + 12 = 36?", choices: ["4", "6", "8", "12"], answerFormat: "MC" },
-      { id: "a1a-e4", band: "EASY", stem: "What value of x satisfies 8x − 11 = 45?", choices: ["4", "7", "8", "14"], answerFormat: "MC" },
-      { id: "a1a-e5", band: "EASY", stem: "If 6x + 17 = 53, what is the value of x?", choices: ["5", "6", "7", "12"], answerFormat: "MC" },
+      { id: "a1u1-e4", band: "EASY", stem: "What value of x satisfies 2(x + 5) = 24?", choices: ["5", "7", "12", "19"], answerFormat: "MC" },
+      { id: "a1u1-e5", band: "EASY", stem: "What value of x satisfies 4(2x − 3) = 20?", choices: ["2", "4", "7", "8"], answerFormat: "MC" },
       { id: "a1a-m1", band: "MEDIUM", stem: "If 5x + 18 = 3x + 42, what is the value of x?", choices: ["8", "10", "12", "30"], answerFormat: "MC" },
       { id: "a1a-m2", band: "MEDIUM", stem: "What value of x satisfies 7 − 3x = 22?", choices: ["−7", "−5", "5", "7"], answerFormat: "MC" },
       { id: "a1a-m3", band: "MEDIUM", stem: "A music service charges a $7 fee plus $6 per month. A customer paid $55 total. For how many months did the customer pay?", choices: ["6", "8", "9", "10"], answerFormat: "MC" },
       { id: "a1a-m4", band: "MEDIUM", stem: "The sum of three consecutive integers is 72. What is the greatest of the three integers?", choices: ["23", "24", "25", "26"], answerFormat: "MC" },
-      { id: "a1a-m5", band: "MEDIUM", stem: "In the equation 4x + k = 31, k is a constant. If x = 6, what is the value of k?", answerFormat: "SPR" },
+      { id: "a1u1-m5", band: "MEDIUM", stem: "If 0.5(4x − 6) + 8 = 21, what is the value of x?", answerFormat: "SPR" },
     ],
   },
   A1b: {
@@ -51,7 +51,7 @@ const bandCopy: Record<Band, { number: string; title: string; note: string }> = 
 
 const formatElapsed = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-export function AlgebraWorksheetPreview({ worksheetId, levelCode, levelName }: { worksheetId: string; levelCode: "A1a" | "A1b"; levelName: string }) {
+export function AlgebraWorksheetPreview({ worksheetId, levelCode, levelName }: { worksheetId: string; levelCode: "A1U1"; levelName: string }) {
   const lesson = content[levelCode];
   const [attempt, setAttempt] = useState<{ id: string; startedAt: string } | null>(null);
   const [timerError, setTimerError] = useState("");

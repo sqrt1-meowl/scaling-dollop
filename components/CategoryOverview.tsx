@@ -7,9 +7,9 @@ import { ArrowLeft, ArrowRight, Check, Flame, LockKeyhole, MapPin } from "lucide
 import { AppShell } from "./AppShell";
 import { categoryIncludesStrand, getMasteryCategory } from "@/lib/masteryCategories";
 import type { SpineLevelRow } from "@/lib/masteryDb";
-import { masteryLevels, masterySkills, worksheetIdFor } from "@/lib/masterySpine";
+import { studentSkills as masterySkills, studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor } from "@/lib/studentCurriculum";
 
-const previewLevelCodes = new Set(["A1a", "A1b"]);
+const previewLevelCodes = new Set(["A1U1"]);
 const applyPreviewAccess = (levels: SpineLevelRow[]) => levels.map((level) => previewLevelCodes.has(level.code) && level.state === "locked" ? { ...level, state: "current" as const } : level);
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
 const initialLevels: SpineLevelRow[] = masteryLevels.map((level, index) => ({

@@ -7,7 +7,7 @@ import { AppShell } from "./AppShell";
 import { useApp } from "./AppProvider";
 import { categoryIncludesStrand, masteryCategories } from "@/lib/masteryCategories";
 import type { SpineLevelRow } from "@/lib/masteryDb";
-import { masteryLevels, masterySkills } from "@/lib/masterySpine";
+import { studentSkills as masterySkills, studentSubskills as masteryLevels } from "@/lib/studentCurriculum";
 import { desmosStorageKey, emptyDesmosProgress, type DesmosProgress } from "@/lib/desmos";
 
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));

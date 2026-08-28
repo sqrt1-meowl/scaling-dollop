@@ -1,5 +1,8 @@
 import { masterySchema } from "@/db/schema";
-import { masteryLevels, masterySkills, masteryStrands, worksheetIdFor } from "@/lib/masterySpine";
+import {
+  studentSkills as masterySkills, studentStrands as masteryStrands,
+  studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor,
+} from "@/lib/studentCurriculum";
 
 export interface SpineLevelRow {
   id: string;
@@ -58,7 +61,7 @@ async function initializeMasteryDatabase(db: D1Database) {
     VALUES (?,?,?,?,?)`).bind(DEMO_STUDENT_ID, "Alex", 1, masteryLevels[0].id, 3).run();
 
   const count = await db.prepare("SELECT COUNT(*) AS count FROM mastery_levels").first<{ count: number }>();
-  if (Number(count?.count) !== 210) throw new Error(`Mastery spine seed is incomplete: expected 210 levels, found ${count?.count ?? 0}.`);
+  if (Number(count?.count) !== masteryLevels.length) throw new Error(`Student curriculum seed is incomplete: expected ${masteryLevels.length} subskills, found ${count?.count ?? 0}.`);
 }
 
 export async function ensureMasteryDatabase(db: D1Database) {
