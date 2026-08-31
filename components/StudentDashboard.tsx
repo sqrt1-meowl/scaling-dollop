@@ -16,7 +16,7 @@ const initialLevels: SpineLevelRow[] = masteryLevels.map((level, index) => ({
   skillCode: level.skillCode, skillName: skillNames.get(level.skillCode) ?? level.skillCode,
   sequenceIndex: level.sequenceIndex, tier: level.tier, timeStandardSeconds: level.timeStandardSeconds,
   accuracyThreshold: level.accuracyThreshold, videoUrl: level.videoUrl,
-  state: index === 0 ? "current" : "locked",
+  state: level.code === "X1" ? "current" : "locked",
 }));
 
 export function StudentDashboard() {
@@ -52,7 +52,7 @@ export function StudentDashboard() {
         style={{ "--accent": category.color } as React.CSSProperties}
       >
         <div className="absolute right-7 top-6 font-serif text-5xl opacity-10">0{index + 1}</div>
-        <p className="label" style={{ color: category.color }}>{category.id === "foundations-skills" ? "Core readiness" : "College Board domain"}</p>
+        <p className="label" style={{ color: category.color }}>{category.id === "foundations-skills" ? "Readiness & integration" : "College Board domain"}</p>
         <h3 className="academic-heading mt-4 max-w-xl text-3xl leading-tight">{category.name}</h3>
         <div className="mt-6">
           <div className="mb-2 flex justify-between text-xs font-bold">

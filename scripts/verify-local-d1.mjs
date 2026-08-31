@@ -44,7 +44,7 @@ const masteryQuery = `SELECT
   (SELECT COUNT(*) FROM mastery_levels WHERE accuracy_threshold != 90) AS mastery_nondefault_thresholds,
   (SELECT COUNT(*) FROM mastery_levels WHERE time_standard_seconds IS NULL) AS mastery_pending_time_standards,
   (SELECT COUNT(*) FROM (SELECT sequence_index FROM mastery_levels GROUP BY sequence_index HAVING COUNT(*) > 1)) AS mastery_duplicate_sequences,
-  (SELECT COUNT(*) FROM mastery_levels level WHERE NOT EXISTS (
+  (SELECT COUNT(*) FROM mastery_levels level WHERE level.strand_code <> 'F' AND NOT EXISTS (
     SELECT 1 FROM mastery_worksheets worksheet WHERE worksheet.level_id=level.id
     GROUP BY worksheet.level_id HAVING COUNT(*)=5
   )) AS mastery_levels_without_five_worksheets`;

@@ -74,7 +74,7 @@ export const curriculumSchema = [
   `CREATE INDEX IF NOT EXISTS unit_progress_user_idx ON drill_unit_progress(user_id, status)`,
 ] as const;
 
-/** Additive schema for the detailed student mastery curriculum (currently 181 levels). */
+/** Additive schema for the diagnostic-gated student mastery curriculum (currently 62 units). */
 export const masterySchema = [
   `CREATE TABLE IF NOT EXISTS mastery_strands (
     code TEXT PRIMARY KEY, name TEXT NOT NULL, sort_order INTEGER NOT NULL UNIQUE

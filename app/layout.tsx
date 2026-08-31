@@ -13,9 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: base,
     title: { default: "SAT Math Mastery", template: "%s | SAT Math Mastery" },
-    description: "A focused, worksheet-first SAT Math mastery program organized into 181 precise levels.",
-    openGraph: { title: "SAT Math Mastery", description: "Daily SAT Math practice across one clear 181-level path.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "SAT Math Mastery digital workbook" }] },
-    twitter: { card: "summary_large_image", title: "SAT Math Mastery", description: "Daily SAT Math practice across one clear 181-level path.", images: [image] },
+    description: "A focused, worksheet-first SAT Math mastery program organized into 62 precise curriculum units.",
+    openGraph: { title: "SAT Math Mastery", description: "Daily SAT Math practice across a focused, diagnostic-gated curriculum.", type: "website", images: [{ url: image, width: 1536, height: 1024, alt: "SAT Math Mastery digital workbook" }] },
+    twitter: { card: "summary_large_image", title: "SAT Math Mastery", description: "Daily SAT Math practice across a focused, diagnostic-gated curriculum.", images: [image] },
   };
 }
 

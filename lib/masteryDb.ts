@@ -1,7 +1,8 @@
 import { masterySchema } from "@/db/schema";
 import {
   studentSkills as masterySkills, studentStrands as masteryStrands,
-  studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor,
+  studentSubskills as masteryLevels, studentUnitHasWorksheets,
+  studentWorksheetIdFor as worksheetIdFor,
 } from "@/lib/studentCurriculum";
 
 export interface SpineLevelRow {
@@ -20,6 +21,9 @@ export interface SpineLevelRow {
 }
 
 const DEMO_STUDENT_ID = "demo-student";
+const STARTING_UNIT_CODE = "X1";
+const startingUnit = masteryLevels.find((level) => level.code === STARTING_UNIT_CODE)!;
+
 const initializationByDatabase = new WeakMap<D1Database, Promise<void>>();
 
 function chunk<T>(values: readonly T[], size: number) {
@@ -54,14 +58,15 @@ async function initializeMasteryDatabase(db: D1Database) {
     SELECT 'ws-' || lower(level.code) || '-' || printf('%02d', page.index_value), level.id, page.index_value,
       CASE WHEN page.index_value <= 3 THEN 'PRACTICE' WHEN page.index_value = 4 THEN 'MIXED' ELSE 'MASTERY_CHECK' END
     FROM mastery_levels level
-    CROSS JOIN (SELECT 1 index_value UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) page`).run();
+    CROSS JOIN (SELECT 1 index_value UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) page
+    WHERE level.strand_code <> 'F'`).run();
 
   await db.prepare(`INSERT OR IGNORE INTO mastery_students
     (id,display_name,placement_level_index,current_level_id,daily_page_target)
-    VALUES (?,?,?,?,?)`).bind(DEMO_STUDENT_ID, "Alex", 1, masteryLevels[0].id, 3).run();
+    VALUES (?,?,?,?,?)`).bind(DEMO_STUDENT_ID, "Alex", startingUnit.sequenceIndex, startingUnit.id, 3).run();
 
   const count = await db.prepare("SELECT COUNT(*) AS count FROM mastery_levels").first<{ count: number }>();
-  if (Number(count?.count) !== masteryLevels.length) throw new Error(`Student curriculum seed is incomplete: expected ${masteryLevels.length} subskills, found ${count?.count ?? 0}.`);
+  if (Number(count?.count) !== masteryLevels.length) throw new Error(`Student curriculum seed is incomplete: expected ${masteryLevels.length} units, found ${count?.count ?? 0}.`);
 }
 
 export async function ensureMasteryDatabase(db: D1Database) {
@@ -83,7 +88,7 @@ export async function ensureStudent(db: D1Database, studentId: string, displayNa
   await ensureMasteryDatabase(db);
   await db.prepare(`INSERT OR IGNORE INTO mastery_students
     (id,display_name,placement_level_index,current_level_id,daily_page_target)
-    VALUES (?,?,?,?,?)`).bind(studentId, displayName, 1, masteryLevels[0].id, 3).run();
+    VALUES (?,?,?,?,?)`).bind(studentId, displayName, startingUnit.sequenceIndex, startingUnit.id, 3).run();
 }
 
 export async function getSpineForStudent(db: D1Database, studentId = DEMO_STUDENT_ID): Promise<SpineLevelRow[]> {
@@ -127,5 +132,6 @@ export async function startOrResumeAttempt(db: D1Database, studentId: string, wo
 }
 
 export function isKnownWorksheetId(worksheetId: string) {
-  return masteryLevels.some((level) => Array.from({ length: 5 }, (_, index) => worksheetIdFor(level.code, index + 1)).includes(worksheetId));
+  return masteryLevels.some((level) => studentUnitHasWorksheets(level)
+    && Array.from({ length: 5 }, (_, index) => worksheetIdFor(level.code, index + 1)).includes(worksheetId));
 }

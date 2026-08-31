@@ -1,4 +1,4 @@
-export type MasteryStrandCode = "F" | "A" | "M" | "D" | "G" | "S" | "P" | "X";
+export type MasteryStrandCode = "F" | "A" | "M" | "D" | "G" | "S" | "P" | "X" | "C";
 export type MasteryTier = "CORE" | "EXT";
 export type WorksheetType = "PRACTICE" | "MIXED" | "MASTERY_CHECK";
 
@@ -241,7 +241,7 @@ export function validateMasterySpine() {
   const errors: string[] = [];
   if (masteryLevels.length !== 210) errors.push(`Expected 210 levels; found ${masteryLevels.length}.`);
   if (masterySpineStats.core !== 175 || masterySpineStats.ext !== 35) errors.push(`Expected 175 CORE / 35 EXT; found ${masterySpineStats.core} CORE / ${masterySpineStats.ext} EXT.`);
-  const expectedStrands: Record<MasteryStrandCode, number> = { F: 27, A: 43, S: 15, P: 6, M: 36, D: 42, G: 33, X: 8 };
+  const expectedStrands: Record<MasteryStrandCode, number> = { F: 27, A: 43, S: 15, P: 6, M: 36, D: 42, G: 33, X: 8, C: 0 };
   for (const [strand, expected] of Object.entries(expectedStrands)) {
     const actual = masterySpineStats.strands[strand] ?? 0;
     if (actual !== expected) errors.push(`${strand} should have ${expected} levels; found ${actual}.`);
