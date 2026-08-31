@@ -9,7 +9,13 @@ import { categoryIncludesStrand, getMasteryCategory } from "@/lib/masteryCategor
 import type { SpineLevelRow } from "@/lib/masteryDb";
 import { studentSkills as masterySkills, studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor } from "@/lib/studentCurriculum";
 
-const previewLevelCodes = new Set(["A1U1", "A1U2"]);
+const previewLevelCodes = new Set([
+  "A1U1", "A1U2",
+  "G1U1", "G1U2", "G1U3",
+  "G2U1", "G2U2", "G2U3",
+  "G3U1", "G3U2",
+  "G4U1", "G4U2",
+]);
 const applyPreviewAccess = (levels: SpineLevelRow[]) => levels.map((level) => previewLevelCodes.has(level.code) && level.state === "locked" ? { ...level, state: "current" as const } : level);
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
 const initialLevels: SpineLevelRow[] = masteryLevels.map((level) => ({
