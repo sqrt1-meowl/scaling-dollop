@@ -4,7 +4,7 @@ import { WorksheetPlayer } from "@/components/mastery/WorksheetPlayer";
 import { AlgebraWorksheetPreview } from "@/components/mastery/AlgebraWorksheetPreview";
 import { studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor } from "@/lib/studentCurriculum";
 
-const previewLevelCodes = new Set(["F1U1", "A1U1"]);
+const previewLevelCodes = new Set(["F1a", "A1a", "A1b"]);
 
 export const metadata: Metadata = {
   title: "Worksheet Player",
@@ -15,6 +15,6 @@ export default async function WorksheetPage({ params }: PageProps<"/worksheet/[w
   const { worksheetId } = await params;
   const previewLevel = masteryLevels.find((level) => previewLevelCodes.has(level.code) && worksheetIdFor(level.code, 1) === worksheetId);
   if (!previewLevel) notFound();
-  if (previewLevel.code !== "F1U1") return <AlgebraWorksheetPreview worksheetId={worksheetId} levelCode="A1U1" levelName={previewLevel.name}/>;
+  if (previewLevel.code !== "F1a") return <AlgebraWorksheetPreview worksheetId={worksheetId} levelCode={previewLevel.code as "A1a" | "A1b"} levelName={previewLevel.name}/>;
   return <WorksheetPlayer worksheetId={worksheetId} levelCode={previewLevel.code} levelName={previewLevel.name}/>;
 }

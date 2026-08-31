@@ -27,10 +27,10 @@ const statements = [
     level.tier, level.timeStandardSeconds, level.accuracyThreshold, level.videoUrl,
   ]))}`,
   `INSERT INTO mastery_worksheets (id,level_id,worksheet_index,worksheet_type) VALUES\n${rows(worksheets)}`,
-  "INSERT INTO mastery_students (id,display_name,placement_level_index,current_level_id,daily_page_target) VALUES ('demo-student','Alex',1,'subskill-f1u1',3)",
+  "INSERT INTO mastery_students (id,display_name,placement_level_index,current_level_id,daily_page_target) VALUES ('demo-student','Alex',1,'subskill-f1a',3)",
   "PRAGMA foreign_keys = ON",
   "PRAGMA optimize",
 ];
 
-await writeFile(new URL("../drizzle/0009_pdf_aligned_student_subskills.sql", import.meta.url), `${statements.join(";\n\n")};\n`, "utf8");
+await writeFile(new URL("../drizzle/0010_detailed_181_level_curriculum.sql", import.meta.url), `${statements.join(";\n\n")};\n`, "utf8");
 console.log(`Generated migration for ${studentSubskills.length} subskills and ${worksheets.length} worksheets.`);

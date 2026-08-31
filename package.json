@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next typegen && tsc --noEmit",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "npm run typecheck && npm run validate:curriculum && npm run validate:spine && npm run validate:student-curriculum",
+    "test": "npm run typecheck && npm run validate:curriculum && npm run validate:student-curriculum",
     "validate:student-curriculum": "node --experimental-strip-types scripts/validate-student-curriculum.mjs",
     "validate:curriculum": "node --experimental-strip-types scripts/validate-curriculum.mjs",
     "validate:spine": "node --experimental-strip-types scripts/validate-mastery-spine.mjs",

@@ -9,7 +9,7 @@ import { categoryIncludesStrand, getMasteryCategory } from "@/lib/masteryCategor
 import type { SpineLevelRow } from "@/lib/masteryDb";
 import { studentSkills as masterySkills, studentSubskills as masteryLevels, studentWorksheetIdFor as worksheetIdFor } from "@/lib/studentCurriculum";
 
-const previewLevelCodes = new Set(["A1U1"]);
+const previewLevelCodes = new Set(["A1a", "A1b"]);
 const applyPreviewAccess = (levels: SpineLevelRow[]) => levels.map((level) => previewLevelCodes.has(level.code) && level.state === "locked" ? { ...level, state: "current" as const } : level);
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
 const initialLevels: SpineLevelRow[] = masteryLevels.map((level, index) => ({
@@ -43,8 +43,7 @@ export function CategoryOverview() {
 
   if (!category) return <AppShell role="student"><p>Category not found.</p></AppShell>;
   const mastered = visible.filter((level) => level.state === "mastered").length;
-  const hardPracticeCount = skillGroups.length;
-  const totalLevels = visible.length + hardPracticeCount;
+  const totalLevels = visible.length;
   const percent = totalLevels ? Math.round(mastered / totalLevels * 100) : 0;
 
   return <AppShell role="student" title={category.name}>
@@ -67,7 +66,7 @@ export function CategoryOverview() {
         return <section className="workbook-card overflow-hidden" key={skill.code}>
           <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] bg-[#f7f4ed] px-5 py-5 md:px-7">
             <div><p className="label" style={{ color: category.color }}>{skill.code}</p><h3 className="academic-heading mt-2 text-2xl">{skill.name}</h3></div>
-            <p className="text-xs font-bold text-[var(--muted)]">{skillMastered} / {skillLevels.length + 1} levels complete</p>
+            <p className="text-xs font-bold text-[var(--muted)]">{skillMastered} / {skillLevels.length} levels complete</p>
           </header>
           <div>{skillLevels.map((level) => {
             const Icon = level.state === "mastered" ? Check : level.state === "current" ? MapPin : LockKeyhole;

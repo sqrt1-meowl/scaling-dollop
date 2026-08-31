@@ -10,8 +10,8 @@ if (errors.length) {
 }
 
 const expectedCategoryCounts = new Map([
-  ["algebra", 15], ["advanced-math", 9], ["problem-solving-data-analysis", 17],
-  ["geometry-trigonometry", 12], ["foundations-skills", 8],
+  ["algebra", 43], ["advanced-math", 36], ["problem-solving-data-analysis", 42],
+  ["geometry-trigonometry", 33], ["foundations-skills", 27],
 ]);
 
 for (const category of masteryCategories) {
@@ -30,7 +30,7 @@ for (const level of studentSubskills) {
   }
 }
 
-const checkpoints = new Map([[1, "F1U1"], [6, "A1U1"], [21, "M1U1"], [30, "P1U1"], [47, "G1U1"], [61, "C1U3"]]);
+const checkpoints = new Map([[1, "F1a"], [27, "F4R"], [28, "A1a"], [70, "A5R"], [71, "M1a"], [106, "M3R"], [107, "D1a"], [148, "D-R"], [149, "G1a"], [181, "G4R"]]);
 for (const [sequence, code] of checkpoints) {
   if (studentSubskills[sequence - 1]?.code !== code) {
     console.error(`Sequence ${sequence} should be ${code}; found ${studentSubskills[sequence - 1]?.code ?? "nothing"}.`);
@@ -38,5 +38,5 @@ for (const [sequence, code] of checkpoints) {
   }
 }
 
-console.log(`Validated ${studentSubskillCounts.total} PDF-aligned subskills across ${studentSkills.length} skill groups and ${studentStrands.length} strands.`);
+console.log(`Validated ${studentSubskillCounts.total} detailed SAT Math levels across ${studentSkills.length} skill groups and ${studentStrands.length} strands.`);
 console.log(`Dashboard categories: ${masteryCategories.map((category) => `${category.name} ${studentSubskills.filter((level) => categoryIncludesStrand(category, level.strandCode)).length}`).join(", ")}.`);
