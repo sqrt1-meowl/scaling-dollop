@@ -16,6 +16,12 @@ const previewLevelCodes = new Set([
   "G3U1", "G3U2",
   "G4U1", "G4U2",
 ]);
+const geometryHardWorksheets = new Map([
+  ["G1", "ws-g1u3-05"],
+  ["G2", "ws-g2u3-05"],
+  ["G3", "ws-g3u2-05"],
+  ["G4", "ws-g4u2-05"],
+]);
 const applyPreviewAccess = (levels: SpineLevelRow[]) => levels.map((level) => previewLevelCodes.has(level.code) && level.state === "locked" ? { ...level, state: "current" as const } : level);
 const skillNames = new Map(masterySkills.map((skill) => [skill.code, skill.name]));
 const initialLevels: SpineLevelRow[] = masteryLevels.map((level) => ({
@@ -70,6 +76,7 @@ export function CategoryOverview() {
     <div className="grid gap-6">
       {skillGroups.map(({ skill, levels: skillLevels }) => {
         const skillMastered = skillLevels.filter((level) => level.state === "mastered").length;
+        const hardWorksheetId = geometryHardWorksheets.get(skill.code);
         return <section className="workbook-card overflow-hidden" key={skill.code}>
           <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] bg-[#f7f4ed] px-5 py-5 md:px-7">
             <div><p className="label" style={{ color: category.color }}>{skill.code}</p><h3 className="academic-heading mt-2 text-2xl">{skill.name}</h3></div>
@@ -87,10 +94,11 @@ export function CategoryOverview() {
               {level.state === "current" && previewLevelCodes.has(level.code) && <Link className="btn-primary" href={`/worksheet/${worksheetIdFor(level.code, 1)}`}>Continue<ArrowRight size={14}/></Link>}
             </div>;
           })}
-            {["A", "M", "D", "G"].includes(skill.strandCode) && <div className="category-level-row locked">
-              <div className="category-node locked"><Flame size={15}/></div>
+            {["A", "M", "D", "G"].includes(skill.strandCode) && <div className={`category-level-row ${hardWorksheetId ? "current" : "locked"}`}>
+              <div className={`category-node ${hardWorksheetId ? "current" : "locked"}`}><Flame size={15}/></div>
               <div className="min-w-0 flex-1"><b className="font-mono text-sm">{skill.code}H</b><p className="mt-1 text-sm leading-5">Hard question practice</p></div>
-              <span className="category-state locked">Not started</span>
+              <span className={`category-state ${hardWorksheetId ? "current" : "locked"}`}>{hardWorksheetId ? "Started" : "Not started"}</span>
+              {hardWorksheetId && <Link className="btn-primary" href={`/worksheet/${hardWorksheetId}`}>Start<ArrowRight size={14}/></Link>}
             </div>}
           </div>
         </section>;

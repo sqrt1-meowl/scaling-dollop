@@ -128,10 +128,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .worksheet-band-map span { font-family: Georgia, serif; font-size: 16px; font-weight: 500; opacity: .5; }
 .worksheet-band-map .active { background: var(--navy); color: white; }
 .worksheet-band-map .complete { background: #edf4ef; color: #2f6a49; }
+.worksheet-band-map.hard-only { grid-template-columns: 1fr; }
 .worksheet-problem { margin-top: 14px; border: 1px solid var(--line); border-top: 5px solid var(--navy); background: #fffdf8; }
 .worksheet-problem.band-applied { border-top-color: var(--data); }
 .worksheet-problem.band-medium { border-top-color: var(--data); }
 .worksheet-problem.band-sat { border-top-color: var(--geometry); }
+.worksheet-problem.band-hard { border-top-color: var(--geometry); }
+.worksheet-question-body.has-figure { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: center; gap: 10px; padding-right: 24px; }
+.worksheet-question-body.has-figure .worksheet-prompt { padding-right: 12px; }
+.worksheet-question-body > svg { width: 100%; max-width: 280px; margin: 24px auto; border: 1px solid var(--line); background: #f7f4ed; padding: 12px; }
+.worksheet-question-body > svg text { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; }
 .worksheet-problem-meta { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 16px 24px; }
 .worksheet-problem-meta > div { display: flex; align-items: center; gap: 13px; }
 .worksheet-problem-meta > div > span { font-family: Georgia, serif; font-size: 26px; color: #b8bec5; }
@@ -175,6 +181,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .worksheet-band-map div { gap: 4px; padding: 9px 5px; font-size: 9px; letter-spacing: .04em; }
   .worksheet-problem-meta { align-items: start; padding: 14px 16px; }
   .worksheet-prompt { min-height: 130px; padding: 30px 20px; }
+  .worksheet-question-body.has-figure { grid-template-columns: 1fr; gap: 0; padding-right: 0; }
+  .worksheet-question-body.has-figure .worksheet-prompt { padding-bottom: 8px; padding-right: 20px; }
+  .worksheet-question-body > svg { max-width: 260px; margin: 0 auto 24px; }
   .worksheet-choices { grid-template-columns: 1fr; padding: 0 16px 22px; }
   .worksheet-spr { padding: 0 16px 24px; }
   .worksheet-forward { align-items: stretch; flex-direction: column; padding: 15px 16px; }
