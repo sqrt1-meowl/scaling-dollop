@@ -19,7 +19,7 @@ type HardProblem = {
   hardFigure?: GeometryHardFigureType;
 };
 
-const hardSets: Record<GeometryHardCode, { title: string; problems: HardProblem[] }> = {
+export const geometryHardSets: Record<GeometryHardCode, { title: string; problems: HardProblem[] }> = {
   G1H: {
     title: "Area and volume — Hard Practice",
     problems: [
@@ -54,12 +54,15 @@ const hardSets: Record<GeometryHardCode, { title: string; problems: HardProblem[
   },
 };
 
-const correctAnswers: Record<string, string> = {
+export const geometryHardCorrectAnswers: Record<string, string> = {
   "g1h-1": "181", "g1h-2": "9", "g1h-3": "2",
   "g2h-1": "68°", "g2h-2": "18", "g2h-3": "8",
   "g3h-1": "8", "g3h-2": "45 tan 38°", "g3h-3": "15",
   "g4h-1": "6", "g4h-2": "12", "g4h-3": "72",
 };
+
+const hardSets = geometryHardSets;
+const correctAnswers = geometryHardCorrectAnswers;
 
 const formatElapsed = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 

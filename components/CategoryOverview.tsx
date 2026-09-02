@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Flame, LockKeyhole, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Flame, LockKeyhole, MapPin, RotateCcw } from "lucide-react";
 import { AppShell } from "./AppShell";
 import { categoryIncludesStrand, getMasteryCategory } from "@/lib/masteryCategories";
 import type { SpineLevelRow } from "@/lib/masteryDb";
@@ -94,12 +94,18 @@ export function CategoryOverview() {
               {level.state === "current" && previewLevelCodes.has(level.code) && <Link className="btn-primary" href={`/worksheet/${worksheetIdFor(level.code, 1)}`}>Continue<ArrowRight size={14}/></Link>}
             </div>;
           })}
-            {["A", "M", "D", "G"].includes(skill.strandCode) && <div className={`category-level-row ${hardWorksheetId ? "current" : "locked"}`}>
+            {["A", "M", "D", "G"].includes(skill.strandCode) && <><div className={`category-level-row ${hardWorksheetId ? "current" : "locked"}`}>
               <div className={`category-node ${hardWorksheetId ? "current" : "locked"}`}><Flame size={15}/></div>
               <div className="min-w-0 flex-1"><b className="font-mono text-sm">{skill.code}H</b><p className="mt-1 text-sm leading-5">Hard question practice</p></div>
               <span className={`category-state ${hardWorksheetId ? "current" : "locked"}`}>{hardWorksheetId ? "Started" : "Not started"}</span>
               {hardWorksheetId && <Link className="btn-primary" href={`/worksheet/${hardWorksheetId}`}>Start<ArrowRight size={14}/></Link>}
-            </div>}
+            </div>
+            <div className={`category-level-row ${hardWorksheetId ? "current" : "locked"}`}>
+              <div className={`category-node ${hardWorksheetId ? "current" : "locked"}`}><RotateCcw size={15}/></div>
+              <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Review mistakes</p><p className="mt-1 text-xs leading-5 text-[var(--muted)]">Mistakes from Hard Question Practice</p></div>
+              <span className={`category-state ${hardWorksheetId ? "current" : "locked"}`}>{hardWorksheetId ? "Ready" : "After practice"}</span>
+              {hardWorksheetId && <Link className="btn-secondary" href={`/worksheet/${hardWorksheetId}/mistakes`}>Review<ArrowRight size={14}/></Link>}
+            </div></>}
           </div>
         </section>;
       })}
