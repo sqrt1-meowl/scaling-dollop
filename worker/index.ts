@@ -1,6 +1,8 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
-import { getSpineForStudent, isKnownWorksheetId, startOrResumeAttempt, studentIdFromHeaders } from "@/lib/masteryDb";
+import {
+  getMistakes, getSpineForStudent, isKnownWorksheetId, recordMistake, startOrResumeAttempt, studentIdFromHeaders,
+} from "@/lib/masteryDb";
 
 interface Fetcher { fetch(request: Request): Promise<Response>; }
 interface Env { DB: D1Database; ASSETS: Fetcher; IMAGES: { input(stream: ReadableStream): { transform(options: Record<string, unknown>): { output(options: { format: string; quality: number }): Promise<{ response(): Response }> } } }; }
@@ -31,6 +33,35 @@ const worker = {
       } catch (error) {
         console.error("Unable to start mastery attempt", error);
         return Response.json({ error: "The worksheet timer could not start." }, { status: 500 });
+      }
+    }
+    if (url.pathname === "/api/mastery/mistakes" && request.method === "GET") {
+      try {
+        const worksheetId = url.searchParams.get("worksheetId") || "";
+        if (!isKnownWorksheetId(worksheetId)) return Response.json({ error: "Unknown worksheet." }, { status: 400 });
+        const mistakes = await getMistakes(env.DB, studentIdFromHeaders(request.headers), worksheetId);
+        return Response.json({ mistakes });
+      } catch (error) {
+        console.error("Unable to load worksheet mistakes", error);
+        return Response.json({ error: "The mistake tracker is temporarily unavailable." }, { status: 500 });
+      }
+    }
+    if (url.pathname === "/api/mastery/mistakes" && request.method === "POST") {
+      try {
+        const body = await request.json() as { worksheetId?: string; problemId?: string; givenAnswer?: string };
+        if (!body.worksheetId || !isKnownWorksheetId(body.worksheetId)) {
+          return Response.json({ error: "Unknown worksheet." }, { status: 400 });
+        }
+        const problemId = body.problemId?.trim() || "";
+        const givenAnswer = body.givenAnswer?.trim() || "";
+        if (!problemId || problemId.length > 100 || !givenAnswer || givenAnswer.length > 200) {
+          return Response.json({ error: "A valid problem and answer are required." }, { status: 400 });
+        }
+        const mistake = await recordMistake(env.DB, studentIdFromHeaders(request.headers), body.worksheetId, problemId, givenAnswer);
+        return Response.json({ mistake });
+      } catch (error) {
+        console.error("Unable to record worksheet mistake", error);
+        return Response.json({ error: "The mistake could not be saved." }, { status: 500 });
       }
     }
     if (url.pathname === "/_vinext/image") {

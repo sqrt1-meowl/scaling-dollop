@@ -20,6 +20,14 @@ export interface SpineLevelRow {
   state: "mastered" | "current" | "locked";
 }
 
+export interface MasteryMistakeRow {
+  problemId: string;
+  givenAnswer: string;
+  missCount: number;
+  firstMissedAt: string;
+  lastMissedAt: string;
+}
+
 const DEMO_STUDENT_ID = "demo-student";
 const STARTING_UNIT_CODE = "X1";
 const startingUnit = masteryLevels.find((level) => level.code === STARTING_UNIT_CODE)!;
@@ -129,6 +137,34 @@ export async function startOrResumeAttempt(db: D1Database, studentId: string, wo
     VALUES (?,?,?,CURRENT_TIMESTAMP)`).bind(attemptId, studentId, worksheetId).run();
   return db.prepare("SELECT id,started_at AS startedAt FROM mastery_attempts WHERE id=?")
     .bind(attemptId).first<{ id: string; startedAt: string }>();
+}
+
+export async function getMistakes(db: D1Database, studentId: string, worksheetId: string) {
+  await ensureMasteryDatabase(db);
+  await ensureStudent(db, studentId);
+  const result = await db.prepare(`SELECT
+      problem_id AS problemId, given_answer AS givenAnswer, miss_count AS missCount,
+      first_missed_at AS firstMissedAt, last_missed_at AS lastMissedAt
+    FROM mastery_mistakes
+    WHERE student_id = ? AND worksheet_id = ?
+    ORDER BY last_missed_at DESC`).bind(studentId, worksheetId).all<MasteryMistakeRow>();
+  return result.results;
+}
+
+export async function recordMistake(db: D1Database, studentId: string, worksheetId: string, problemId: string, givenAnswer: string) {
+  await ensureMasteryDatabase(db);
+  await ensureStudent(db, studentId);
+  await db.prepare(`INSERT INTO mastery_mistakes
+      (student_id,worksheet_id,problem_id,given_answer,miss_count,first_missed_at,last_missed_at)
+    VALUES (?,?,?,?,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+    ON CONFLICT(student_id,worksheet_id,problem_id) DO UPDATE SET
+      given_answer=excluded.given_answer,
+      miss_count=mastery_mistakes.miss_count+1,
+      last_missed_at=CURRENT_TIMESTAMP`).bind(studentId, worksheetId, problemId, givenAnswer).run();
+  return db.prepare(`SELECT problem_id AS problemId, given_answer AS givenAnswer, miss_count AS missCount,
+      first_missed_at AS firstMissedAt, last_missed_at AS lastMissedAt
+    FROM mastery_mistakes WHERE student_id=? AND worksheet_id=? AND problem_id=?`)
+    .bind(studentId, worksheetId, problemId).first<MasteryMistakeRow>();
 }
 
 export function isKnownWorksheetId(worksheetId: string) {

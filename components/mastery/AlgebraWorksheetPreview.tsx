@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { MistakeBadge, MistakeReview, useWorksheetReview } from "./WorksheetReview";
 
 type Band = "EASY" | "MEDIUM";
 type PreviewProblem = { id: string; band: Band; stem: string; choices?: string[]; answerFormat: "MC" | "SPR" };
@@ -38,7 +39,7 @@ const content: Record<"A1U1" | "A1U2", PreviewContent> = {
       { id: "a1u2-m1", band: "MEDIUM", stem: "A taxi fare is $3.50 plus $2.25 per mile. The total fare is $17. What distance was traveled?", choices: ["5", "6", "7", "8"], answerFormat: "MC" },
       { id: "a1u2-m2", band: "MEDIUM", stem: "One number is three times another. Their difference is 28. What is the smaller number?", choices: ["7", "12", "14", "21"], answerFormat: "MC" },
       { id: "a1u2-m3", band: "MEDIUM", stem: "The formula A = (b₁ + b₂)h/2 gives trapezoid area. Which expression gives h?", choices: ["2A/(b₁ + b₂)", "A/(2b₁ + 2b₂)", "2A − b₁ − b₂", "A(b₁ + b₂)/2"], answerFormat: "MC" },
-      { id: "a1u2-m4", band: "MEDIUM", stem: "A theater sold adult tickets for $14 and student tickets for $9. If 12 more student tickets than adult tickets were sold for $318, how many adult tickets were sold?", choices: ["6", "8", "9", "12"], answerFormat: "MC" },
+      { id: "a1u2-m4", band: "MEDIUM", stem: "A theater sold adult tickets for $14 and student tickets for $9. If 12 more student tickets than adult tickets were sold for $315, how many adult tickets were sold?", choices: ["6", "8", "9", "12"], answerFormat: "MC" },
       { id: "a1u2-m5", band: "MEDIUM", stem: "The formula P = 2L + 2W gives perimeter. If P = 54 and L = 16, what is W?", answerFormat: "SPR" },
     ],
   },
@@ -49,6 +50,13 @@ const bandCopy: Record<Band, { number: string; title: string; note: string }> = 
   MEDIUM: { number: "03", title: "Medium", note: "One more layer of reasoning or setup." },
 };
 
+const correctAnswers: Record<string, string> = {
+  "a1u1-e1": "5", "a1u1-e2": "7", "a1u1-e3": "5", "a1u1-e4": "5", "a1u1-e5": "−3",
+  "a1u1-m1": "4", "a1u1-m2": "5", "a1u1-m3": "10", "a1u1-m4": "18", "a1u1-m5": "5",
+  "a1u2-e1": "5", "a1u2-e2": "12", "a1u2-e3": "d/r", "a1u2-e4": "6", "a1u2-e5": "6",
+  "a1u2-m1": "6", "a1u2-m2": "14", "a1u2-m3": "2A/(b₁ + b₂)", "a1u2-m4": "9", "a1u2-m5": "11",
+};
+
 const formatElapsed = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
 export function AlgebraWorksheetPreview({ worksheetId, levelCode, levelName }: { worksheetId: string; levelCode: "A1U1" | "A1U2"; levelName: string }) {
@@ -56,10 +64,9 @@ export function AlgebraWorksheetPreview({ worksheetId, levelCode, levelName }: {
   const [attempt, setAttempt] = useState<{ id: string; startedAt: string } | null>(null);
   const [timerError, setTimerError] = useState("");
   const [elapsed, setElapsed] = useState(0);
-  const [problemIndex, setProblemIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
   const [complete, setComplete] = useState(false);
-  const problem = lesson.problems[problemIndex];
+  const review = useWorksheetReview({ worksheetId, problems: lesson.problems, correctAnswers });
+  const { problemIndex, problem, answer, setAnswer, advance, previous, mistakes, trackerError } = review;
   const band = problem?.band ?? "MEDIUM";
   const bandProblems = useMemo(() => lesson.problems.filter((item) => item.band === band), [band, lesson.problems]);
   const bandPosition = problem ? bandProblems.findIndex((item) => item.id === problem.id) + 1 : bandProblems.length;
@@ -82,26 +89,27 @@ export function AlgebraWorksheetPreview({ worksheetId, levelCode, levelName }: {
 
   const continueForward = () => {
     if (!answer.trim()) return;
-    if (problemIndex === lesson.problems.length - 1) { setComplete(true); return; }
-    setProblemIndex((value) => value + 1);
-    setAnswer("");
+    if (advance()) setComplete(true);
   };
 
   return <AppShell role="student" title={`${levelCode} · Page 01`}>
     <div className="worksheet-player">
       <header className="worksheet-player-header">
         <div><Link href="/category/algebra" className="label text-[var(--muted)] hover:text-[var(--ink)]">← Algebra</Link><h2 className="academic-heading mt-3 text-3xl md:text-4xl">{levelName}</h2><p className="mt-2 text-sm text-[var(--muted)]">{levelCode} · Practice worksheet 1 of 5</p></div>
-        <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        <div className="worksheet-header-tools">
+          <MistakeBadge count={mistakes.length} error={trackerError}/>
+          <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        </div>
       </header>
 
       <section className="worked-example-box"><div className="worked-example-label">Worked example</div><div><p className="font-semibold">{lesson.examplePrompt}</p><p className="mt-2 text-sm leading-6 text-[var(--muted)]">{lesson.exampleWork}</p></div></section>
       <div className="worksheet-band-map" aria-label="Worksheet progression"><div className="complete"><span>01</span>Example</div>{(Object.keys(bandCopy) as Band[]).map((item) => { const bandIndex = (Object.keys(bandCopy) as Band[]).indexOf(item); const currentBandIndex = (Object.keys(bandCopy) as Band[]).indexOf(band); return <div key={item} className={complete || bandIndex < currentBandIndex ? "complete" : item === band ? "active" : ""}><span>{bandCopy[item].number}</span>{bandCopy[item].title}</div>; })}</div>
 
-      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Preview complete</p><h3 className="academic-heading mt-2 text-3xl">Example, Easy, and Medium complete.</h3><Link href="/category/algebra" className="btn-primary mt-7">Return to Algebra<ArrowRight size={15}/></Link></section> : <section className={`worksheet-problem band-${band.toLowerCase()}`}>
+      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Worksheet complete</p><h3 className="academic-heading mt-2 text-3xl">Example, Easy, and Medium complete.</h3><MistakeReview mistakes={mistakes} problems={lesson.problems} correctAnswers={correctAnswers}/><Link href="/category/algebra" className="btn-primary mt-7">Return to Algebra<ArrowRight size={15}/></Link></section> : <section className={`worksheet-problem band-${band.toLowerCase()}`}>
         <div className="worksheet-problem-meta"><div><span>{bandCopy[band].number}</span><div><b>{bandCopy[band].title}</b><p>{bandCopy[band].note}</p></div></div><p>{bandPosition} of {bandProblems.length}</p></div>
         <div className="worksheet-prompt">{problem.stem}</div>
         {problem.answerFormat === "MC" ? <div className="worksheet-choices">{problem.choices?.map((choice, index) => <button key={choice} type="button" onClick={() => setAnswer(choice)} className={answer === choice ? "selected" : ""}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div> : <label className="worksheet-spr"><span>Student-produced response</span><input value={answer} onChange={(event) => setAnswer(event.target.value)} inputMode="decimal" placeholder="Enter your answer"/></label>}
-        <footer className="worksheet-forward"><p>Answers move forward only. There is no back button inside a band.</p><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === lesson.problems.length - 1 ? "Finish preview" : "Next problem"}<ArrowRight size={15}/></button></footer>
+        <footer className="worksheet-forward"><p>Use Previous and Next to move through this worksheet.</p><div className="worksheet-actions"><button type="button" className="btn-secondary" disabled={problemIndex === 0} onClick={previous}><ArrowLeft size={15}/>Previous</button><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === lesson.problems.length - 1 ? "Finish worksheet" : "Next problem"}<ArrowRight size={15}/></button></div></footer>
       </section>}
     </div>
   </AppShell>;

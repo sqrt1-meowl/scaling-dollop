@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { GeometryFigure, type GeometryFigureType } from "./GeometryFigure";
+import { MistakeBadge, MistakeReview, useWorksheetReview } from "./WorksheetReview";
 
 export type GeometryLevelCode =
   | "G1U1" | "G1U2" | "G1U3"
@@ -135,6 +136,19 @@ const bandCopy: Record<Band, { number: string; title: string; note: string }> = 
   MEDIUM: { number: "03", title: "Medium", note: "One more layer of reasoning or setup." },
 };
 
+const correctAnswers: Record<string, string> = {
+  "g1u1-e1": "63", "g1u1-e2": "36π", "g1u1-m1": "74", "g1u1-m2": "12",
+  "g1u2-e1": "180", "g1u2-e2": "64", "g1u2-m1": "125", "g1u2-m2": "12",
+  "g1u3-e1": "12", "g1u3-e2": "24 feet", "g1u3-m1": "4:25", "g1u3-m2": "280",
+  "g2u1-e1": "47°", "g2u1-e2": "55°", "g2u1-m1": "14", "g2u1-m2": "26",
+  "g2u2-e1": "70°", "g2u2-e2": "72°", "g2u2-m1": "75°", "g2u2-m2": "30",
+  "g2u3-e1": "2.5", "g2u3-e2": "20", "g2u3-m1": "27 feet", "g2u3-m2": "9",
+  "g3u1-e1": "13", "g3u1-e2": "10", "g3u1-m1": "12", "g3u1-m2": "14",
+  "g3u2-e1": "5/13", "g3u2-e2": "0.6", "g3u2-m1": "tan⁻¹(4/10)", "g3u2-m2": "150",
+  "g4u1-e1": "90°", "g4u1-e2": "4π", "g4u1-m1": "67°", "g4u1-m2": "24",
+  "g4u2-e1": "7", "g4u2-e2": "(6, 3)", "g4u2-m1": "(3, −4)", "g4u2-m2": "25",
+};
+
 const formatElapsed = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
 export function GeometryWorksheetPreview({ worksheetId, levelCode, levelName }: { worksheetId: string; levelCode: GeometryLevelCode; levelName: string }) {
@@ -142,10 +156,9 @@ export function GeometryWorksheetPreview({ worksheetId, levelCode, levelName }: 
   const [attempt, setAttempt] = useState<{ id: string; startedAt: string } | null>(null);
   const [timerError, setTimerError] = useState("");
   const [elapsed, setElapsed] = useState(0);
-  const [problemIndex, setProblemIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
   const [complete, setComplete] = useState(false);
-  const problem = lesson.problems[problemIndex];
+  const review = useWorksheetReview({ worksheetId, problems: lesson.problems, correctAnswers });
+  const { problemIndex, problem, answer, setAnswer, advance, previous, mistakes, trackerError } = review;
   const band = problem?.band ?? "MEDIUM";
   const bandProblems = useMemo(() => lesson.problems.filter((item) => item.band === band), [band, lesson.problems]);
   const bandPosition = problem ? bandProblems.findIndex((item) => item.id === problem.id) + 1 : bandProblems.length;
@@ -168,26 +181,27 @@ export function GeometryWorksheetPreview({ worksheetId, levelCode, levelName }: 
 
   const continueForward = () => {
     if (!answer.trim()) return;
-    if (problemIndex === lesson.problems.length - 1) { setComplete(true); return; }
-    setProblemIndex((value) => value + 1);
-    setAnswer("");
+    if (advance()) setComplete(true);
   };
 
   return <AppShell role="student" title={`${levelCode} · Page 01`}>
     <div className="worksheet-player">
       <header className="worksheet-player-header">
         <div><Link href="/category/geometry-trigonometry" className="label text-[var(--muted)] hover:text-[var(--ink)]">← Geometry &amp; Trigonometry</Link><h2 className="academic-heading mt-3 text-3xl md:text-4xl">{levelName}</h2><p className="mt-2 text-sm text-[var(--muted)]">{levelCode} · Practice worksheet 1 of 5</p></div>
-        <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        <div className="worksheet-header-tools">
+          <MistakeBadge count={mistakes.length} error={trackerError}/>
+          <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        </div>
       </header>
 
       <section className="worked-example-box"><div className="worked-example-label">Worked example</div><div><p className="font-semibold">{lesson.examplePrompt}</p><p className="mt-2 text-sm leading-6 text-[var(--muted)]">{lesson.exampleWork}</p></div></section>
       <div className="worksheet-band-map" aria-label="Worksheet progression"><div className="complete"><span>01</span>Example</div>{(Object.keys(bandCopy) as Band[]).map((item) => { const bandIndex = (Object.keys(bandCopy) as Band[]).indexOf(item); const currentBandIndex = (Object.keys(bandCopy) as Band[]).indexOf(band); return <div key={item} className={complete || bandIndex < currentBandIndex ? "complete" : item === band ? "active" : ""}><span>{bandCopy[item].number}</span>{bandCopy[item].title}</div>; })}</div>
 
-      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Worksheet complete</p><h3 className="academic-heading mt-2 text-3xl">Example, Easy, and Medium complete.</h3><Link href="/category/geometry-trigonometry" className="btn-primary mt-7">Return to Geometry &amp; Trigonometry<ArrowRight size={15}/></Link></section> : <section className={`worksheet-problem band-${band.toLowerCase()}`}>
+      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Worksheet complete</p><h3 className="academic-heading mt-2 text-3xl">Example, Easy, and Medium complete.</h3><MistakeReview mistakes={mistakes} problems={lesson.problems} correctAnswers={correctAnswers}/><Link href="/category/geometry-trigonometry" className="btn-primary mt-7">Return to Geometry &amp; Trigonometry<ArrowRight size={15}/></Link></section> : <section className={`worksheet-problem band-${band.toLowerCase()}`}>
         <div className="worksheet-problem-meta"><div><span>{bandCopy[band].number}</span><div><b>{bandCopy[band].title}</b><p>{bandCopy[band].note}</p></div></div><p>{bandPosition} of {bandProblems.length}</p></div>
         <div className={`worksheet-question-body ${problem.figure ? "has-figure" : ""}`}><div className="worksheet-prompt">{problem.stem}</div>{problem.figure && <GeometryFigure type={problem.figure}/>}</div>
         {problem.answerFormat === "MC" ? <div className="worksheet-choices">{problem.choices?.map((choice, index) => <button key={choice} type="button" onClick={() => setAnswer(choice)} className={answer === choice ? "selected" : ""}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div> : <label className="worksheet-spr"><span>Student-produced response</span><input value={answer} onChange={(event) => setAnswer(event.target.value)} inputMode="decimal" placeholder="Enter your answer"/></label>}
-        <footer className="worksheet-forward"><p>Answers move forward only. There is no back button inside a band.</p><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === lesson.problems.length - 1 ? "Finish worksheet" : "Next problem"}<ArrowRight size={15}/></button></footer>
+        <footer className="worksheet-forward"><p>Use Previous and Next to move through this worksheet.</p><div className="worksheet-actions"><button type="button" className="btn-secondary" disabled={problemIndex === 0} onClick={previous}><ArrowLeft size={15}/>Previous</button><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === lesson.problems.length - 1 ? "Finish worksheet" : "Next problem"}<ArrowRight size={15}/></button></div></footer>
       </section>}
     </div>
   </AppShell>;

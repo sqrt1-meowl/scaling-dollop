@@ -133,10 +133,20 @@ export const masterySchema = [
     mastered_at TEXT, last_reviewed_at TEXT,
     PRIMARY KEY (student_id, level_id)
   )`,
+  `CREATE TABLE IF NOT EXISTS mastery_mistakes (
+    student_id TEXT NOT NULL REFERENCES mastery_students(id) ON DELETE CASCADE,
+    worksheet_id TEXT NOT NULL REFERENCES mastery_worksheets(id) ON DELETE CASCADE,
+    problem_id TEXT NOT NULL, given_answer TEXT NOT NULL,
+    miss_count INTEGER NOT NULL DEFAULT 1 CHECK (miss_count > 0),
+    first_missed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_missed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (student_id, worksheet_id, problem_id)
+  )`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_levels_strand_sequence ON mastery_levels(strand_code, sequence_index)`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_levels_skill_sequence ON mastery_levels(skill_code, sequence_index)`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_worksheets_level_index ON mastery_worksheets(level_id, worksheet_index)`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_problems_worksheet_band_position ON mastery_problems(worksheet_id, band, position)`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_attempts_student_worksheet_active ON mastery_attempts(student_id, worksheet_id, submitted_at)`,
   `CREATE INDEX IF NOT EXISTS idx_mastery_records_student_reviewed ON mastery_records(student_id, last_reviewed_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_mastery_mistakes_student_worksheet ON mastery_mistakes(student_id, worksheet_id, last_missed_at DESC)`,
 ] as const;

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, LoaderCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { GeometryFigure, type GeometryFigureType } from "./GeometryFigure";
 import { GeometryHardFigure, type GeometryHardFigureType } from "./GeometryHardFigure";
+import { MistakeBadge, MistakeReview, useWorksheetReview } from "./WorksheetReview";
 
 export type GeometryHardCode = "G1H" | "G2H" | "G3H" | "G4H";
 
@@ -53,6 +54,13 @@ const hardSets: Record<GeometryHardCode, { title: string; problems: HardProblem[
   },
 };
 
+const correctAnswers: Record<string, string> = {
+  "g1h-1": "181", "g1h-2": "9", "g1h-3": "2",
+  "g2h-1": "68°", "g2h-2": "18", "g2h-3": "8",
+  "g3h-1": "8", "g3h-2": "45 tan 38°", "g3h-3": "15",
+  "g4h-1": "6", "g4h-2": "12", "g4h-3": "72",
+};
+
 const formatElapsed = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
 export function GeometryHardPractice({ worksheetId, hardCode }: { worksheetId: string; hardCode: GeometryHardCode }) {
@@ -60,10 +68,9 @@ export function GeometryHardPractice({ worksheetId, hardCode }: { worksheetId: s
   const [attempt, setAttempt] = useState<{ id: string; startedAt: string } | null>(null);
   const [timerError, setTimerError] = useState("");
   const [elapsed, setElapsed] = useState(0);
-  const [problemIndex, setProblemIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
   const [complete, setComplete] = useState(false);
-  const problem = set.problems[problemIndex];
+  const review = useWorksheetReview({ worksheetId, problems: set.problems, correctAnswers });
+  const { problemIndex, problem, answer, setAnswer, advance, previous, mistakes, trackerError } = review;
 
   useEffect(() => {
     let active = true;
@@ -83,24 +90,25 @@ export function GeometryHardPractice({ worksheetId, hardCode }: { worksheetId: s
 
   const continueForward = () => {
     if (!answer.trim()) return;
-    if (problemIndex === set.problems.length - 1) { setComplete(true); return; }
-    setProblemIndex((value) => value + 1);
-    setAnswer("");
+    if (advance()) setComplete(true);
   };
 
   return <AppShell role="student" title={`${hardCode} · Hard Practice`}>
     <div className="worksheet-player">
       <header className="worksheet-player-header">
         <div><Link href="/category/geometry-trigonometry" className="label text-[var(--muted)] hover:text-[var(--ink)]">← Geometry &amp; Trigonometry</Link><h2 className="academic-heading mt-3 text-3xl md:text-4xl">{set.title}</h2><p className="mt-2 text-sm text-[var(--muted)]">{hardCode} · 3-question skill review</p></div>
-        <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        <div className="worksheet-header-tools">
+          <MistakeBadge count={mistakes.length} error={trackerError}/>
+          <div className={`worksheet-timer ${timerError ? "error" : ""}`} aria-live="polite">{attempt ? <Clock3 size={17}/> : <LoaderCircle className={!timerError ? "animate-spin" : ""} size={17}/>}<div><span>{timerError ? "Timer unavailable" : "Elapsed"}</span><b>{attempt ? formatElapsed(elapsed) : "--:--"}</b></div></div>
+        </div>
       </header>
 
       <div className="worksheet-band-map hard-only" aria-label="Hard Practice"><div className="active"><span>01</span>Hard</div></div>
-      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Hard Practice complete</p><h3 className="academic-heading mt-2 text-3xl">Three hard questions complete.</h3><Link href="/category/geometry-trigonometry" className="btn-primary mt-7">Return to Geometry &amp; Trigonometry<ArrowRight size={15}/></Link></section> : <section className="worksheet-problem band-hard">
+      {complete ? <section className="worksheet-complete"><div className="grid size-12 place-items-center rounded-full bg-[#e8f1eb] text-[#2f6a49]"><Check size={23}/></div><p className="label mt-5 text-[#2f6a49]">Hard Practice complete</p><h3 className="academic-heading mt-2 text-3xl">Three hard questions complete.</h3><MistakeReview mistakes={mistakes} problems={set.problems} correctAnswers={correctAnswers}/><Link href="/category/geometry-trigonometry" className="btn-primary mt-7">Return to Geometry &amp; Trigonometry<ArrowRight size={15}/></Link></section> : <section className="worksheet-problem band-hard">
         <div className="worksheet-problem-meta"><div><span>04</span><div><b>Hard</b><p>Mixed reasoning across the full skill.</p></div></div><p>{problemIndex + 1} of {set.problems.length}</p></div>
         <div className={`worksheet-question-body ${problem.figure || problem.hardFigure ? "has-figure" : ""}`}><div className="worksheet-prompt">{problem.stem}</div>{problem.figure && <GeometryFigure type={problem.figure}/>} {problem.hardFigure && <GeometryHardFigure type={problem.hardFigure}/>}</div>
         {problem.answerFormat === "MC" ? <div className="worksheet-choices">{problem.choices?.map((choice, index) => <button key={choice} type="button" onClick={() => setAnswer(choice)} className={answer === choice ? "selected" : ""}><span>{String.fromCharCode(65 + index)}</span>{choice}</button>)}</div> : <label className="worksheet-spr"><span>Student-produced response</span><input value={answer} onChange={(event) => setAnswer(event.target.value)} inputMode="decimal" placeholder="Enter your answer"/></label>}
-        <footer className="worksheet-forward"><p>Answers move forward only. There is no back button inside the set.</p><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === set.problems.length - 1 ? "Finish Hard Practice" : "Next problem"}<ArrowRight size={15}/></button></footer>
+        <footer className="worksheet-forward"><p>Use Previous and Next to move through this set.</p><div className="worksheet-actions"><button type="button" className="btn-secondary" disabled={problemIndex === 0} onClick={previous}><ArrowLeft size={15}/>Previous</button><button type="button" className="btn-primary" disabled={!answer.trim()} onClick={continueForward}>{problemIndex === set.problems.length - 1 ? "Finish Hard Practice" : "Next problem"}<ArrowRight size={15}/></button></div></footer>
       </section>}
     </div>
   </AppShell>;
